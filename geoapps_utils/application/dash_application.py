@@ -25,6 +25,7 @@ from typing import Any
 import numpy as np
 from dash import Dash, callback_context, dcc, no_update
 from dash.dependencies import Input, Output, State
+from dash.development.base_component import Component
 from flask import Flask
 from geoh5py.data import Data
 from geoh5py.groups import PropertyGroup
@@ -178,7 +179,7 @@ class BaseDashApplication(ABC):
         return output_dict
 
     @staticmethod
-    def init_vals(layout: list, ui_json_data: dict):
+    def init_vals(layout: list[Component], ui_json_data: dict):
         """
         Initialize dash components in layout from ui_json_data.
 
@@ -186,30 +187,37 @@ class BaseDashApplication(ABC):
         :param ui_json_data: Uploaded ui.json data.
         """
         for comp in layout:
-            if hasattr(comp, "children") and not isinstance(comp, dcc.Markdown):
-                BaseDashApplication.init_vals(comp.children, ui_json_data)
+            BaseDashApplication._init_component(comp, ui_json_data)
+
+    @staticmethod
+    def _init_component(comp: Component, ui_json_data: dict):
+        if hasattr(comp, "children") and not isinstance(comp, dcc.Markdown):
+            BaseDashApplication.init_vals(comp.children, ui_json_data)
+            return
+
+        if hasattr(comp, "id") and comp.id in ui_json_data:
+            if isinstance(comp, dcc.Store):
+                comp.data = ui_json_data[comp.id]
+                return
+
+            if isinstance(comp, dcc.Dropdown):
+                comp.value = ui_json_data[comp.id]
+                if comp.value is None:
+                    comp.value = "None"
+                if not hasattr(comp, "options"):
+                    comp_option = ui_json_data[comp.id]
+                    if comp_option is None:
+                        comp_option = "None"
+                    comp.options = [comp_option]
+                return
+
+            if isinstance(comp, dcc.Checklist):
+                if ui_json_data[comp.id]:
+                    comp.value = [True]
+                else:
+                    comp.value = []
             else:
-                if hasattr(comp, "id") and comp.id in ui_json_data:
-                    if isinstance(comp, dcc.Store):
-                        comp.data = ui_json_data[comp.id]
-                    else:
-                        if isinstance(comp, dcc.Dropdown):
-                            if not hasattr(comp, "options"):
-                                if ui_json_data[comp.id] is None:
-                                    comp.options = ["None"]
-                                else:
-                                    comp.options = [ui_json_data[comp.id]]
-                            if ui_json_data[comp.id] is None:
-                                comp.value = "None"
-                            else:
-                                comp.value = ui_json_data[comp.id]
-                        elif isinstance(comp, dcc.Checklist):
-                            if ui_json_data[comp.id]:
-                                comp.value = [True]
-                            else:
-                                comp.value = []
-                        else:
-                            comp.value = ui_json_data[comp.id]
+                comp.value = ui_json_data[comp.id]
 
     @staticmethod
     def update_visibility_from_checklist(checklist_val: list[bool]) -> dict:
@@ -355,45 +363,36 @@ class ObjectSelection:
             return no_update, objects, ui_json_data, None, None
 
         object_options, object_value = no_update, None
-        if contents is not None or trigger == "":
-            if filename is not None:
-                if filename.endswith(".ui.json"):
-                    # Uploaded ui.json
-                    _, content_string = contents.split(",")
-                    ui_json = json.loads(base64.b64decode(content_string))
-                    self.workspace = Workspace(ui_json["geoh5"], mode="r")
-                    # Create ifile from ui.json
-                    ifile = InputFile(ui_json=ui_json)
-                    self.params = self.param_class(ifile)
-                    # Demote ifile data so it can be stored as a string
-                    if getattr(ifile, "data", None) is not None:
-                        ui_json_data = ifile.demote(ifile.data.copy())
-                        # Get new object value for dropdown from ui.json
-                        object_value = ui_json_data["objects"]
-                elif filename.endswith(".geoh5"):
-                    # Uploaded workspace
-                    _, content_string = contents.split(",")
-                    self.workspace = Workspace(
-                        io.BytesIO(base64.b64decode(content_string)), mode="r"
-                    )
-                    # Update self.params with new workspace, but keep unaffected params the same.
-                    new_params = self.params.to_dict()
-                    for key, value in new_params.items():
-                        if isinstance(value, Entity):
-                            new_params[key] = None
-                    new_params["geoh5"] = self.workspace
-                    self.params = self.param_class(**new_params)
-            elif trigger == "":
-                # Initialization of app from self.params.
-                ifile = InputFile(
-                    ui_json=self.params.input_file.ui_json,
-                    validate=False,
+        if contents is not None and filename is not None:
+            if filename.endswith(".ui.json"):
+                # Uploaded ui.json
+                _, content_string = contents.split(",")
+                ui_json = json.loads(base64.b64decode(content_string))
+                self.workspace = Workspace(ui_json["geoh5"], mode="r")
+                # Create ifile from ui.json
+                ifile = InputFile(ui_json=ui_json)
+                self.params = self.param_class(ifile)
+                # Demote ifile data so it can be stored as a string
+                if getattr(ifile, "data", None) is not None:
+                    ui_json_data = ifile.demote(ifile.data.copy())
+                    # Get new object value for dropdown from ui.json
+                    object_value = ui_json_data["objects"]
+            elif filename.endswith(".geoh5"):
+                # Uploaded workspace
+                _, content_string = contents.split(",")
+                self.workspace = Workspace(
+                    io.BytesIO(base64.b64decode(content_string)), mode="r"
                 )
-                ifile.update_ui_values(self.params.to_dict())
-                ui_json_data = ifile.demote(ifile.data)
-                if self._app_initializer is not None:
-                    ui_json_data.update(self._app_initializer)
-                object_value = ui_json_data["objects"]
+                # Update self.params with new workspace, but keep unaffected params the same.
+                new_params = self.params.to_dict()
+                for key, value in new_params.items():
+                    if isinstance(value, Entity):
+                        new_params[key] = None
+                new_params["geoh5"] = self.workspace
+                self.params = self.param_class(**new_params)
+        elif trigger == "":
+            ui_json_data = self._ui_json_data_from_params()
+            object_value = ui_json_data["objects"]
 
             # Get new options for object dropdown
             if self.workspace is not None:
@@ -406,6 +405,22 @@ class ObjectSelection:
                 ]
 
         return object_options, object_value, ui_json_data, None, None
+
+    def _ui_json_data_from_params(self) -> dict[str, Any]:
+        """Returns app json data initialized from self.params"""
+        assert (
+            self.params.input_file is not None
+        ), "No input file provided in parameters."
+
+        ifile = InputFile(
+            ui_json=self.params.input_file.ui_json,
+            validate=False,
+        )
+        ifile.update_ui_values(self.params.to_dict())
+        ui_json_data = ifile.demote(ifile.data)
+        if self._app_initializer is not None:
+            ui_json_data.update(self._app_initializer)
+        return ui_json_data
 
     @staticmethod
     def get_port() -> int:
@@ -476,6 +491,7 @@ class ObjectSelection:
 
         :return launch_app_markdown: Empty string since callbacks must have output.
         """
+        del n_clicks  # unused argument
 
         triggers = [c["prop_id"].split(".")[0] for c in callback_context.triggered]
         if not (
@@ -491,41 +507,35 @@ class ObjectSelection:
             return ""
 
         temp_geoh5 = self.workspace.name + "_" + f"{time():.0f}.geoh5"
-        temp_dir = tempfile.TemporaryDirectory().name
-        os.mkdir(temp_dir)
-        temp_workspace = Workspace.create(Path(temp_dir) / temp_geoh5)
+        with tempfile.TemporaryDirectory() as tempdir_name:
+            tempdir = Path(tempdir_name)
+            temp_workspace = Workspace.create(tempdir / temp_geoh5)
 
-        # Update ui.json with temp_workspace to pass initialize scatter plot app
-        param_dict = self.params.to_dict()
-        param_dict["geoh5"] = temp_workspace
+            # Update ui.json with temp_workspace to pass initialize scatter plot app
+            param_dict = self.params.to_dict()
+            param_dict["geoh5"] = temp_workspace
 
-        with fetch_active_workspace(temp_workspace), fetch_active_workspace(
-            self.workspace
-        ):
-            param_dict["objects"] = obj.copy(parent=temp_workspace, copy_children=True)
+            with fetch_active_workspace(temp_workspace), fetch_active_workspace(
+                self.workspace
+            ):
+                param_dict["objects"] = obj.copy(
+                    parent=temp_workspace, copy_children=True
+                )
 
-            # Copy any property groups over to temp_workspace
-            if hasattr(obj, "property_groups"):
-                prop_groups = obj.property_groups
-                temp_prop_groups = param_dict["objects"].property_groups
-                for group in prop_groups:
-                    if isinstance(group, PropertyGroup):
-                        for temp_group in temp_prop_groups:
-                            if temp_group.name == group.name:
-                                for key, value in param_dict.items():
-                                    if hasattr(value, "uid") and value.uid == group.uid:
-                                        param_dict[key] = temp_group.uid
+                if hasattr(obj, "property_groups"):
+                    self._copy_property_groups(obj.property_groups, param_dict)
 
-        new_params = self.param_class(**param_dict)
+            new_params = self.param_class(**param_dict)
 
-        ui_json_path = Path(temp_dir) / temp_geoh5.replace(".geoh5", ".ui.json")
-        new_params.write_input_file(
-            name=temp_geoh5.replace(".geoh5", ".ui.json"),
-            path=temp_dir,
-            validate=False,
-        )
-        ifile = InputFile.read_ui_json(ui_json_path)
-        ui_json_data = ifile.demote(ifile.data)
+            temp_ui_json_name = temp_geoh5.replace(".geoh5", ".ui.json")
+            new_params.write_input_file(
+                name=temp_ui_json_name,
+                path=tempdir_name,
+                validate=False,
+            )
+
+            ifile = InputFile.read_ui_json(tempdir / temp_ui_json_name)
+            ui_json_data = ifile.demote(ifile.data)
 
         # Start server
         port = ObjectSelection.get_port()
@@ -538,6 +548,20 @@ class ObjectSelection:
         # Make Qt window
         self.make_qt_window(self.app_name, port)
         return ""
+
+    @staticmethod
+    def _copy_property_groups(source_groups: ObjectBase, param_dict: dict):
+        """Copy any property groups over to param_dict of temporary workspace"""
+        temp_prop_groups = param_dict["objects"].property_groups
+        for group in source_groups:
+            if not isinstance(group, PropertyGroup):
+                continue
+            for temp_group in temp_prop_groups:
+                if temp_group.name != group.name:
+                    continue
+                for key, value in param_dict.items():
+                    if hasattr(value, "uid") and value.uid == group.uid:
+                        param_dict[key] = temp_group.uid
 
     @staticmethod
     def run(app_name: str, app_class: BaseDashApplication, ui_json: InputFile):
