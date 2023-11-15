@@ -17,7 +17,7 @@ from geoh5py.ui_json import InputFile, InputValidation, utils
 from geoh5py.workspace import Workspace
 
 
-class BaseParams:  # pylint: disable=R0902, R0904
+class BaseParams:
     """
     Stores input parameters to drive a ui.json application.
 
@@ -132,9 +132,7 @@ class BaseParams:  # pylint: disable=R0902, R0904
                 setattr(self, "geoh5", params_dict.pop("geoh5"))
 
             with fetch_active_workspace(self.geoh5):
-                params_dict = self.input_file.promote(
-                    params_dict
-                )  # pylint: disable=W0212
+                params_dict = self.input_file.promote(params_dict)
 
                 for key, value in params_dict.items():
                     if key not in self.ui_json.keys():
@@ -445,7 +443,7 @@ class BaseParams:  # pylint: disable=R0902, R0904
             self.input_file is not None
             and getattr(self.input_file, "data", None) is not None
         ):
-            if value != self.input_file.data[key]:  # type: ignore
+            if value != self.input_file.data[key]:
                 self.input_file.set_data_value(key, value)
 
         setattr(self, f"_{key}", value)

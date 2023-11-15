@@ -96,11 +96,9 @@ class BaseDriver(ABC):
 
         print("Loading input file . . .")
         filepath = Path(filepath).resolve()
-        ifile = InputFile.read_ui_json(
-            filepath, validations=driver_class._validations  # pylint: disable=W0212
-        )
+        ifile = InputFile.read_ui_json(filepath, validations=driver_class._validations)
 
-        params = driver_class._params_class(ifile)  # pylint: disable=W0212
+        params = driver_class._params_class(ifile)
         print("Initializing application . . .")
         driver = driver_class(params)
 
