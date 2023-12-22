@@ -4,6 +4,9 @@
 #
 #  geoapps-utils is distributed under the terms and conditions of the MIT License
 #  (see LICENSE file at the root of this source code package).
+
+from __future__ import annotations
+
 from copy import deepcopy
 
 from geoh5py import Workspace
@@ -14,7 +17,7 @@ from geoapps_utils.driver.params import BaseParams
 
 
 def test_base_driver(tmp_path):
-    workspace = Workspace(tmp_path / "test_workspace.geoh5")
+    workspace = Workspace.create(tmp_path / "test_workspace.geoh5")
     # Create params
     test_params = {
         "monitoring_directory": None,
@@ -37,7 +40,7 @@ def test_base_driver(tmp_path):
 
     class TestDriver(BaseDriver):
         _params: TestParams
-        _params_class = TestParams
+        _params_class: type[BaseParams] = TestParams
         _validations = {}
 
         def __init__(self, params: TestParams):

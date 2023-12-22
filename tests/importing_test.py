@@ -4,7 +4,11 @@
 #
 #  geoapps-utils is distributed under the terms and conditions of the MIT License
 #  (see LICENSE file at the root of this source code package).
+
 # pylint: disable=import-outside-toplevel
+
+from __future__ import annotations
+
 import os
 import tempfile
 
@@ -25,7 +29,7 @@ def test_assets_path(tmp_path):
 
 def test_no_warn_module_not_found(recwarn):
     with warn_module_not_found():
-        import os as test_import  # pylint: disable=W0404
+        import os as test_import  # pylint: disable=reimported
 
     assert test_import == os
 
@@ -34,7 +38,7 @@ def test_no_warn_module_not_found(recwarn):
     assert test_import_from == os.system
 
     with warn_module_not_found():
-        import geoh5py.objects as test_import_submodule  # pylint: disable=W0404
+        import geoh5py.objects as test_import_submodule  # pylint: disable=reimported
     assert test_import_submodule == geoh5py.objects
 
     with warn_module_not_found():

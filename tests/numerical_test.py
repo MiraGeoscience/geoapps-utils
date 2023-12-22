@@ -5,7 +5,10 @@
 #  geoapps-utils is distributed under the terms and conditions of the MIT License
 #  (see LICENSE file at the root of this source code package).
 
+from __future__ import annotations
+
 import numpy as np
+import pytest
 from numpy import random
 
 from geoapps_utils.numerical import (
@@ -65,6 +68,7 @@ def test_weighted_average_same_distance():
     xyz_out = np.array([[0, 0, 0]])
     values = [np.array([99, 100])]
     out = weighted_average(xyz_in, xyz_out, values)
+    assert isinstance(out, list)
     assert (out[0] - 99.5) < 1e-10
 
 
@@ -74,6 +78,7 @@ def test_weighted_average_two_far_points():
     xyz_out = np.array([[0, 0, 0]])
     values = [np.array([99, 100])]
     out = weighted_average(xyz_in, xyz_out, values)
+    assert isinstance(out, list)
     assert (out[0] - 99.5) < 1e-10
 
 
@@ -83,6 +88,7 @@ def test_weighted_average_one_far_point():
     xyz_out = np.array([[0, 0, 0]])
     values = [np.array([99, 100])]
     out = weighted_average(xyz_in, xyz_out, values)
+    assert isinstance(out, list)
     assert (out[0] - 99.0) < 1e-10
 
 
@@ -145,7 +151,8 @@ def test_weighted_average_threshold():
     assert out[0] == 2
 
 
-def test_find_curves():  # pylint: disable=too-many-locals
+@pytest.fixture(name="curves_data")
+def curves_data_fixture() -> list:
     # Create test data
     # Survey lines
     y_array = np.linspace(0, 50, 10)
@@ -167,9 +174,12 @@ def test_find_curves():  # pylint: disable=too-many-locals
         for x_coord, y_coord, line_id in zip(curve, y_array, line_ids_array):
             if x_coord is not None:
                 data.append([x_coord, y_coord, line_id, channel_group])
+    return data
 
+
+def test_find_curves(curves_data: list):
     # Random shuffle the input
-    data = np.array(data)
+    data = np.array(curves_data)
     np.random.shuffle(data)
 
     points_data = data[:, :2]

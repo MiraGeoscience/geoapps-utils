@@ -76,8 +76,8 @@ def find_curves(  # pylint: disable=too-many-locals
 
 
 def running_mean(
-    values: np.array, width: int = 1, method: str = "centered"
-) -> np.array:
+    values: np.ndarray, width: int = 1, method: str = "centered"
+) -> np.ndarray:
     """
     Compute a running mean of an array over a defined width.
 

@@ -38,12 +38,6 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
     _default_ui_json: dict | None = None
     _free_parameter_keys: list[str] | None = None
     _free_parameter_identifier: str | None = None
-    _input_file: InputFile | None = None
-    _monitoring_directory: str | None = None
-    _ui_json: dict | None = None
-    _validate: bool = True
-    _validations: dict | None = None
-    _validation_options: dict | None = None
     _validator: InputValidation | None = None
 
     def __init__(
@@ -62,20 +56,27 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
         :param validation_options: Optional validation directives.
         :param workpath: Working directory.
         """
-        self._monitoring_directory: str | None = None
-        self._workspace_geoh5: str | None = None
-        self._geoh5: str | None = None
-        self._run_command: str | None = None
-        self._title: str | None = None
         self._conda_environment: str | None = None
         self._conda_environment_boolean: bool | None = None
         self._generate_sweep: bool = False
-        self._workspace: str | None = None
+        self._geoh5: str | None = None
+        self._input_file: InputFile | None = None
+        self._monitoring_directory: str | None = None
+        self._run_command: str | None = None
         self._run_command_boolean: bool = False
-        self.workpath: str | Path | None = workpath
-        self.input_file: InputFile = input_file
-        self.validate: bool = validate
-        self.validation_options: dict | None = validation_options
+        self._title: str | None = None
+        self._ui_json: dict[str, Any] | None = None
+        self._validate: bool = True
+        self._validations: dict[str, Any] | None = None
+        self._validation_options: dict | None = None
+        self._workpath: Path | None = None
+        self._workspace: str | None = None
+        self._workspace_geoh5: str | None = None
+
+        self.workpath = workpath  # type: ignore[assignment]
+        self.input_file = input_file
+        self.validate = validate
+        self.validation_options = validation_options
 
         self._initialize(**kwargs)
 
@@ -92,9 +93,11 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
                 validations=self.validations,
                 validate=False,
             )
-        self.update(self.input_file.data)
+        input_file = self.input_file
+        assert input_file is not None
+        self.update(input_file.data)
         self.validate = original_validate_state
-        self.param_names = list(self.input_file.data.keys())
+        self.param_names = list(input_file.data.keys())
 
         # Apply user input
         if any(kwargs):
@@ -108,11 +111,11 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
         return self._defaults
 
     @property
-    def ui_json(self):
+    def ui_json(self) -> dict[str, Any] | None:
         """
         The default ui_json structure stored on InputFile.
         """
-        if getattr(self, "_ui_json", None) is None and self.input_file is not None:
+        if self._ui_json is None and self.input_file is not None:
             self._ui_json = self.input_file.ui_json
 
         return self._ui_json
@@ -129,8 +132,9 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
                 params_dict.get("geoh5", None) is not None
                 and self.input_file.geoh5 is None
             ):
-                setattr(self, "geoh5", params_dict.pop("geoh5"))
+                self.geoh5 = params_dict.pop("geoh5")
 
+            assert self.ui_json is not None
             with fetch_active_workspace(self.geoh5):
                 params_dict = self.input_file.promote(params_dict)
 
@@ -149,14 +153,11 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
                             setattr(self, elem, None)
 
     @property
-    def workpath(self):
+    def workpath(self) -> Path | None:
         """
         Working directory.
         """
-        if (
-            getattr(self, "_workpath", None) is None
-            and getattr(self, "_geoh5", None) is not None
-        ):
+        if self._workpath is None and self._geoh5 is not None:
             self._workpath = Path(self.geoh5.h5file).parent
         return self._workpath
 
@@ -170,7 +171,7 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
         self._workpath = val
 
     @property
-    def validation_options(self):
+    def validation_options(self) -> dict | None:
         """
         Optional validation directives.
         """
@@ -189,7 +190,7 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
         self._validation_options = value
 
     @property
-    def validate(self):
+    def validate(self) -> bool:
         """
         Return True if validation is enabled.
         """
@@ -216,6 +217,7 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
         """
 
         if ui_json_format:
+            assert self.input_file is not None
             return self.input_file.stringify(
                 self.input_file.demote(self.input_file.ui_json)
             )
@@ -242,18 +244,18 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
         return False
 
     @property
-    def free_parameter_dict(self):
+    def free_parameter_dict(self) -> dict:
         """
         Extract groups of free parameters from the ui_json dictionary that match
         the 'free_parameter_identifier' and 'free_parameter_keys'.
 
         :return: Dictionary of free parameters.
         """
-        free_parameter_dict = {}
+        free_parameter_dict: dict = {}
         if (
-            getattr(self, "_free_parameter_keys", None) is not None
-            and getattr(self, "_free_parameter_identifier", None) is not None
-            and getattr(self, "_ui_json", None) is not None
+            self._free_parameter_keys is not None
+            and self._free_parameter_identifier is not None
+            and self._ui_json is not None
         ):
             ui_groups = list(
                 {
@@ -292,7 +294,7 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
         """
         Encoded parameter validator type and associated validations.
         """
-        if getattr(self, "_validations", None) is None and self.input_file is not None:
+        if self._validations is None and self.input_file is not None:
             self._validations = self.input_file.validations
         return self._validations
 
@@ -333,7 +335,7 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
         self.setter_validator("run_command", val)
 
     @property
-    def monitoring_directory(self):
+    def monitoring_directory(self) -> str | None:
         """
         Path to monitoring directory.
         """

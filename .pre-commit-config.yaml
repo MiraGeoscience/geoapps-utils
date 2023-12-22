@@ -1,7 +1,7 @@
 
 default_language_version:
     python: python3
-exclude: (docs/(conf.py|_ext/)|assets/)
+exclude: (^docs/(conf.py|_ext/)|^geoapps_utils-assets/)
 default_stages: [commit,push]
 fail_fast: false
 
@@ -39,11 +39,11 @@ repos:
     -   id: mypy
         additional_dependencies: [
             types-toml,
+            types-PyYAML,
             tomli, # to read config from pyproject.toml
-            pydantic,
+            numpy==1.23.*,
+            pydantic==2.5.*,
         ]
-        args: [--ignore-missing-imports, --scripts-are-modules, --show-error-context,
-               --show-column-numbers]
 -   repo: https://github.com/codingjoe/relint
     rev: 3.1.0
     hooks:
@@ -57,14 +57,24 @@ repos:
         language: system
         require_serial: true  # pylint does its own parallelism
         types: [python]
-        exclude: (devtools|docs)/
+        exclude: ^(devtools|docs)/
     -   id: check-copyright
         name: Check copyright
         entry: python devtools/check-copyright.py
         language: python
-        files: (^LICENSE|README.rst|\.py|\.pyi)$
         types: [text]
-        exclude: (^setup.py$|^\.|\b(docs|assets)/)
+        files: (^LICENSE|^README(|-dev).rst|\.py|\.pyi)$
+        exclude: (^\.|^docs/)
+    -   id: prepare-commit-msg
+        stages: [prepare-commit-msg]
+        name: Prepare commit message
+        entry: python devtools/git_message_hook.py --prepare
+        language: python
+    -   id: check-commit-msg
+        stages: [commit-msg]
+        name: Check commit message
+        entry: python devtools/git_message_hook.py --check
+        language: python
 -   repo: https://github.com/codespell-project/codespell
     rev: v2.2.6
     hooks:
@@ -97,3 +107,4 @@ repos:
     rev: v1.10.0
     hooks:
     -   id: rst-backticks
+        exclude: ^THIRD_PARTY_SOFTWARE.rst$

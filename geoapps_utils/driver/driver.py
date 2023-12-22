@@ -14,7 +14,6 @@ from geoh5py import Workspace
 from geoh5py.objects import ObjectBase
 from geoh5py.ui_json import InputFile, monitored_directory_copy
 
-from geoapps_utils.driver.data import BaseData
 from geoapps_utils.driver.params import BaseParams
 
 
@@ -23,7 +22,6 @@ class BaseDriver(ABC):
     Base driver class.
     """
 
-    _params: BaseParams | BaseData
     _params_class = BaseParams
     _validations: dict | None = None
 
@@ -33,6 +31,7 @@ class BaseDriver(ABC):
         """
         self._workspace: Workspace | None = None
         self._out_group: str | None = None
+        self._params: BaseParams
         self.params = params
 
         if hasattr(self.params, "out_group") and self.params.out_group is None:
@@ -44,12 +43,12 @@ class BaseDriver(ABC):
         return self._out_group
 
     @property
-    def params(self):
+    def params(self) -> BaseParams:
         """Application parameters."""
         return self._params
 
     @params.setter
-    def params(self, val):
+    def params(self, val: BaseParams):
         if not isinstance(val, BaseParams):
             raise TypeError("Parameters must be of type BaseParams.")
         self._params = val
@@ -115,7 +114,10 @@ class BaseDriver(ABC):
 
         :param entity: Object to add ui.json file to.
         """
-        entity.add_file(Path(self.params.input_file.path) / self.params.input_file.name)
+        assert self.params.input_file is not None
+        entity.add_file(
+            str(Path(self.params.input_file.path) / self.params.input_file.name)
+        )
 
     def update_monitoring_directory(self, entity: ObjectBase):
         """

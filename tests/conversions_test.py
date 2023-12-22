@@ -2,8 +2,11 @@
 #
 #  This file is part of geoapps-utils package.
 #
-#  All rights reserved.
-#
+#  geoapps-utils is distributed under the terms and conditions of the MIT License
+#  (see LICENSE file at the root of this source code package).
+
+from __future__ import annotations
+
 from geoapps_utils.conversions import hex_to_rgb, string_to_numeric
 
 
