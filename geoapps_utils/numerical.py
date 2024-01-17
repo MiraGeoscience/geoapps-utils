@@ -262,3 +262,58 @@ def weighted_average(  # pylint: disable=too-many-arguments, too-many-locals
         return avg_values, ind
 
     return avg_values
+
+def active_from_xyz(
+    mesh: DrapeModel | Octree,
+    topo: np.ndarray,
+    grid_reference="center",
+    method="linear",
+):
+    """Returns an active cell index array below a surface
+
+    :param mesh: Mesh object
+    :param topo: Array of xyz locations
+    :param grid_reference: Cell reference. Must be "center", "top", or "bottom"
+    :param method: Interpolation method. Must be "linear", or "nearest"
+    """
+
+    mesh_dim = 2 if isinstance(mesh, DrapeModel) else 3
+    locations = mesh.centroids.copy()
+
+    if method == "linear":
+        delaunay_2d = Delaunay(topo[:, :-1])
+        z_interpolate = LinearNDInterpolator(delaunay_2d, topo[:, -1])
+    elif method == "nearest":
+        z_interpolate = NearestNDInterpolator(topo[:, :-1], topo[:, -1])
+    else:
+        raise ValueError("Method must be 'linear', or 'nearest'")
+
+    if mesh_dim == 2:
+        z_offset = cell_size_z(mesh) / 2.0
+    else:
+        z_offset = mesh.octree_cells["NCells"] * np.abs(mesh.w_cell_size) / 2
+
+    # Shift cell center location to top or bottom of cell
+    if grid_reference == "top":
+        locations[:, -1] += z_offset
+    elif grid_reference == "bottom":
+        locations[:, -1] -= z_offset
+    elif grid_reference == "center":
+        pass
+    else:
+        raise ValueError("'grid_reference' must be one of 'center', 'top', or 'bottom'")
+
+    z_locations = z_interpolate(locations[:, :2])
+
+    # Apply nearest neighbour if in extrapolation
+    ind_nan = np.isnan(z_locations)
+    if any(ind_nan):
+        tree = cKDTree(topo)
+        _, ind = tree.query(locations[ind_nan, :])
+        z_locations[ind_nan] = topo[ind, -1]
+
+    # fill_nan(locations, z_locations, filler=topo[:, -1])
+
+    # Return the active cell array
+    return locations[:, -1] < z_locations
+
