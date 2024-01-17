@@ -9,6 +9,9 @@ from __future__ import annotations
 
 import numpy as np
 from scipy.spatial import Delaunay, cKDTree
+from scipy.interpolate import LinearNDInterpolator
+
+from geoh5py.objects import DrapeModel, Octree
 
 
 def find_curves(  # pylint: disable=too-many-locals
@@ -316,4 +319,40 @@ def active_from_xyz(
 
     # Return the active cell array
     return locations[:, -1] < z_locations
+
+def truncate_locs_depths(locs: np.ndarray, depth_core: float) -> np.ndarray:
+    """
+    Sets locations below core to core bottom.
+
+    :param locs: Location points.
+    :param depth_core: Depth of core mesh below locs.
+
+    :return locs: locs with depths truncated.
+    """
+    zmax = locs[:, -1].max()  # top of locs
+    below_core_ind = (zmax - locs[:, -1]) > depth_core
+    core_bottom_elev = zmax - depth_core
+    locs[
+        below_core_ind, -1
+    ] = core_bottom_elev  # sets locations below core to core bottom
+    return locs
+
+
+def minimum_depth_core(
+    locs: np.ndarray, depth_core: float, core_z_cell_size: int
+) -> float:
+    """
+    Get minimum depth core.
+
+    :param locs: Location points.
+    :param depth_core: Depth of core mesh below locs.
+    :param core_z_cell_size: Cell size in z direction.
+
+    :return depth_core: Minimum depth core.
+    """
+    zrange = locs[:, -1].max() - locs[:, -1].min()  # locs z range
+    if depth_core >= zrange:
+        return depth_core - zrange + core_z_cell_size
+    else:
+        return depth_core
 
