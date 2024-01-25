@@ -266,6 +266,19 @@ def weighted_average(  # pylint: disable=too-many-arguments, too-many-locals
 
     return avg_values
 
+
+def cell_size_z(drape_model: DrapeModel) -> np.ndarray:
+    """Compute z cell sizes of drape model."""
+    hz = []
+    for prism in drape_model.prisms:
+        top_z, top_layer, n_layers = prism[2:]
+        bottoms = drape_model.layers[
+            range(int(top_layer), int(top_layer + n_layers)), 2
+        ]
+        z = np.hstack([top_z, bottoms])
+        hz.append(z[:-1] - z[1:])
+    return np.hstack(hz)
+
 def active_from_xyz(
     mesh: DrapeModel | Octree,
     topo: np.ndarray,
