@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 from uuid import UUID
+
 import numpy as np
 from geoh5py import Workspace
 from geoh5py.data import Data
@@ -47,6 +48,7 @@ def get_locations(workspace: Workspace, entity: UUID | Points | GridObject | Dat
         locations = get_locations(workspace, entity_obj.parent)
 
     return locations
+
 
 def filter_xy(
     x: np.array,

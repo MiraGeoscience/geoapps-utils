@@ -8,10 +8,9 @@
 from __future__ import annotations
 
 import numpy as np
-from scipy.spatial import Delaunay, cKDTree
-from scipy.interpolate import LinearNDInterpolator
-
 from geoh5py.objects import DrapeModel, Octree
+from scipy.interpolate import LinearNDInterpolator
+from scipy.spatial import Delaunay, cKDTree
 
 
 def find_curves(  # pylint: disable=too-many-locals
@@ -279,6 +278,7 @@ def cell_size_z(drape_model: DrapeModel) -> np.ndarray:
         hz.append(z[:-1] - z[1:])
     return np.hstack(hz)
 
+
 def active_from_xyz(
     mesh: DrapeModel | Octree,
     topo: np.ndarray,
@@ -333,6 +333,7 @@ def active_from_xyz(
     # Return the active cell array
     return locations[:, -1] < z_locations
 
+
 def truncate_locs_depths(locs: np.ndarray, depth_core: float) -> np.ndarray:
     """
     Sets locations below core to core bottom.
@@ -368,4 +369,3 @@ def minimum_depth_core(
         return depth_core - zrange + core_z_cell_size
     else:
         return depth_core
-
