@@ -9,10 +9,9 @@ from __future__ import annotations
 
 from uuid import UUID
 import numpy as np
-
 from geoh5py import Workspace
 from geoh5py.data import Data
-from geoh5py.objects import Points
+from geoh5py.objects import Grid2D, Points
 from geoh5py.objects.grid_object import GridObject
 
 
@@ -120,3 +119,45 @@ def filter_xy(
             mask, _, _ = downsample_xy(x, y, distance, mask=mask)
 
     return mask
+
+
+def map_indices_to_coordinates(grid: Grid2D, indices: np.ndarray) -> np.ndarray:
+    """
+    Map indices to coordinates.
+
+    :param grid: Grid2D object.
+    :param indices: Indices (i, j) of grid cells.
+    """
+
+    if grid.centroids is None or grid.shape is None:
+        raise ValueError("Grid2D object must have centroids.")
+
+    x = grid.centroids[:, 0].reshape(grid.shape, order="F")
+    y = grid.centroids[:, 1].reshape(grid.shape, order="F")
+    z = grid.centroids[:, 2].reshape(grid.shape, order="F")
+
+    return np.c_[
+        x[indices[:, 0], indices[:, 1]],
+        y[indices[:, 0], indices[:, 1]],
+        z[indices[:, 0], indices[:, 1]],
+    ]
+
+
+def get_overlapping_limits(size: int, width: int, overlap: float = 0.25) -> list:
+    """
+    Get the limits of overlapping tiles.
+
+    :param size: Number of cells along the axis.
+    :param width: Size of the tile.
+    :param overlap: Overlap factor between tiles [default=0.25].
+
+    :returns: List of limits.
+    """
+    if size <= width:
+        return [[0, int(size)]]
+
+    n_tiles = int(np.ceil((1 + overlap) * size / width))
+    left = np.linspace(0, size - width, n_tiles)
+    limits = np.c_[left, left + width].astype(int)
+
+    return limits.tolist()

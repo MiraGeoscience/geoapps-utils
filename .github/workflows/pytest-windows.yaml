@@ -32,7 +32,7 @@ jobs:
         python_ver: ['3.9', '3.10']
     defaults:
       run:
-        shell: powershell
+        shell: bash
     runs-on: windows-latest
     env:
       PYTHONUTF8: 1
@@ -48,11 +48,14 @@ jobs:
         with:
           environment-file: ${{ env.CONDA_LOCK_ENV_FILE }}
           environment-name: test_env
-          init-shell: powershell
+          init-shell: bash
           cache-downloads: true
       - name: pytest
+        shell: bash -el {0}
         run: |
           pytest --cov=${source_dir} --cov-report=xml --cov-branch
+          # debug output
+          ls -l coverage.xml
       - name: Codecov
         if: ${{ success() && matrix.python_ver == '3.10' }}
         uses: codecov/codecov-action@v3

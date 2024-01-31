@@ -34,7 +34,8 @@ from geoh5py.shared import Entity
 from geoh5py.shared.utils import fetch_active_workspace, is_uuid
 from geoh5py.ui_json import InputFile
 from geoh5py.workspace import Workspace
-from PySide2 import QtCore, QtWebEngineWidgets, QtWidgets
+from PySide2 import QtCore, QtWebEngineWidgets
+from PySide2.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QWidget
 
 from geoapps_utils.application.layout import object_selection_layout
 from geoapps_utils.driver.params import BaseParams
@@ -68,7 +69,7 @@ class BaseDashApplication(ABC):
             self.params = params
         elif (
             ui_json is not None
-            and getattr(ui_json, "path", None) is not None
+            and ui_json.path is not None
             and Path(ui_json.path).exists()
         ):
             # Launched from terminal
@@ -373,7 +374,7 @@ class ObjectSelection:
                 ifile = InputFile(ui_json=ui_json)
                 self.params = self.param_class(ifile)
                 # Demote ifile data so it can be stored as a string
-                if getattr(ifile, "data", None) is not None:
+                if ifile.data is not None:
                     ui_json_data = ifile.demote(ifile.data.copy())
                     # Get new object value for dropdown from ui.json
                     object_value = ui_json_data["objects"]
@@ -417,7 +418,9 @@ class ObjectSelection:
             validate=False,
         )
         ifile.update_ui_values(self.params.to_dict())
-        ui_json_data = ifile.demote(ifile.data)
+        ui_json_data = {}
+        if ifile.data is not None:
+            ui_json_data = ifile.demote(ifile.data)
         if self._app_initializer is not None:
             ui_json_data.update(self._app_initializer)
         return ui_json_data
@@ -468,17 +471,21 @@ class ObjectSelection:
         :param app_name: App name to display as Qt window title.
         :param port: Port where the dash app has been launched.
         """
-        app = QtWidgets.QApplication(sys.argv)
+        app = QApplication(sys.argv)
+        win = MainWindow()
+
         browser = QtWebEngineWidgets.QWebEngineView()
-
-        browser.setWindowTitle(app_name)
         browser.load(QtCore.QUrl("http://127.0.0.1:" + str(port)))
-        # Brings Qt window to the front
-        browser.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-        # Setting window size
-        browser.resize(1200, 800)
-        browser.show()
 
+        win.setWindowTitle(app_name)
+
+        central_widget = QWidget()
+        central_widget.setMinimumSize(600, 400)
+        win.setCentralWidget(central_widget)
+        lay = QHBoxLayout(central_widget)
+        lay.addWidget(browser)
+
+        win.showMaximized()
         app.exec_()  # running the Qt app
         os.kill(os.getpid(), signal.SIGTERM)  # shut down dash server and notebook
 
@@ -550,7 +557,7 @@ class ObjectSelection:
         return ""
 
     @staticmethod
-    def _copy_property_groups(source_groups: ObjectBase, param_dict: dict):
+    def _copy_property_groups(source_groups: list[ObjectBase], param_dict: dict):
         """Copy any property groups over to param_dict of temporary workspace"""
         temp_prop_groups = param_dict["objects"].property_groups
         for group in source_groups:
@@ -646,3 +653,42 @@ class ObjectSelection:
             # Close old workspace
             self._workspace.close()
         self._workspace = val
+
+
+class MainWindow(QMainWindow):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.aspect_ratio = 1.5
+
+    def resizeEvent(self, event):
+        QMainWindow.resizeEvent(self, event)
+
+        # Get window size
+        height = self.size().height()
+        width = self.size().width()
+
+        # Figure out which direction to expand in
+        width_diff = height * self.aspect_ratio
+        height_diff = width / self.aspect_ratio
+
+        new_width, new_height = width, height
+
+        if (
+            self.centralWidget().minimumSize().height() < height
+            and self.centralWidget().minimumSize().width() < width
+        ):
+            return
+
+        if width_diff < height_diff and width > width_diff:
+            new_width = width_diff
+            new_height = height * self.aspect_ratio
+        elif height > height_diff:
+            new_height = height_diff
+            new_width = width * self.aspect_ratio
+
+        width_margin = np.floor((width - new_width) / 2)
+        height_margin = np.floor((height - new_height) / 2)
+
+        self.setContentsMargins(
+            width_margin, height_margin, width_margin, height_margin
+        )

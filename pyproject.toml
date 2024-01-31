@@ -96,7 +96,6 @@ plugins = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--cov geoapps_utils --cov-report html --cov-report term-missing:skip-covered"
 
 [tool.coverage.run]
 branch = true

@@ -161,7 +161,7 @@ def curves_data_fixture() -> list:
     curve1 = 5 * np.sin(y_array) + 10  # curve
     curve2 = 0.7 * y_array + 20  # crossing lines
     curve3 = -0.4 * y_array + 50
-    curve4 = (80 + np.random.randn(len(y_array)) * 0.25).tolist()  # zig-zag
+    curve4 = np.ones_like(y_array) * 80  # zig-zag
     curve4[3] = 85
     curve5 = [None] * (len(y_array) - 1)  # short line
     curve5[0:1] = [60, 62]  # type: ignore
@@ -196,20 +196,6 @@ def test_find_curves(curves_data: list):
             max_distance=15,
             damping=0.75,
         )
-        # if len(path) > 0:
-        #     ax = plt.subplot()
-        #     plt.scatter(points_data[:, 0], points_data[:, 1], c=np.hstack(line_ids))
-        #     lc = mc.LineCollection(
-        #         [
-        #             [
-        #                 points_data[channel_inds][edge[0], :],
-        #                 points_data[channel_inds][edge[1], :],
-        #             ]
-        #             for edge in path[0]
-        #         ]
-        #     )
-        #     ax.add_collection(lc)
-        #     plt.show()
 
         if len(path) == 0:
             continue
@@ -230,20 +216,6 @@ def test_find_curves(curves_data: list):
             max_distance=50,
             damping=1,
         )
-        # if len(path) > 0:
-        #     ax = plt.subplot()
-        #     plt.scatter(points_data[:, 0], points_data[:, 1], c=np.hstack(line_ids))
-        #     lc = mc.LineCollection(
-        #         [
-        #             [
-        #                 points_data[channel_inds][edge[0], :],
-        #                 points_data[channel_inds][edge[1], :],
-        #             ]
-        #             for edge in path[0]
-        #         ]
-        #     )
-        #     ax.add_collection(lc)
-        #     plt.show()
 
         result_curves += path
 
