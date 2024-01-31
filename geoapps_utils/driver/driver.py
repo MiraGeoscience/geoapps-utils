@@ -49,8 +49,6 @@ class BaseDriver(ABC):
 
     @params.setter
     def params(self, val: BaseParams):
-        if not isinstance(val, BaseParams):
-            raise TypeError("Parameters must be of type BaseParams.")
         self._params = val
 
     @property
