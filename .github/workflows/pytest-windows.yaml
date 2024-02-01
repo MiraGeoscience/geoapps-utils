@@ -58,6 +58,6 @@ jobs:
           ls -l coverage.xml
       - name: Codecov
         if: ${{ success() && matrix.python_ver == '3.10' }}
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           name: GitHub
