@@ -8,6 +8,8 @@ repository = "https://github.com/MiraGeoscience/geoapps-utils"
 homepage = "https://mirageoscience.com"
 readme = "README.rst"
 
+# add a comment so that there is a diff in the branch
+
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
