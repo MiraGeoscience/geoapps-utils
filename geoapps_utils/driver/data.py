@@ -58,7 +58,8 @@ class BaseData(BaseModel):
                 info.annotation, BaseModel
             ):
                 update[field] = BaseData.collect_input_from_dict(
-                    info.annotation, data  # type: ignore
+                    info.annotation,
+                    data,  # type: ignore
                 )
             else:
                 if field in data:
