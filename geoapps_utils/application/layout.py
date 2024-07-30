@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dash import dcc, html
 
+
 workspace_layout = html.Div(
     [
         dcc.Upload(

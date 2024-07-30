@@ -280,7 +280,9 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
                     #  "allof" -> ["object", "levels", "type", "distance"]
                     free_parameter_dict[group] = {}
                     forms = utils.collect(self.ui_json, "group", group)
-                    for label, key in zip(forms, self._free_parameter_keys):
+                    for label, key in zip(
+                        forms, self._free_parameter_keys, strict=False
+                    ):
                         if key not in label.lower():
                             raise ValueError(
                                 f"Malformed input refinement group {group}. "

@@ -173,7 +173,9 @@ def curves_data_fixture() -> list:
 
     data = []
     for channel_group, curve in enumerate(curves):
-        for x_coord, y_coord, line_id in zip(curve, y_array, line_ids_array):
+        for x_coord, y_coord, line_id in zip(
+            curve, y_array, line_ids_array, strict=False
+        ):
             if x_coord is not None:
                 data.append([x_coord, y_coord, line_id, channel_group])
     return data

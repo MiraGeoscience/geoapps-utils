@@ -63,7 +63,7 @@ def test_sorted_alphanumeric_list():
     ]
 
     sorted_list = sorted_alphanumeric_list(random.sample(test, len(test)))
-    assert all(elem == tester for elem, tester in zip(sorted_list, test))
+    assert all(elem == tester for elem, tester in zip(sorted_list, test, strict=False))
 
 
 def test_sorted_children_dict(tmp_path: Path):
