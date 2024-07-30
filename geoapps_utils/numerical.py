@@ -7,8 +7,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 import numpy as np
 from pydantic import BaseModel
 from scipy.spatial import Delaunay, cKDTree
