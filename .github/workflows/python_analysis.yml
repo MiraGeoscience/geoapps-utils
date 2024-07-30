@@ -34,11 +34,6 @@ jobs:
       app_name: ${{ github.env.app_name }}
       python_vers: '3.10'
       shell_type: 'bash -l {0}'
-  call-workflow-pre-commmit:
-    name: Pre-Commit
-    uses: MiraGeoscience/CI-tools/.github/workflows/reusable-pre_commit.yml@main
-    with:
-      app_name: ${{ github.env.app_name }}
   call-workflow-pytest-on-windows:
     name: Pytest on Windows
     uses: MiraGeoscience/CI-tools/.github/workflows/reusable-python-pytest_windows.yml@main
