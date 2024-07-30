@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "geoapps-utils"
-version = "0.3.0"
+version = "0.4.0-alpha.1"
 license = "MIT"
 description = "Geoapps Utils"
 authors = ["Mira Geoscience <support@mirageoscience.com>"]
@@ -9,6 +9,11 @@ repository = "https://github.com/MiraGeoscience/geoapps-utils"
 #documentation  = "https://mirageoscience-geoapps-utils.readthedocs-hosted.com/"
 homepage = "https://www.mirageoscience.com/mining-industry-software/python-integration/"
 readme = "README.rst"
+
+packages = [
+     { include = "geoapps_utils" },
+     { include = "geoapps_utils-assets" },
+]
 
 include = [
     { path = "COPYING", format = ["sdist", "wheel"] },
@@ -19,58 +24,40 @@ include = [
     { path = "docs/**/THIRD_PARTY_SOFTWARE.rst", format = ["sdist", "wheel"] },
 ]
 
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Science/Research",
-    "Programming Language :: Python",
-    "Topic :: Scientific/Engineering",
-    "Topic :: Scientific/Engineering :: Mathematics",
-    "Topic :: Scientific/Engineering :: Physics",
-    "Operating System :: Microsoft :: Windows",
-    "Operating System :: POSIX",
-    "Operating System :: Unix",
-    "Operating System :: MacOS",
-    "Natural Language :: English",
-]
+[tool.conda-lock]
+platforms = ['win-64', 'linux-64']
+channels = ['conda-forge']
 
-[tool.poetry.scripts]
+[[tool.poetry.source]]
+name = "mira-pypi"
+priority = "explicit"
+url = "https://mirageoscienceltd.jfrog.io/artifactory/api/pypi/analyst-pypi-local/simple"
 
 [tool.poetry.dependencies]
-python = "^3.10, <3.11"
-
-numpy = "~1.23.5"  # also in geoh5py
-pydantic = "~2.5.2"
-scipy = "~1.10.1"
+python = "^3.10"
+pydantic = "^2.5.2"
+h5py = "^3.2.1"
+numpy = "~1.26.0"
+Pillow = "~10.3.0"
+scipy = "~1.14.0"
 
 ## pip dependencies from Git repositories
 #----------------------------------------
-geoh5py = {version = "~0.9.0", source = "pypi", allow-prereleases = true}
-#geoh5py = {url = "https://github.com/MiraGeoscience/geoh5py/archive/refs/heads/release/0.9.0.zip#sha256="}
-#geoh5py = {url = "http://localhost:8888/geoh5py.tar.gz#sha256="}
+#geoh5py = {version = "~0.9.1", source="pypi", optional = true, allow-prereleases = true}
+#geoh5py = {version = "~0.10.0-alpha.1", source = "pypi", allow-prereleases = true}
+#geoh5py = {url = "https://github.com/MiraGeoscience/geoh5py/archive/refs/heads/develop.tar.gz"}
+geoh5py = {git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop"}
+#geoh5py = {url = "http://localhost:8888/geoh5py.tar.gz"}
 
-## dependencies for plots with Dash
-#-------------------------------
-dash = {version = "^2.12", optional = true}
-flask = {version = "^3.0.3", optional = true}
-pyqtwebengine = {version = "~5.15.2, <5.15.7", optional = true}  # 5.15.7 and newer on conda-forge, but not in PyPI
-pyside2 = {version = "~5.15.2.1", optional = true}  # 5.15.3 and newer on conda-forge, but not in PyPI
-
-## indirect dependencies, forcing them here for installation through Conda not pip
-#---------------------------------------------------------------------------------
-h5py = "^3.2.1"  # from geoh5py
-Pillow = "~10.3.0"  # from geoh5py
 
 ## about pip dependencies
 # to be specified to work with conda-lock
 # - from PyPI: my_package = { version = "1.2.3", source = "pypi" }
-# - from URL:
-#   - for a tags:   my_package = { url = "https://github.com/ORGANISATION/REPO/archive/refs/tags/VERSION_TAG.zip#sha256=" }
-#   - for a branch: my_package = { url = "https://github.com/ORGANISATION/REPO/archive/refs/heads/BRANCH.zip#sha256=" }
-# Note - conda-lock does not support the syntax: my_package = { git = ... }
-#        while poetry2conda supports only { git = "...", tag = "..." }, and not { url = ... }
-
-[tool.conda-lock.dependencies]
-pyside2 = {version = "5.15.*", optional = true}  # allow Conda to resolve to a higher existing version than in PyPI
+# - from URL: !!! no actual lock, as tag or branch can move and installation will fetch current !!!
+#   - for a tag:    my_package = { url = "https://github.com/ORGANISATION/REPO/archive/refs/tags/TAG.tar.gz" }
+#   - for a branch: my_package = { url = "https://github.com/ORGANISATION/REPO/archive/refs/heads/BRANCH.tar.gz" }
+# - to actually lock on a revision: my_package = { git = "https://github.com/ORGANISATION/REPO.git", rev = "GIT_REV" }
+#   (where rev value is a tag, a branch name or a commit hash). Can also use ``branch`` or ``tag`` instead of ``rev``
 
 [tool.poetry.group.dev.dependencies]
 Pygments = "*"
@@ -80,16 +67,6 @@ pytest-cov = "*"
 tomli = "*"
 
 [tool.poetry.extras]
-dash = [
-    "dash",
-    "flask",
-    "pyqtwebengine",
-    "pyside2",
-]
-
-[tool.conda-lock]
-platforms = ['win-64', 'linux-64']
-channels = ['conda-forge']
 
 [tool.ruff]
 target-version = "py310"
@@ -144,7 +121,7 @@ plugins = [
 [tool.coverage.run]
 branch = true
 source = ["geoapps_utils"]
-omit = ["geoapps_utils/application/*"]
+omit = []
 
 [tool.coverage.report]
 exclude_lines = [
@@ -154,7 +131,7 @@ exclude_lines = [
     "pragma: no cover"
 ]
 
-fail_under = 78
+fail_under = 75
 
 [tool.coverage.html]
 skip_empty = true

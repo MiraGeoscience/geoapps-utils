@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from geoapps_utils.plotting import inv_symlog, symlog
+from geoapps_utils.utils.plotting import inv_symlog, symlog
 
 
 def test_plotting_symlog():

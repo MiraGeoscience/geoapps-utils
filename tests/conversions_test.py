@@ -7,7 +7,7 @@
 
 from __future__ import annotations
 
-from geoapps_utils.conversions import hex_to_rgb, string_to_numeric
+from geoapps_utils.utils.conversions import hex_to_rgb, string_to_numeric
 
 
 def test_hex_to_rgb():

@@ -7,13 +7,16 @@
 
 from __future__ import annotations
 
+from copy import copy
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 from geoh5py.ui_json import InputFile
 from geoh5py.workspace import Workspace
 from pydantic import BaseModel, ConfigDict
 from typing_extensions import Self
+
+from geoapps_utils import assets_path
 
 
 class BaseData(BaseModel):
@@ -29,17 +32,18 @@ class BaseData(BaseModel):
     :param workspace_geoh5: Current workspace, where results will be exported.
     """
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
 
-    _name: str = "base"
+    name: ClassVar[str] = "base"
+    default_ui_json: ClassVar[Path] = assets_path() / "uijson" / "base.ui.json"
+    title: ClassVar[str] = "Base Data"
+    run_command: ClassVar[str] = "geoapps_utils.driver.driver"
 
-    input_file: InputFile | None = None
     conda_environment: str | None = None
     geoh5: Workspace
     monitoring_directory: str | Path | None = None
-    run_command: str
-    title: str
     workspace_geoh5: Workspace | None = None
+    _input_file: InputFile | None = None
 
     @staticmethod
     def collect_input_from_dict(
@@ -81,14 +85,16 @@ class BaseData(BaseModel):
 
         if isinstance(input_data, InputFile) and input_data.data is not None:
             data = input_data.data.copy()
-            data["input_file"] = input_data
 
         if not isinstance(data, dict):
             raise TypeError("Input data must be a dictionary or InputFile.")
 
         kwargs = BaseData.collect_input_from_dict(cls, data)  # type: ignore
+        out = cls(**kwargs)
+        if isinstance(input_data, InputFile):
+            out._input_file = input_data
 
-        return cls(**kwargs)
+        return out
 
     def _recursive_flatten(self, data: dict[str, Any]) -> dict[str, Any]:
         """
@@ -119,6 +125,23 @@ class BaseData(BaseModel):
         return out
 
     @property
-    def name(self) -> str:
-        """Application name."""
-        return self._name
+    def input_file(self) -> InputFile:
+        """Create an InputFile with data matching current parameter state."""
+
+        if self._input_file is None:
+            ifile = InputFile.read_ui_json(self.default_ui_json, validate=False)
+        else:
+            ifile = copy(self._input_file)
+            ifile.validate = False
+
+        ifile.data = dict(ifile.data, **self.flatten())
+
+        return ifile
+
+    def write_ui_json(self, path: Path) -> None:
+        """
+        Write the ui.json file for the application.
+
+        :param path: Path to write the ui.json file.
+        """
+        self.input_file.write_ui_json(path.name, str(path.parent))

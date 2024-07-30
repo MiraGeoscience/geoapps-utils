@@ -7,7 +7,7 @@
 
 from __future__ import annotations
 
-from geoapps_utils.formatters import string_name
+from geoapps_utils.utils.formatters import string_name
 
 
 def test_string_name():

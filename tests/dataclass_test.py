@@ -5,6 +5,8 @@
 #  geoapps-utils is distributed under the terms and conditions of the MIT License
 #  (see LICENSE file at the root of this source code package).
 
+#  pylint: disable=too-few-public-methods
+
 from __future__ import annotations
 
 import pytest
@@ -12,6 +14,7 @@ from geoh5py.ui_json import InputFile
 from geoh5py.workspace import Workspace
 from pydantic import BaseModel, ValidationError
 
+from geoapps_utils import assets_path
 from geoapps_utils.driver.data import BaseData
 
 
@@ -45,15 +48,12 @@ class TestModel(BaseModel):
 
 def test_dataclass_valid_values():
     model = BaseData(**VALID_PARAMETERS)
-    output_params = {**model.model_dump()}
+    output_params = model.model_dump()
+    assert all(k not in output_params for k in ["title", "run_command"])
+    assert len(output_params) == len(VALID_PARAMETERS) - 2
 
     for k, v in output_params.items():
-        assert output_params[k] == v
-
-    assert len(output_params) == len(VALID_PARAMETERS) + 1
-
-    for k, v in VALID_PARAMETERS.items():
-        assert output_params[k] == v
+        assert VALID_PARAMETERS[k] == v
 
 
 def test_dataclass_invalid_values(tmp_path):
@@ -90,8 +90,10 @@ def test_dataclass_input_file():
     model = BaseData.build(ifile)
 
     assert model.geoh5 == WORKSPACE
-    assert model.flatten() == VALID_PARAMETERS
-    assert model.input_file == ifile
+    assert model.flatten() == {
+        k: v for k, v in VALID_PARAMETERS.items() if k not in ["title", "run_command"]
+    }
+    assert model._input_file == ifile  # pylint: disable=protected-access
 
 
 def test_pydantic_validates_nested_models():
@@ -200,8 +202,34 @@ def test_nested_model():
 
     assert isinstance(model.group, GroupParams)
     assert model.group.value == "test"
-    assert model.flatten() == valid_params
-
-    assert model.name == "nested"
+    assert model.flatten() == {
+        k: v for k, v in valid_params.items() if k not in ["title", "run_command"]
+    }
 
     assert model.group.options.group_type == "multi"
+
+
+def test_params_construction(tmp_path):
+    params = BaseData(geoh5=Workspace(tmp_path / "test.geoh5"))
+    assert BaseData.default_ui_json == assets_path() / "uijson/base.ui.json"
+    assert BaseData.title == "Base Data"
+    assert BaseData.run_command == "geoapps_utils.driver.driver"
+    assert str(params.geoh5.h5file) == str(tmp_path / "test.geoh5")
+
+
+def test_base_data_write_ui_json(tmp_path):
+    params = BaseData(geoh5=Workspace(tmp_path / "test.geoh5"))
+    params.write_ui_json(tmp_path / "test.ui.json")
+    assert (tmp_path / "test.ui.json").exists()
+
+    ifile = InputFile.read_ui_json(
+        assets_path() / "uijson/base.ui.json", validate=False
+    )
+    ifile.ui_json["my_param"] = "test it"
+    ifile.data["my_param"] = "test it"
+    ifile.data["geoh5"] = params.geoh5
+    params = BaseData.build(ifile)
+    params.write_ui_json(tmp_path / "validation.ui.json")
+
+    ifile = InputFile.read_ui_json(tmp_path / "validation.ui.json")
+    assert ifile.data["my_param"] == "test it"

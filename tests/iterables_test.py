@@ -15,7 +15,7 @@ import numpy as np
 from geoh5py import Workspace
 from geoh5py.objects import Grid2D
 
-from geoapps_utils.iterables import (
+from geoapps_utils.utils.iterables import (
     find_value,
     sorted_alphanumeric_list,
     sorted_children_dict,

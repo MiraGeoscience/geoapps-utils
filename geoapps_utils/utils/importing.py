@@ -35,16 +35,18 @@ def warn_module_not_found():
         warnings.warn(err)
 
 
-def assets_path(file: str) -> Path:
+def assets_path(module_path: Path | str) -> Path:
     """
-    Return the path to the assets folder.
+    Return the path to the assets folder, for the given module.
 
-    :param file: Pathname of file from which the app was loaded.
+    :param module_path: Path of the module expected to have an associated asset folder.
     """
 
-    parent = Path(file).parent
-    folder_name = f"{parent.name}-assets"
-    assets_folder = parent.parent / folder_name
+    source = Path(module_path).resolve()
+    if source.is_file():
+        source = source.parent
+    assets_folder_name = f"{source.name}-assets"
+    assets_folder = source.parent / assets_folder_name
     if not assets_folder.is_dir():
         raise RuntimeError(f"Assets folder not found: {assets_folder}")
 

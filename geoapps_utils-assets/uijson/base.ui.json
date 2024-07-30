@@ -1,0 +1,9 @@
+{
+    "version": "0.0.0",
+    "title": "base",
+    "conda_environment": "myenv",
+    "run_command": "geoapps_utils.driver.driver",
+    "geoh5": "",
+    "monitoring_directory": "",
+    "workspace_geoh5": ""
+}

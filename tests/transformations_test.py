@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from geoapps_utils.transformations import rotate_xyz
+from geoapps_utils.utils.transformations import rotate_xyz
 
 
 def test_positive_rotation_xyz():

@@ -15,7 +15,7 @@ import tempfile
 import geoh5py
 import pytest
 
-from geoapps_utils.importing import assets_path, warn_module_not_found
+from geoapps_utils.utils.importing import assets_path, warn_module_not_found
 
 
 def test_assets_path(tmp_path):

@@ -14,6 +14,37 @@ from geoh5py import Workspace
 from geoh5py.data import Data
 from geoh5py.objects import Grid2D, Points
 from geoh5py.objects.grid_object import GridObject
+from scipy.interpolate import LinearNDInterpolator
+from scipy.spatial import Delaunay, cKDTree
+
+
+def mask_under_horizon(locations: np.ndarray, horizon: np.ndarray) -> np.ndarray:
+    """
+    Mask locations under a horizon.
+
+    :param locations: A 3D distribution of x, y, z points data as an array
+        of shape(*, 3).
+    :param horizon: A quasi-2D distribution of x, y, z points data as an
+        array of shape(*, 3) that forms a rough plane that intersects the
+        provided locations 3D point cloud.
+
+    :returns: A boolean array of shape(*, 1) where True values represent points
+        in the locations array that lie below the triangulated horizon.
+    """
+
+    delaunay_2d = Delaunay(horizon[:, :-1])
+    z_interpolate = LinearNDInterpolator(delaunay_2d, horizon[:, -1])
+    z_locations = z_interpolate(locations[:, :2])
+
+    outside = np.isnan(z_locations)
+    if any(outside):
+        tree = cKDTree(horizon)
+        _, nearest = tree.query(locations[outside, :])
+        z_locations[outside] = horizon[nearest, -1]
+
+    below_horizon = locations[:, -1] < z_locations
+
+    return below_horizon
 
 
 def get_locations(workspace: Workspace, entity: UUID | Points | GridObject | Data):
