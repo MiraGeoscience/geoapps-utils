@@ -13,6 +13,7 @@ jobs:
         uses: MiraGeoscience/CI-tools/.github/workflows/reusable-python-publish_to_artifactory.yml@DEVOPS-425
         with:
             package_name: 'geoapps_utils'
+            python_ver: '3.10'
             version_tag: '1.6.2'
         secrets:
             EXTRA_REPO_TOKEN: ${{ secrets.CONDA_REPO_ARTIFACTORY_REF_TOKEN }}
