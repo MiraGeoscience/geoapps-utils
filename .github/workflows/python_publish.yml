@@ -1,11 +1,8 @@
 name: Publish Python Package
 
 on:
-    push:
-        branches:
-            - DEVOPS-425 # Temporary branch for testing
-        tags:
-            - '**'
+    release:
+        types: [published]
 
 jobs:
     call-workflow-publish-to-artifactory:
@@ -14,6 +11,6 @@ jobs:
         with:
             package_name: 'geoapps_utils'
             python_ver: '3.10'
-            version_tag: '1.5.0'
+            version_tag: ${{ github.event.release.tag_name }}
         secrets:
             EXTRA_REPO_TOKEN: ${{ secrets.CONDA_REPO_ARTIFACTORY_REF_TOKEN }}
