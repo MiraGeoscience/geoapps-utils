@@ -2,7 +2,7 @@ name: Publish Python Package
 
 on:
     release:
-        types: [published]
+        types: [created]
 
 jobs:
     call-workflow-publish-to-artifactory:
@@ -13,4 +13,4 @@ jobs:
             python_ver: '3.10'
             version_tag: ${{ github.event.release.tag_name }}
         secrets:
-            EXTRA_REPO_TOKEN: ${{ secrets.CONDA_REPO_ARTIFACTORY_REF_TOKEN }}
+            MIRA_CONDA_REPO_TOKEN: ${{ secrets.CONDA_REPO_ARTIFACTORY_REF_TOKEN }}
