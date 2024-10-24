@@ -75,10 +75,11 @@ def traveling_salesman(locs: np.ndarray) -> np.ndarray:
     return np.asarray(order)
 
 
-def weighted_average(  # pylint: disable=too-many-arguments, too-many-locals
+def weighted_average(  # pylint: disable=too-many-locals
     xyz_in: np.ndarray,
     xyz_out: np.ndarray,
     values: list,
+    *,
     max_distance: float = np.inf,
     n: int = 8,
     return_indices: bool = False,
