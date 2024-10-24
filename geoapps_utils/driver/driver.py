@@ -106,9 +106,10 @@ class BaseDriver(ABC):
         filepath = Path(filepath).resolve()
         ifile = InputFile.read_ui_json(filepath, validations=cls._validations)
 
-        params = driver_class._params_class.build(ifile)
-        print("Initializing application . . .")
-        driver = driver_class(params)
+        with ifile.geoh5.open(mode="r+"):
+            params = driver_class._params_class.build(ifile)
+            print("Initializing application . . .")
+            driver = driver_class(params)
 
         print("Running application . . .")
         driver.run()
