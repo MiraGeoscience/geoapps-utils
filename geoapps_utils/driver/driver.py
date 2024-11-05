@@ -106,14 +106,15 @@ class BaseDriver(ABC):
         filepath = Path(filepath).resolve()
         ifile = InputFile.read_ui_json(filepath, validations=cls._validations)
 
-        with ifile.geoh5.open(mode="r+"):
-            params = driver_class._params_class.build(ifile)
+        params = driver_class._params_class.build(ifile)
+
+        with params.geoh5.open("r+"):
             print("Initializing application . . .")
             driver = driver_class(params)
 
-        print("Running application . . .")
-        driver.run()
-        print(f"Results saved to {params.geoh5.h5file}")
+            print("Running application . . .")
+            driver.run()
+            print(f"Results saved to {params.geoh5.h5file}")
 
         return driver
 
