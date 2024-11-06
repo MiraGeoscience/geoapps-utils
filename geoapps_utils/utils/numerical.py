@@ -134,3 +134,44 @@ def weighted_average(  # pylint: disable=too-many-locals
         return avg_values, ind
 
     return avg_values
+
+
+def fibonacci_series(n: int) -> np.ndarray:
+    """
+    Generate Fibonacci series up to n.
+
+    :param n: Maximum value of the series.
+
+    :return: Fibonacci series.
+    """
+    a, b = 0, 1
+    series = []
+    while a < n:
+        series.append(a)
+        a, b = b, a + b
+    return np.array(series)
+
+
+def fit_circle(x_val: np.ndarray, y_val) -> tuple:
+    """
+    Compute the least-square circle fit to a set of points.
+
+    :param x_val: x-coordinates of the points
+    :param y_val: y-coordinates of the points
+
+    :return: radius, x0, y0
+    """
+    # Build linear system
+    lin_eqs = np.c_[x_val * 2, y_val * 2, np.ones_like(x_val)]
+
+    # Right-hand side
+    rhs = np.zeros((len(x_val), 1))
+    rhs[:, 0] = (x_val * x_val) + (y_val * y_val)
+
+    # Find the least-square solution
+    coef, _, _, _ = np.linalg.lstsq(lin_eqs, rhs, rcond=None)
+
+    # Compute radius
+    radius = (coef[0] ** 2.0 + coef[1] ** 2.0 + coef[2]) ** 0.5
+
+    return radius, coef[0], coef[1]

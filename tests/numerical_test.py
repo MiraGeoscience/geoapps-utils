@@ -11,6 +11,8 @@ import numpy as np
 from numpy import random
 
 from geoapps_utils.utils.numerical import (
+    fibonacci_series,
+    fit_circle,
     running_mean,
     traveling_salesman,
     weighted_average,
@@ -147,3 +149,24 @@ def test_weighted_average_threshold():
     values = [np.array([1, 2, 3])]
     out = weighted_average(xyz_in, xyz_out, values, threshold=1e30)
     assert out[0] == 2
+
+
+def test_fit_cicle():
+    tol = 1e-1
+    n_samples = 200
+    x0, y0 = np.random.randn(2)
+    r = np.random.rand() * 10
+    theta = np.random.randn(n_samples) * 2 * np.pi
+
+    x = x0 + r * np.cos(theta) + np.random.randn(n_samples) * tol
+    y = y0 + r * np.sin(theta) + np.random.randn(n_samples) * tol
+    r_fit, x_fit, y_fit = fit_circle(x, y)
+
+    np.testing.assert_allclose(x0, x_fit, atol=tol)
+    np.testing.assert_allclose(y0, y_fit, atol=tol)
+    np.testing.assert_allclose(r, r_fit, atol=tol)
+
+
+def test_fibonacci_series():
+    np.testing.assert_allclose(fibonacci_series(1), [0])
+    np.testing.assert_allclose(fibonacci_series(6), [0, 1, 1, 2, 3, 5])
