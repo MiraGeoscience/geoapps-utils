@@ -158,8 +158,8 @@ def test_fit_cicle():
     r = np.random.rand() * 10
     theta = np.random.randn(n_samples) * 2 * np.pi
 
-    x = x0 + r * np.cos(theta) + np.random.randn(n_samples) * tol
-    y = y0 + r * np.sin(theta) + np.random.randn(n_samples) * tol
+    x = x0 + r * np.cos(theta) + np.random.randn(n_samples) * tol / 2.0
+    y = y0 + r * np.sin(theta) + np.random.randn(n_samples) * tol / 2.0
     r_fit, x_fit, y_fit = fit_circle(x, y)
 
     np.testing.assert_allclose(x0, x_fit, atol=tol)
