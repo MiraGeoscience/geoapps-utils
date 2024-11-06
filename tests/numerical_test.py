@@ -154,7 +154,7 @@ def test_weighted_average_threshold():
 def test_fit_cicle():
     tol = 1e-1
     n_samples = 200
-    x0, y0 = np.random.randn(2)
+    x0, y0 = np.random.randn(2) * 100.0
     r = np.random.rand() * 10
     theta = np.random.randn(n_samples) * 2 * np.pi
 
