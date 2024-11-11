@@ -11,6 +11,23 @@ import warnings
 from contextlib import contextmanager
 from pathlib import Path
 
+from geoh5py.groups import Group
+from pydantic import BaseModel, ConfigDict
+
+
+class GroupData(BaseModel):
+    """
+    Data class for Group objects.
+
+    :param groupValue: Group object.
+    :param value: List of strings selected.
+    """
+
+    model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
+
+    groupValue: Group
+    value: list[str]
+
 
 @contextmanager
 def warn_module_not_found():
