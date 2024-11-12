@@ -28,4 +28,4 @@ def get_name_from_uid(workspace: Workspace, uid: Any) -> str:
         uid = workspace.get_entity(uid)[0]
     if hasattr(uid, "name"):
         return uid.name
-    raise AttributeError(f"No object with name corresponding to {uid}.")
+    raise AttributeError(f"No object with name found for {uid}.")
