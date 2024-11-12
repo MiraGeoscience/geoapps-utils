@@ -110,10 +110,9 @@ class BaseDriver(ABC):
             params = driver_class._params_class.build(ifile)
             print("Initializing application . . .")
             driver = driver_class(params)
-
-        print("Running application . . .")
-        driver.run()
-        print(f"Results saved to {params.geoh5.h5file}")
+            print("Running application . . .")
+            driver.run()
+            print(f"Results saved to {params.geoh5.h5file}")
 
         return driver
 

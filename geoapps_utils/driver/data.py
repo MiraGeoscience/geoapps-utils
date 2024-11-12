@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from copy import copy
 from pathlib import Path
-from typing import Any, ClassVar
+from typing import Any, ClassVar, GenericAlias  # type: ignore
 
 from geoh5py.ui_json import InputFile
 from geoh5py.workspace import Workspace
@@ -56,8 +56,10 @@ class BaseData(BaseModel):
         """
         update = {}
         for field, info in base_model.model_fields.items():
-            if isinstance(info.annotation, type) and issubclass(
-                info.annotation, BaseModel
+            if (
+                isinstance(info.annotation, type)
+                and not isinstance(info.annotation, GenericAlias)
+                and issubclass(info.annotation, BaseModel)
             ):
                 update[field] = BaseData.collect_input_from_dict(
                     info.annotation,
