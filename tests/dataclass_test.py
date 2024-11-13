@@ -12,13 +12,17 @@ from __future__ import annotations
 from pathlib import Path
 from typing import ClassVar
 
+import numpy as np
 import pytest
+from geoh5py.groups import DrillholeGroup
+from geoh5py.objects import Drillhole
 from geoh5py.ui_json import InputFile
 from geoh5py.workspace import Workspace
 from pydantic import BaseModel, ValidationError
 
 from geoapps_utils import assets_path
 from geoapps_utils.driver.data import BaseData
+from geoapps_utils.utils.importing import GroupValue
 
 
 WORKSPACE = Workspace()
@@ -244,3 +248,67 @@ def test_base_data_write_ui_json(tmp_path):
 
     with pytest.raises(FileNotFoundError, match="Default uijson file "):
         params3._create_input_file_from_attributes()  # pylint: disable=protected-access
+
+
+def test_drillhole_groups(tmp_path):
+    h5path = tmp_path / "test.geoh5"
+
+    class MyData(BaseData):
+        drillholes: GroupValue
+
+    with Workspace(h5path) as workspace:
+        drillhole_group: DrillholeGroup = DrillholeGroup.create(
+            workspace, name="drillhole_group_test"
+        )
+
+        for i in range(4):
+            well = Drillhole.create(
+                workspace,
+                name=f"drillhole_test_{i}",
+                default_collocation_distance=1e-5,
+                parent=drillhole_group,
+                collar=[10.0 * i, 10.0 * i, 10],
+            )
+            well.surveys = np.c_[
+                np.linspace(0, 10, 4),
+                np.ones(4) * 45.0,
+                np.linspace(-89, -75, 4),
+            ]
+
+            # Create random from-to
+            depth_ = np.sort(np.random.uniform(low=0.05, high=10, size=(40,))).reshape(
+                (-1, 2)
+            )
+
+            # Add from-to data
+            well.add_data(
+                {
+                    "interval_values": {
+                        "values": np.random.randn(depth_.shape[0]),
+                        "from-to": depth_.tolist(),
+                    },
+                    "interval_values_2": {
+                        "values": np.random.randn(depth_.shape[0]),
+                        "from-to": depth_.tolist(),
+                    },
+                },
+                property_group="interval",
+            )
+
+        dh_g_params = {
+            "geoh5": workspace,
+            "title": "test_drillholes",
+            "drillholes": {
+                "label": "drillhole_group_test",
+                "main": True,
+                "multiSelect": True,
+                "groupType": "825424FB-C2C6-4FEA-9F2B-6CD00023D393",
+                "group_value": drillhole_group,
+                "value": ["interval_values", "interval_values_2"],
+            },
+        }
+
+        input_file = MyData(**dh_g_params)
+
+        assert input_file.drillholes.group_value == drillhole_group
+        assert input_file.drillholes.value == ["interval_values", "interval_values_2"]
