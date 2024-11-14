@@ -8,6 +8,8 @@
 
 from __future__ import annotations
 
+from uuid import uuid4
+
 import pytest
 from geoh5py import Workspace
 from geoh5py.objects import Points
@@ -26,10 +28,8 @@ def test_get_name_from_uid(tmp_path):
         res = get_name_from_uid(workspace, points.uid)
         assert res == points.name
 
-        res = get_name_from_uid(workspace, points)
-        assert res == points.name
-
-        assert "bidon" == get_name_from_uid(workspace, "bidon")
-
-        with pytest.raises(AttributeError, match="No object with name"):
+        with pytest.raises(TypeError, match="Expected UUID"):
             _ = get_name_from_uid(workspace, 123)
+
+        with pytest.raises(ValueError, match="No Entity found in workspace"):
+            _ = get_name_from_uid(workspace, uuid4())

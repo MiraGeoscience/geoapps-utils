@@ -22,7 +22,7 @@ from pydantic import BaseModel, ValidationError
 
 from geoapps_utils import assets_path
 from geoapps_utils.driver.data import BaseData
-from geoapps_utils.utils.importing import GroupValue
+from geoapps_utils.utils.importing import DrillholeGroupValue
 
 
 WORKSPACE = Workspace()
@@ -254,7 +254,7 @@ def test_drillhole_groups(tmp_path):
     h5path = tmp_path / "test.geoh5"
 
     class MyData(BaseData):
-        drillholes: GroupValue
+        drillholes: DrillholeGroupValue
 
     with Workspace(h5path) as workspace:
         drillhole_group: DrillholeGroup = DrillholeGroup.create(

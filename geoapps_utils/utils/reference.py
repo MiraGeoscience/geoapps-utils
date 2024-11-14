@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
+from geoh5py.shared import Entity
 from geoh5py.workspace import Workspace
 
 
@@ -22,10 +23,12 @@ def get_name_from_uid(workspace: Workspace, uid: Any) -> str:
 
     :return: the name
     """
-    if isinstance(uid, str):
-        return uid
-    if isinstance(uid, UUID):
-        uid = workspace.get_entity(uid)[0]
-    if hasattr(uid, "name"):
-        return uid.name
-    raise AttributeError(f"No object with name found for {uid}.")
+    if not isinstance(uid, UUID):
+        raise TypeError(f"Expected UUID, got {type(uid)}")
+
+    entity = workspace.get_entity(uid)[0]
+
+    if not isinstance(entity, Entity):
+        raise ValueError(f"No Entity found in workspace for {uid}")
+
+    return entity.name

@@ -11,11 +11,11 @@ import warnings
 from contextlib import contextmanager
 from pathlib import Path
 
-from geoh5py.groups import Group
+from geoh5py.groups import DrillholeGroup
 from pydantic import BaseModel, ConfigDict
 
 
-class GroupValue(BaseModel):
+class DrillholeGroupValue(BaseModel):
     """
     Base class for group values.
 
@@ -25,7 +25,7 @@ class GroupValue(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    group_value: Group
+    group_value: DrillholeGroup
     value: list[str]
 
 
