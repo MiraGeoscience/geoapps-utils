@@ -301,14 +301,14 @@ def test_drillhole_groups(tmp_path):
             "drillholes": {
                 "label": "drillhole_group_test",
                 "main": True,
-                "multiSelect": True,
+                "multiSelect": False,
                 "groupType": "825424FB-C2C6-4FEA-9F2B-6CD00023D393",
                 "group_value": drillhole_group,
-                "value": ["interval_values", "interval_values_2"],
+                "value": "interval_values",
             },
         }
 
         input_file = MyData(**dh_g_params)
 
         assert input_file.drillholes.group_value == drillhole_group
-        assert input_file.drillholes.value == ["interval_values", "interval_values_2"]
+        assert input_file.drillholes.value == ["interval_values"]

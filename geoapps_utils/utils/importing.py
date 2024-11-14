@@ -10,9 +10,10 @@ from __future__ import annotations
 import warnings
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Annotated
 
 from geoh5py.groups import DrillholeGroup
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, BeforeValidator, ConfigDict
 
 
 class DrillholeGroupValue(BaseModel):
@@ -26,7 +27,9 @@ class DrillholeGroupValue(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     group_value: DrillholeGroup
-    value: list[str]
+    value: Annotated[
+        list[str], BeforeValidator(lambda v: v if isinstance(v, list) else [v])
+    ]
 
 
 @contextmanager
