@@ -40,7 +40,7 @@ dependencies:
   - mkl=2024.2.2=h66d3029_14
   - numpy=1.26.4=py310hf667824_0
   - openjpeg=2.5.2=h3d672ee_0
-  - openssl=3.3.2=h2466b09_0
+  - openssl=3.4.0=h2466b09_0
   - pillow=10.3.0=py310h3e38d90_1
   - pip=24.3.1=pyh8b19718_0
   - pthread-stubs=0.4=h0e40799_1002
@@ -49,23 +49,23 @@ dependencies:
   - python=3.10.15=hfaddaf0_2_cpython
   - python_abi=3.10=5_cp310
   - scipy=1.14.1=py310hbd0dde3_1
-  - setuptools=75.3.0=pyhd8ed1ab_0
+  - setuptools=75.5.0=pyhff2d567_0
   - tbb=2021.7.0=h91493d7_0
   - tk=8.6.13=h5226925_1
   - typing-extensions=4.12.2=hd8ed1ab_0
   - typing_extensions=4.12.2=pyha770c72_0
   - tzdata=2024b=hc8b5060_0
   - ucrt=10.0.22621.0=h57928b3_1
-  - vc=14.3=h8a93ad2_22
-  - vc14_runtime=14.40.33810=hcc2c482_22
-  - vs2015_runtime=14.40.33810=h3bf8584_22
-  - wheel=0.44.0=pyhd8ed1ab_0
+  - vc=14.3=ha32ba9b_23
+  - vc14_runtime=14.42.34433=he29a5d6_23
+  - vs2015_runtime=14.42.34433=hdffcdeb_23
+  - wheel=0.45.0=pyhd8ed1ab_0
   - xorg-libxau=1.0.11=h0e40799_1
   - xorg-libxdmcp=1.1.5=h0e40799_0
   - xz=5.2.6=h8d14728_0
   - zstd=1.5.6=h0ea2cb4_0
   - pip:
-      - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@4f40a6b01b75c564811872ee9adf36af63780d60
+      - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@11960119d833a447e025ff31109f2140096ac692
 
 variables:
   KMP_WARNINGS: 0
