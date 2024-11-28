@@ -91,12 +91,13 @@ class BaseDriver(ABC):
         raise NotImplementedError
 
     @classmethod
-    def start(cls, filepath: str | Path, driver_class=None):
+    def start(cls, filepath: str | Path, driver_class=None, **kwargs):
         """
         Run application specified by 'filepath' ui.json file.
 
         :param filepath: Path to valid ui.json file for the application driver.
         :param driver_class: Application driver class.
+        :param kwargs: Additional keyword arguments for InputFile read_ui_json.
         """
 
         if driver_class is None:
@@ -104,8 +105,7 @@ class BaseDriver(ABC):
 
         print("Loading input file . . .")
         filepath = Path(filepath).resolve()
-        ifile = InputFile.read_ui_json(filepath, validations=cls._validations)
-
+        ifile = InputFile.read_ui_json(filepath, validations=cls._validations, **kwargs)
         with ifile.geoh5.open(mode="r+"):
             params = driver_class._params_class.build(ifile)
             print("Initializing application . . .")
