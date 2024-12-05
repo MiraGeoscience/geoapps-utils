@@ -12,8 +12,10 @@ from pathlib import Path
 from typing import Any, ClassVar
 
 from geoh5py.ui_json import InputFile
+from geoh5py.shared import Entity
 from geoh5py.workspace import Workspace
-from pydantic import BaseModel, ConfigDict
+from geoh5py.shared import Entity
+from pydantic import BaseModel, ConfigDict, field_validator, field_serializer
 from typing_extensions import Self
 
 
@@ -42,6 +44,15 @@ class BaseData(BaseModel):
     monitoring_directory: str | Path | None = None
     workspace_geoh5: Workspace | None = None
     _input_file: InputFile | None = None
+
+    @field_serializer("*", when_used="json")
+    def object_2_string(value):
+        if isinstance(value, Workspace):
+            return str(value.h5file)
+        elif isinstance(value, Entity):
+            return str(value.uid)
+        else:
+            return value
 
     @staticmethod
     def collect_input_from_dict(
