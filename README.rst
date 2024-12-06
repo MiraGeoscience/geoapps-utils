@@ -2,9 +2,9 @@
 
 
 ..
-    .. |docs| image:: https://readthedocs.org/projects/geoapps-utils/badge/
+    .. |docs| image:: https://readthedocs.com/projects/mirageoscience-geoapps-utils/badge/?version=latest
         :alt: Documentation Status
-        :target: https://geoapps-utils.readthedocs.io/en/latest/?badge=latest
+        :target: https://mirageoscience-geoapps-utils.readthedocs-hosted.com/en/latest/?badge=latest
 
 .. |coverage| image:: https://codecov.io/gh/MiraGeoscience/geoapps-utils/graph/badge.svg?token=Z0Q0T1U5LH
     :alt: Code coverage
@@ -47,7 +47,7 @@ used by `geoapps <https://github.com/MiraGeoscience/geoapps>`_.
 ..
     Documentation
     ^^^^^^^^^^^^^
-    `Online documentation <https://geoapps-utils.readthedocs.io/en/latest/>`_
+    `Online documentation <https://mirageoscience-geoapps-utils.readthedocs-hosted.com/en/latest/>`_
 
 
 Installation
