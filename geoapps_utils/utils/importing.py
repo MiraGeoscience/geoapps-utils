@@ -10,6 +10,26 @@ from __future__ import annotations
 import warnings
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Annotated
+
+from geoh5py.groups import DrillholeGroup
+from pydantic import BaseModel, BeforeValidator, ConfigDict
+
+
+class DrillholeGroupValue(BaseModel):
+    """
+    Base class for group values.
+
+    :param group_value: The Group containing the value.
+    :param value: The list of str values to extract.
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    group_value: DrillholeGroup
+    value: Annotated[
+        list[str], BeforeValidator(lambda v: v if isinstance(v, list) else [v])
+    ]
 
 
 @contextmanager
