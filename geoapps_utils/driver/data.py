@@ -12,10 +12,8 @@ from pathlib import Path
 from typing import Any, ClassVar, GenericAlias  # type: ignore
 
 from geoh5py.ui_json import InputFile
-from geoh5py.shared import Entity
 from geoh5py.workspace import Workspace
-from geoh5py.shared import Entity
-from pydantic import BaseModel, ConfigDict, field_validator, field_serializer
+from pydantic import BaseModel, ConfigDict
 from typing_extensions import Self
 
 
@@ -44,15 +42,6 @@ class BaseData(BaseModel):
     monitoring_directory: str | Path | None = None
     workspace_geoh5: Workspace | None = None
     _input_file: InputFile | None = None
-
-    @field_serializer("*", when_used="json")
-    def object_2_string(value):
-        if isinstance(value, Workspace):
-            return str(value.h5file)
-        elif isinstance(value, Entity):
-            return str(value.uid)
-        else:
-            return value
 
     @staticmethod
     def collect_input_from_dict(
@@ -174,3 +163,15 @@ class BaseData(BaseModel):
         :param path: Path to write the ui.json file.
         """
         self.input_file.write_ui_json(path.name, str(path.parent))
+
+    def add_options(self):
+        """Set out_groups options with current state and data."""
+
+        dump = self.model_dump()
+        dump["geoh5"] = str(dump["geoh5"].h5file.resolve())
+        out_group = dump.pop("out_group")
+        ifile = self.input_file
+        ifile.data = dump
+        assert ifile.ui_json is not None
+        options = ifile.stringify(ifile.demote(ifile.ui_json))
+        out_group.options = options
