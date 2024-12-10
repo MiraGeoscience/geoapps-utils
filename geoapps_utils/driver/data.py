@@ -164,14 +164,14 @@ class BaseData(BaseModel):
         """
         self.input_file.write_ui_json(path.name, str(path.parent))
 
-    def add_options(self):
-        """Set out_groups options with current state and data."""
+    def serialize(self):
+        """Return a demoted uijson dictionary representation the params data."""
 
         dump = self.model_dump()
         dump["geoh5"] = str(dump["geoh5"].h5file.resolve())
-        out_group = dump.pop("out_group")
         ifile = self.input_file
         ifile.data = dump
         assert ifile.ui_json is not None
         options = ifile.stringify(ifile.demote(ifile.ui_json))
-        out_group.options = options
+
+        return options
