@@ -71,3 +71,9 @@ def assets_path(module_path: Path | str) -> Path:
         raise RuntimeError(f"Assets folder not found: {assets_folder}")
 
     return assets_folder
+
+
+class GeoAppsError(Exception):
+    """
+    Base class for exceptions in this module.
+    """

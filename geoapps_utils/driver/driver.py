@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from pathlib import Path
+from warnings import warn
 
 from geoh5py import Workspace
 from geoh5py.objects import ObjectBase
@@ -16,6 +17,7 @@ from geoh5py.ui_json import InputFile, monitored_directory_copy
 
 from geoapps_utils.driver.data import BaseData
 from geoapps_utils.driver.params import BaseParams
+from geoapps_utils.utils.importing import GeoAppsError
 
 
 class BaseDriver(ABC):
@@ -111,8 +113,11 @@ class BaseDriver(ABC):
             print("Initializing application . . .")
             driver = driver_class(params)
             print("Running application . . .")
-            driver.run()
-            print(f"Results saved to {params.geoh5.h5file}")
+            try:
+                driver.run()
+                print(f"Results saved to {params.geoh5.h5file}")
+            except GeoAppsError as error:
+                warn(f"ApplicationError: {error}")
 
         return driver
 
