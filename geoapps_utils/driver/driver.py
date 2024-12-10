@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from pathlib import Path
+from warnings import warn
 
 from geoh5py import Workspace
 from geoh5py.objects import ObjectBase
@@ -116,7 +117,7 @@ class BaseDriver(ABC):
                 driver.run()
                 print(f"Results saved to {params.geoh5.h5file}")
             except GeoAppsError as error:
-                print(f"Error: {error}")
+                warn(f"Failed: {error}")
 
         return driver
 
