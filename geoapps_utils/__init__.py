@@ -24,6 +24,7 @@ from geoapps_utils.utils import (
     transformations,
     workspace,
 )
+from geoapps_utils.utils.importing import GeoAppsError
 from geoapps_utils.utils.importing import assets_path as assets_path_impl
 
 
