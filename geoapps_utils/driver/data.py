@@ -163,3 +163,15 @@ class BaseData(BaseModel):
         :param path: Path to write the ui.json file.
         """
         self.input_file.write_ui_json(path.name, str(path.parent))
+
+    def serialize(self):
+        """Return a demoted uijson dictionary representation the params data."""
+
+        dump = self.model_dump()
+        dump["geoh5"] = str(dump["geoh5"].h5file.resolve())
+        ifile = self.input_file
+        ifile.data = dump
+        assert ifile.ui_json is not None
+        options = ifile.stringify(ifile.demote(ifile.ui_json))
+
+        return options
