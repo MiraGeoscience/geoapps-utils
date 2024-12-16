@@ -117,7 +117,7 @@ class BaseDriver(ABC):
                 driver.run()
                 print(f"Results saved to {params.geoh5.h5file}")
             except GeoAppsError as error:
-                warn(f"ApplicationError: {error}")
+                warn(f"\n\nApplicationError: {error}\n\n")
 
         return driver
 
