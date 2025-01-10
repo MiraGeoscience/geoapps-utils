@@ -1,9 +1,12 @@
-#  Copyright (c) 2023-2024 Mira Geoscience Ltd.
-#
-#  This file is part of geoapps-utils.
-#
-#  geoapps-utils is distributed under the terms and conditions of the MIT License
-#  (see LICENSE file at the root of this source code package).
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#                                                                                   '
+#  This file is part of geoapps-utils package.                                      '
+#                                                                                   '
+#  geoapps-utils is distributed under the terms and conditions of the MIT License   '
+#  (see LICENSE file at the root of this source code package).                      '
+#                                                                                   '
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 from __future__ import annotations
 
@@ -104,9 +107,9 @@ def weighted_average(  # pylint: disable=too-many-locals
     n = np.min([xyz_in.shape[0], n])
     assert isinstance(values, list), "Input 'values' must be a list of numpy.ndarrays"
 
-    assert all(
-        vals.shape[0] == xyz_in.shape[0] for vals in values
-    ), "Input 'values' must have the same shape as input 'locations'"
+    assert all(vals.shape[0] == xyz_in.shape[0] for vals in values), (
+        "Input 'values' must have the same shape as input 'locations'"
+    )
 
     avg_values = []
     for value in values:
