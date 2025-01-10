@@ -1,12 +1,12 @@
-# ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                '
-#                                                                              '
-#  This file is part of geoapps-utils package.                                 '
-#                                                                              '
-#  geoapps-utils is distributed under the terms and conditions of the MIT      '
-#  License (see LICENSE file at the root of this source code package).         '
-# ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#                                                                                   '
+#  This file is part of geoapps-utils package.                                      '
+#                                                                                   '
+#  geoapps-utils is distributed under the terms and conditions of the MIT License   '
+#  (see LICENSE file at the root of this source code package).                      '
+#                                                                                   '
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 from __future__ import annotations
 
@@ -97,7 +97,7 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
             return cls(input_file=input_data)
 
         raise TypeError(
-            "'input_data' must be an InputFile," f" get {type(input_data)} instead."
+            f"'input_data' must be an InputFile, get {type(input_data)} instead."
         )
 
     def _initialize(self, **kwargs):
@@ -331,9 +331,9 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
 
     @validations.setter
     def validations(self, validations: dict[str, Any]):
-        assert isinstance(
-            validations, dict
-        ), "Input value must be a dictionary of validations."
+        assert isinstance(validations, dict), (
+            "Input value must be a dictionary of validations."
+        )
         self._validations = validations
 
     @property

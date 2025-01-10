@@ -1,16 +1,12 @@
-# ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                '
-#                                                                              '
-#  This file is part of geoapps-utils package.                                 '
-#                                                                              '
-#  geoapps-utils is distributed under the terms and conditions of the MIT      '
-#  License (see LICENSE file at the root of this source code package).         '
-# ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#
-#  This file is part of geoapps-utils.
-#
-#  geoapps-utils is distributed under the terms and conditions of the MIT License
-#  (see LICENSE file at the root of this source code package).
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#                                                                                   '
+#  This file is part of geoapps-utils package.                                      '
+#                                                                                   '
+#  geoapps-utils is distributed under the terms and conditions of the MIT License   '
+#  (see LICENSE file at the root of this source code package).                      '
+#                                                                                   '
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 from __future__ import annotations
 
@@ -32,12 +28,12 @@ def test_running_mean():
 
     mean_test = (vec[1:] + vec[:-1]) / 2
 
-    assert (
-        np.linalg.norm(mean_back[:-1] - mean_test) < 1e-12
-    ), "Backward averaging does not match expected values."
-    assert (
-        np.linalg.norm(mean_forw[1:] - mean_test) < 1e-12
-    ), "Forward averaging does not match expected values."
+    assert np.linalg.norm(mean_back[:-1] - mean_test) < 1e-12, (
+        "Backward averaging does not match expected values."
+    )
+    assert np.linalg.norm(mean_forw[1:] - mean_test) < 1e-12, (
+        "Forward averaging does not match expected values."
+    )
     assert (
         np.linalg.norm((mean_test[1:] + mean_test[:-1]) / 2 - mean_cent[1:-1]) < 1e-12
     ), "Centered averaging does not match expected values."

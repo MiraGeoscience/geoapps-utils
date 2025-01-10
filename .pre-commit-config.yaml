@@ -17,7 +17,7 @@ repos:
     -   id: pycln
         args: [--config=pyproject.toml]
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.6
+    rev: v0.9.0
     hooks:
     -   id: ruff
         args:
@@ -46,7 +46,7 @@ repos:
     rev: v1.0.2
     hooks:
     -   id: check-copyright
-        files: (^LICENSE|^README(|-dev).rst|\.py|\.pyi)$
+        files: (^package\.rst|^LICENSE|^README(|-dev)\.rst|\.py|\.pyi)$
         exclude: (^\.|^docs/)
     -   id: prepare-commit-msg
     -   id: check-commit-msg
