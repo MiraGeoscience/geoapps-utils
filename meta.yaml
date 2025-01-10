@@ -1,5 +1,5 @@
 {% set name = "geoapps-utils" %}
-{% set version = "0.4.0b2" %}
+{% set version = "0.4.0rc1" %}
 
 package:
   name: {{ name|lower }}
