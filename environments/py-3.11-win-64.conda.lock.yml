@@ -9,21 +9,21 @@ dependencies:
   - _openmp_mutex=4.5=2_gnu
   - annotated-types=0.7.0=pyhd8ed1ab_1
   - bzip2=1.0.8=h2466b09_7
-  - ca-certificates=2024.8.30=h56e8100_0
+  - ca-certificates=2024.12.14=h56e8100_0
   - cached-property=1.5.2=hd8ed1ab_1
   - cached_property=1.5.2=pyha770c72_1
   - freetype=2.12.1=hdaf720e_2
-  - h5py=3.12.1=nompi_py311h67016bb_102
-  - hdf5=1.14.3=nompi_hd5d9e70_107
+  - h5py=3.12.1=nompi_py311haea1c80_103
+  - hdf5=1.14.4=nompi_hd5d9e70_105
   - intel-openmp=2024.2.1=h57928b3_1083
   - krb5=1.21.3=hdf4eb48_0
   - lcms2=2.16=h67d730c_0
   - lerc=4.0.0=h63175ca_0
   - libaec=1.1.3=h63175ca_0
-  - libblas=3.9.0=25_win64_mkl
-  - libcblas=3.9.0=25_win64_mkl
-  - libcurl=8.10.1=h1ee3ff0_0
-  - libdeflate=1.22=h2466b09_0
+  - libblas=3.9.0=26_win64_mkl
+  - libcblas=3.9.0=26_win64_mkl
+  - libcurl=8.11.1=h88aaa65_0
+  - libdeflate=1.23=h9062f6e_0
   - libexpat=2.6.4=he0c23c2_0
   - libffi=3.4.2=h8ffe710_5
   - libgcc=14.2.0=h1383e82_1
@@ -31,30 +31,30 @@ dependencies:
   - libhwloc=2.11.2=default_ha69328c_1001
   - libiconv=1.17=hcfcfb64_2
   - libjpeg-turbo=3.0.0=hcfcfb64_1
-  - liblapack=3.9.0=25_win64_mkl
+  - liblapack=3.9.0=26_win64_mkl
   - liblzma=5.6.3=h2466b09_1
-  - libpng=1.6.44=h3ca93ac_0
-  - libsqlite=3.47.0=h2466b09_1
+  - libpng=1.6.45=had7236b_0
+  - libsqlite=3.47.2=h67fdade_0
   - libssh2=1.11.1=he619c9f_0
-  - libtiff=4.7.0=hdefb170_2
-  - libwebp-base=1.4.0=hcfcfb64_0
+  - libtiff=4.7.0=h797046b_3
+  - libwebp-base=1.5.0=h3b0e114_0
   - libwinpthread=12.0.0.r4.gg4f2fc60ca=h57928b3_8
   - libxcb=1.17.0=h0e4246c_0
   - libxml2=2.13.5=he286e8c_1
   - libzlib=1.3.1=h2466b09_2
-  - mkl=2024.2.2=h66d3029_14
+  - mkl=2024.2.2=h66d3029_15
   - numpy=1.26.4=py311h0b4df5a_0
-  - openjpeg=2.5.2=h3d672ee_0
-  - openssl=3.4.0=h2466b09_0
+  - openjpeg=2.5.3=h4d64b90_0
+  - openssl=3.4.0=ha4e3fda_1
   - pillow=10.3.0=py311h5592be9_1
-  - pip=24.3.1=pyh8b19718_0
+  - pip=24.3.1=pyh8b19718_2
   - pthread-stubs=0.4=h0e40799_1002
-  - pydantic=2.10.3=pyh3cfb1c2_0
-  - pydantic-core=2.27.1=py311h533ab2d_0
+  - pydantic=2.10.5=pyh3cfb1c2_0
+  - pydantic-core=2.27.2=py311h533ab2d_0
   - python=3.11.11=h3f84c4b_1_cpython
   - python_abi=3.11=5_cp311
-  - scipy=1.14.1=py311hf16d85f_1
-  - setuptools=75.6.0=pyhff2d567_1
+  - scipy=1.14.1=py311hf16d85f_2
+  - setuptools=75.8.0=pyhff2d567_0
   - tbb=2021.13.0=h62715c5_1
   - tk=8.6.13=h5226925_1
   - typing-extensions=4.12.2=hd8ed1ab_1
@@ -65,11 +65,11 @@ dependencies:
   - vc14_runtime=14.42.34433=he29a5d6_23
   - vs2015_runtime=14.42.34433=hdffcdeb_23
   - wheel=0.45.1=pyhd8ed1ab_1
-  - xorg-libxau=1.0.11=h0e40799_1
+  - xorg-libxau=1.0.12=h0e40799_0
   - xorg-libxdmcp=1.1.5=h0e40799_0
   - zstd=1.5.6=h0ea2cb4_0
   - pip:
-      - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@fe9db0338ad1f77427f1e5e64bf49356d0c14c18
+      - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@abdd3bd275deba6a92d741674053a9aabcccbeba
 
 variables:
   KMP_WARNINGS: 0
