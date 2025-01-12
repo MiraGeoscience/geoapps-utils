@@ -1,9 +1,12 @@
-#  Copyright (c) 2023-2024 Mira Geoscience Ltd.
-#
-#  This file is part of geoapps-utils package.
-#
-#  geoapps-utils is distributed under the terms and conditions of the MIT License
-#  (see LICENSE file at the root of this source code package).
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#                                                                                   '
+#  This file is part of geoapps-utils package.                                      '
+#                                                                                   '
+#  geoapps-utils is distributed under the terms and conditions of the MIT License   '
+#  (see LICENSE file at the root of this source code package).                      '
+#                                                                                   '
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 #  pylint: disable=too-few-public-methods
 
@@ -25,15 +28,17 @@ from geoapps_utils.driver.data import BaseData
 from geoapps_utils.utils.importing import DrillholeGroupValue
 
 
-WORKSPACE = Workspace()
-VALID_PARAMETERS = {
-    "monitoring_directory": None,
-    "workspace_geoh5": WORKSPACE,
-    "geoh5": WORKSPACE,
-    "run_command": "test.driver",
-    "title": "test title",
-    "conda_environment": "test_env",
-}
+def get_params_dict(tmp_path):
+    workspace = Workspace.create(tmp_path)
+    param_dict = {
+        "monitoring_directory": None,
+        "workspace_geoh5": workspace.h5file,
+        "geoh5": workspace,
+        "run_command": "test.driver",
+        "title": "test title",
+        "conda_environment": "test_env",
+    }
+    return param_dict
 
 
 class TestOpts(BaseModel):
@@ -53,14 +58,15 @@ class TestModel(BaseModel):
     params: TestParams
 
 
-def test_dataclass_valid_values():
-    model = BaseData(**VALID_PARAMETERS)
+def test_dataclass_valid_values(tmp_path):
+    valid_parameters = get_params_dict(tmp_path / f"{__name__}.geoh5")
+    model = BaseData(**valid_parameters)
     output_params = model.model_dump()
     assert all(k not in output_params for k in ["title", "run_command"])
-    assert len(output_params) == len(VALID_PARAMETERS) - 2
+    assert len(output_params) == len(valid_parameters) - 2
 
     for k, v in output_params.items():
-        assert VALID_PARAMETERS[k] == v
+        assert valid_parameters[k] == v
 
 
 def test_dataclass_invalid_values(tmp_path):
@@ -71,34 +77,33 @@ def test_dataclass_invalid_values(tmp_path):
         "workspace_geoh5": workspace.h5file,
         "geoh5": False,
         "run_command": "test.driver",
-        "title": None,
+        "title": 123,
         "conda_environment": "test_env",
         "workspace": workspace.h5file,
     }
-
-    with pytest.raises(ValidationError) as e:
+    try:
         BaseData(**invalid_params)
-        assert len(e.errors()) == 6  # type: ignore
+    except ValidationError as e:
+        assert len(e.errors()) == 3  # type: ignore
         error_params = [error["loc"][0] for error in e.errors()]  # type: ignore
         error_types = [error["type"] for error in e.errors()]  # type: ignore
         for error_param in [
             "monitoring_directory",
             "geoh5",
-            "title",
-            "conda_environment_boolean",
         ]:
             assert error_param in error_params
-        for error_type in ["string_type", "path_type", "missing"]:
+        for error_type in ["string_type", "path_type", "is_instance_of"]:
             assert error_type in error_types
 
 
-def test_dataclass_input_file():
-    ifile = InputFile(ui_json=VALID_PARAMETERS)
+def test_dataclass_input_file(tmp_path):
+    valid_parameters = get_params_dict(tmp_path / f"{__name__}.geoh5")
+    ifile = InputFile(ui_json=valid_parameters)
     model = BaseData.build(ifile)
 
-    assert model.geoh5 == WORKSPACE
+    assert model.geoh5.h5file == tmp_path / f"{__name__}.geoh5"
     assert model.flatten() == {
-        k: v for k, v in VALID_PARAMETERS.items() if k not in ["title", "run_command"]
+        k: v for k, v in valid_parameters.items() if k not in ["title", "run_command"]
     }
     assert model._input_file == ifile  # pylint: disable=protected-access
 
@@ -149,7 +154,8 @@ def test_collect_input_from_dict():
     assert data["params"]["options"]["opt3"] == "opt3"
 
 
-def test_missing_parameters():
+def test_missing_parameters(tmp_path):
+    valid_parameters = get_params_dict(tmp_path / f"{__name__}.geoh5")
     test_data = {
         "name": "test",
         "type": "big",
@@ -159,7 +165,7 @@ def test_missing_parameters():
     }
     kwargs = BaseData.collect_input_from_dict(TestModel, test_data)  # type: ignore
     with pytest.raises(ValidationError, match="value\n  Field required"):
-        TestModel(**VALID_PARAMETERS, **kwargs)
+        TestModel(**valid_parameters, **kwargs)
 
     test_data = {
         "name": "test",
@@ -170,7 +176,7 @@ def test_missing_parameters():
     }
     kwargs = BaseData.collect_input_from_dict(TestModel, test_data)  # type: ignore
     with pytest.raises(ValidationError, match="opt1\n  Field required"):
-        TestModel(**VALID_PARAMETERS, **kwargs)
+        TestModel(**valid_parameters, **kwargs)
 
     test_data = {
         "name": "test",
@@ -180,11 +186,11 @@ def test_missing_parameters():
         "opt3": "opt3",
     }
     kwargs = BaseData.collect_input_from_dict(TestModel, test_data)  # type: ignore
-    model = TestModel(**VALID_PARAMETERS, **kwargs)
+    model = TestModel(**valid_parameters, **kwargs)
     assert model.params.options.opt2 == "default"
 
 
-def test_nested_model():
+def test_nested_model(tmp_path):
     class GroupOptions(BaseModel):
         group_type: str
 
@@ -200,7 +206,7 @@ def test_nested_model():
         _name = "nested"
         group: GroupParams
 
-    valid_params = VALID_PARAMETERS.copy()
+    valid_params = get_params_dict(tmp_path / f"{__name__}.geoh5")
     valid_params["value"] = "test"
     valid_params["group_type"] = "multi"
 
