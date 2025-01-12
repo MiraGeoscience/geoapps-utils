@@ -98,7 +98,7 @@ dependencies:
   - yaml=0.2.5=h7f98852_2
   - zstd=1.5.6=ha6fb4c9_0
   - pip:
-      - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@a3163a4f1761211e2789da1e1f90cf5f1aaef3d6
+      - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@abdd3bd275deba6a92d741674053a9aabcccbeba
 
 variables:
   KMP_WARNINGS: 0

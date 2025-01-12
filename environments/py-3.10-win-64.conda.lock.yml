@@ -68,7 +68,7 @@ dependencies:
   - xorg-libxdmcp=1.1.5=h0e40799_0
   - zstd=1.5.6=h0ea2cb4_0
   - pip:
-      - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@a3163a4f1761211e2789da1e1f90cf5f1aaef3d6
+      - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@abdd3bd275deba6a92d741674053a9aabcccbeba
 
 variables:
   KMP_WARNINGS: 0
