@@ -1,19 +1,22 @@
-{% set name = "geoapps-utils" %}
-{% set version = "0.4.0b2" %}
+schema_version: 1
+
+context:
+  name: geoapps-utils
+  version: 0.4.0b2
 
 package:
-  name: {{ name|lower }}
-  version: {{ version }}
+  name: ${{ name|lower }}
+  version: ${{ version }}
 
 source:
   # url: https://github.com/MiraGeoscience/{{ name }}/archive/v{{ version }}.tar.gz
   # sha256: 4671fc21594f465fe3975ffba037a4a053e63d7038aca6fbcf5da0913532fcc2
-  path: ../{{ name}}
+  path: ../${{ name}}
 
 build:
-  noarch: python
-  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
   number: 0
+  noarch: python
+  script: ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
 
 requirements:
   host:
@@ -30,28 +33,32 @@ requirements:
     - h5py >=3.2.1,<4.0.0
     - pillow >=10.3.0,<10.4.0
 
-test:
-  source_files:
-    - tests/
-  imports:
-    - geoapps_utils
-  commands:
-    - pip check
-  requires:
-    - pip
+tests:
+  - python:
+      imports:
+        - geoapps_utils
+  - files:
+      source:
+        - tests/
+    requirements:
+      run:
+        - pip
+    script:
+      - pip check
 
 about:
-  home: https://www.mirageoscience.com/mining-industry-software/python-integration/
-  summary: 'Provides utility functions used by geoapps.'
+  summary: Provides utility functions used by geoapps.
   description: |
     The geoapps-utils package provides utility functions used by
     (geoapps)<https://github.com/MiraGeoscience/geoapps>.
   license: MIT
   license_file:
     - LICENSE
-  dev_url: https://github.com/MiraGeoscience/geoapps-utils
+  homepage: https://www.mirageoscience.com/mining-industry-software/python-integration/
+  repository: https://github.com/MiraGeoscience/geoapps-utils
 
 extra:
   recipe-maintainers:
     - SophieCurinier
     - sebhmg
+
