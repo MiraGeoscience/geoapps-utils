@@ -174,7 +174,7 @@ class BaseData(BaseModel):
         dump = self.model_dump()
         dump["geoh5"] = str(dump["geoh5"].h5file.resolve())
         ifile = self.input_file
-        ifile.data = dump
+        ifile.data = self._recursive_flatten(dump)
         assert ifile.ui_json is not None
         options = ifile.stringify(ifile.demote(ifile.ui_json))
 
