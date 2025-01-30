@@ -1,9 +1,12 @@
-#  Copyright (c) 2023-2024 Mira Geoscience Ltd.
-#
-#  This file is part of geoapps-utils package.
-#
-#  geoapps-utils is distributed under the terms and conditions of the MIT License
-#  (see LICENSE file at the root of this source code package).
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#                                                                                   '
+#  This file is part of geoapps-utils package.                                      '
+#                                                                                   '
+#  geoapps-utils is distributed under the terms and conditions of the MIT License   '
+#  (see LICENSE file at the root of this source code package).                      '
+#                                                                                   '
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 from __future__ import annotations
 
@@ -32,7 +35,7 @@ def get_output_workspace(
     new_live_link = False
     time.sleep(1)
     # Check if GA digested the file already
-    if (isinstance(workspace.h5file, (Path, str))) and not Path(
+    if (isinstance(workspace.h5file, Path | str)) and not Path(
         workspace.h5file
     ).is_file():
         workpath = Path(workpath) / ".working"

@@ -1,9 +1,12 @@
-#  Copyright (c) 2023-2024 Mira Geoscience Ltd.
-#
-#  This file is part of geoapps-utils.
-#
-#  geoapps-utils is distributed under the terms and conditions of the MIT License
-#  (see LICENSE file at the root of this source code package).
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#                                                                                   '
+#  This file is part of geoapps-utils package.                                      '
+#                                                                                   '
+#  geoapps-utils is distributed under the terms and conditions of the MIT License   '
+#  (see LICENSE file at the root of this source code package).                      '
+#                                                                                   '
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 from __future__ import annotations
 
@@ -69,6 +72,7 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
         self._validate: bool = True
         self._validations: dict[str, Any] | None = None
         self._validation_options: dict | None = None
+        self._version: str | None = None
         self._workpath: Path | None = None
         self._workspace: str | None = None
         self._workspace_geoh5: str | None = None
@@ -79,6 +83,22 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
         self.validation_options = validation_options
 
         self._initialize(**kwargs)
+
+    @classmethod
+    def build(cls, input_data: InputFile) -> BaseParams:
+        """
+        Build a BaseParams object from an InputFile.
+
+        Mockup of Basedata.build() from driver/data.py
+
+        :param input_data: InputFile to create the parameters from.
+        """
+        if isinstance(input_data, InputFile):
+            return cls(input_file=input_data)
+
+        raise TypeError(
+            f"'input_data' must be an InputFile, get {type(input_data)} instead."
+        )
 
     def _initialize(self, **kwargs):
         """
@@ -142,7 +162,7 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
                 params_dict = self.input_file.promote(params_dict)
 
                 for key, value in params_dict.items():
-                    if key not in self.ui_json.keys():
+                    if not hasattr(self, key):
                         continue  # ignores keys not in default_ui_json
 
                     setattr(self, key, value)
@@ -185,7 +205,7 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
 
     @validation_options.setter
     def validation_options(self, value: dict | None):
-        if not isinstance(value, (dict, type(None))):
+        if not isinstance(value, dict | type(None)):
             raise UserWarning(
                 "Input 'validation_options' must a dictionary of options or None."
             )
@@ -280,7 +300,9 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
                     #  "allof" -> ["object", "levels", "type", "distance"]
                     free_parameter_dict[group] = {}
                     forms = utils.collect(self.ui_json, "group", group)
-                    for label, key in zip(forms, self._free_parameter_keys):
+                    for label, key in zip(
+                        forms, self._free_parameter_keys, strict=False
+                    ):
                         if key not in label.lower():
                             raise ValueError(
                                 f"Malformed input refinement group {group}. "
@@ -309,9 +331,9 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
 
     @validations.setter
     def validations(self, validations: dict[str, Any]):
-        assert isinstance(
-            validations, dict
-        ), "Input value must be a dictionary of validations."
+        assert isinstance(validations, dict), (
+            "Input value must be a dictionary of validations."
+        )
         self._validations = validations
 
     @property
@@ -329,7 +351,7 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
         self.setter_validator(
             "geoh5",
             val,
-            fun=lambda x: Workspace(x) if isinstance(val, (str, Path)) else x,
+            fun=lambda x: Workspace(x) if isinstance(val, str | Path) else x,
         )
 
     @property
@@ -407,7 +429,7 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
 
     @input_file.setter
     def input_file(self, ifile: InputFile | None):
-        if not isinstance(ifile, (type(None), InputFile)):
+        if not isinstance(ifile, type(None) | InputFile):
             raise TypeError(
                 f"Value for 'input_file' must be {InputFile} or None. "
                 f"Provided {ifile} of type{type(ifile)}"
@@ -418,6 +440,17 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
             self.validations = ifile.validations
 
         self._input_file = ifile
+
+    @property
+    def version(self):
+        """
+        Application version.
+        """
+        return self._version
+
+    @version.setter
+    def version(self, val):
+        self.setter_validator("version", val)
 
     def _uuid_promoter(self, uid: str | UUID) -> str | UUID | Entity:
         """
@@ -454,9 +487,10 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
             self.input_file is not None
             and hasattr(self.input_file, "data")
             and self.input_file.data is not None
+            and key in self.input_file.data
+            and value != self.input_file.data[key]
         ):
-            if value != self.input_file.data[key]:
-                self.input_file.set_data_value(key, value)
+            self.input_file.set_data_value(key, value)
 
         setattr(self, f"_{key}", value)
 

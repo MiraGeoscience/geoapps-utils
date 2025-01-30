@@ -1,9 +1,12 @@
-#  Copyright (c) 2023-2024 Mira Geoscience Ltd.
-#
-#  This file is part of geoapps-utils.
-#
-#  geoapps-utils is distributed under the terms and conditions of the MIT License
-#  (see LICENSE file at the root of this source code package).
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#                                                                                   '
+#  This file is part of geoapps-utils package.                                      '
+#                                                                                   '
+#  geoapps-utils is distributed under the terms and conditions of the MIT License   '
+#  (see LICENSE file at the root of this source code package).                      '
+#                                                                                   '
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 from __future__ import annotations
 
@@ -14,7 +17,7 @@ from geoh5py.data import FloatData, IntegerData
 from geoh5py.shared import Entity
 from geoh5py.workspace import Workspace
 
-from geoapps_utils.conversions import string_to_numeric
+from geoapps_utils.utils.conversions import string_to_numeric
 
 
 def find_value(labels: list, keywords: list, default=None) -> list:
@@ -96,7 +99,7 @@ def sorted_children_dict(
     if isinstance(entity_obj, Entity):
         children_dict = {}
         for child in entity_obj.children:  # type: ignore
-            if not isinstance(child, (IntegerData, FloatData)):
+            if not isinstance(child, IntegerData | FloatData):
                 continue
 
             children_dict[child.name] = child.uid

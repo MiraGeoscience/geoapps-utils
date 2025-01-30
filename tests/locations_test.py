@@ -1,9 +1,12 @@
-#  Copyright (c) 2023-2024 Mira Geoscience Ltd.
-#
-#  This file is part of geoapps-utils.
-#
-#  geoapps-utils is distributed under the terms and conditions of the MIT License
-#  (see LICENSE file at the root of this source code package).
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#                                                                                   '
+#  This file is part of geoapps-utils package.                                      '
+#                                                                                   '
+#  geoapps-utils is distributed under the terms and conditions of the MIT License   '
+#  (see LICENSE file at the root of this source code package).                      '
+#                                                                                   '
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 from __future__ import annotations
 
@@ -11,11 +14,19 @@ import numpy as np
 from geoh5py import Workspace
 from geoh5py.objects import Grid2D, Points
 
-from geoapps_utils.locations import (
+from geoapps_utils.utils.locations import (
     get_locations,
     get_overlapping_limits,
     map_indices_to_coordinates,
+    mask_under_horizon,
 )
+
+
+def test_mask_under_horizon():
+    points = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1], [10, 10, 0]])
+    horizon = np.array([[-1, -1, 0], [1, -1, 0], [1, 1, 1], [-1, 1, 0], [0, 0, 0]])
+    mask = mask_under_horizon(points, horizon)
+    assert np.all(mask == np.array([True, False, False, True]))
 
 
 def test_get_locations_centroids():

@@ -1,15 +1,18 @@
-#  Copyright (c) 2023-2024 Mira Geoscience Ltd.
-#
-#  This file is part of geoapps-utils.
-#
-#  geoapps-utils is distributed under the terms and conditions of the MIT License
-#  (see LICENSE file at the root of this source code package).
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#                                                                                   '
+#  This file is part of geoapps-utils package.                                      '
+#                                                                                   '
+#  geoapps-utils is distributed under the terms and conditions of the MIT License   '
+#  (see LICENSE file at the root of this source code package).                      '
+#                                                                                   '
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 from __future__ import annotations
 
 import numpy as np
 
-from geoapps_utils.plotting import inv_symlog, symlog
+from geoapps_utils.utils.plotting import inv_symlog, symlog
 
 
 def test_plotting_symlog():

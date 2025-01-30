@@ -1,10 +1,12 @@
-#  Copyright (c) 2023-2024 Mira Geoscience Ltd.
-#
-#  This file is part of geoapps-utils package.
-#
-#  geoapps-utils is distributed under the terms and conditions of the MIT License
-#  (see LICENSE file at the root of this source code package).
-
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#                                                                                   '
+#  This file is part of geoapps-utils package.                                      '
+#                                                                                   '
+#  geoapps-utils is distributed under the terms and conditions of the MIT License   '
+#  (see LICENSE file at the root of this source code package).                      '
+#                                                                                   '
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 from __future__ import annotations
 
@@ -15,7 +17,7 @@ import numpy as np
 from geoh5py import Workspace
 from geoh5py.objects import Grid2D
 
-from geoapps_utils.iterables import (
+from geoapps_utils.utils.iterables import (
     find_value,
     sorted_alphanumeric_list,
     sorted_children_dict,
@@ -63,7 +65,7 @@ def test_sorted_alphanumeric_list():
     ]
 
     sorted_list = sorted_alphanumeric_list(random.sample(test, len(test)))
-    assert all(elem == tester for elem, tester in zip(sorted_list, test))
+    assert all(elem == tester for elem, tester in zip(sorted_list, test, strict=True))
 
 
 def test_sorted_children_dict(tmp_path: Path):

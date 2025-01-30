@@ -1,14 +1,19 @@
-#  Copyright (c) 2023-2024 Mira Geoscience Ltd.
-#
-#  This file is part of geoapps-utils.
-#
-#  geoapps-utils is distributed under the terms and conditions of the MIT License
-#  (see LICENSE file at the root of this source code package).
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#                                                                                   '
+#  This file is part of geoapps-utils package.                                      '
+#                                                                                   '
+#  geoapps-utils is distributed under the terms and conditions of the MIT License   '
+#  (see LICENSE file at the root of this source code package).                      '
+#                                                                                   '
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
 
 from __future__ import annotations
 
+from copy import copy
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 from geoh5py.ui_json import InputFile
 from geoh5py.workspace import Workspace
@@ -29,21 +34,22 @@ class BaseData(BaseModel):
     :param workspace_geoh5: Current workspace, where results will be exported.
     """
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
 
-    _name: str = "base"
+    name: ClassVar[str] = "base"
+    default_ui_json: ClassVar[Path | None] = None
+    title: ClassVar[str] = "Base Data"
+    run_command: ClassVar[str] = "geoapps_utils.driver.driver"
 
-    input_file: InputFile | None = None
     conda_environment: str | None = None
     geoh5: Workspace
     monitoring_directory: str | Path | None = None
-    run_command: str
-    title: str
-    workspace_geoh5: Workspace | None = None
+    workspace_geoh5: Path | None = None
+    _input_file: InputFile | None = None
 
     @staticmethod
     def collect_input_from_dict(
-        base_model: BaseModel, data: dict[str, Any]
+        base_model: type[BaseModel], data: dict[str, Any]
     ) -> dict[str, dict | Any]:
         """
         Recursively replace BaseModel objects with dictionary of 'data' values.
@@ -58,7 +64,8 @@ class BaseData(BaseModel):
                 info.annotation, BaseModel
             ):
                 update[field] = BaseData.collect_input_from_dict(
-                    info.annotation, data  # type: ignore
+                    info.annotation,
+                    data,  # type: ignore
                 )
             else:
                 if field in data:
@@ -80,14 +87,16 @@ class BaseData(BaseModel):
 
         if isinstance(input_data, InputFile) and input_data.data is not None:
             data = input_data.data.copy()
-            data["input_file"] = input_data
 
         if not isinstance(data, dict):
             raise TypeError("Input data must be a dictionary or InputFile.")
 
         kwargs = BaseData.collect_input_from_dict(cls, data)  # type: ignore
+        out = cls(**kwargs)
+        if isinstance(input_data, InputFile):
+            out._input_file = input_data
 
-        return cls(**kwargs)
+        return out
 
     def _recursive_flatten(self, data: dict[str, Any]) -> dict[str, Any]:
         """
@@ -118,6 +127,41 @@ class BaseData(BaseModel):
         return out
 
     @property
-    def name(self) -> str:
-        """Application name."""
-        return self._name
+    def input_file(self) -> InputFile:
+        """Create an InputFile with data matching current parameter state."""
+
+        if self._input_file is None:
+            ifile = self._create_input_file_from_attributes()
+        else:
+            ifile = copy(self._input_file)
+            ifile.validate = False
+
+        return ifile
+
+    def _create_input_file_from_attributes(self) -> InputFile:
+        """
+        Create an InputFile with data matching current parameter state.
+        """
+        # ensure default uijson (PAth )exists or raise an error
+        if self.default_ui_json is None or not self.default_ui_json.exists():
+            raise FileNotFoundError(
+                f"Default uijson file '{self.default_ui_json}' not a valid path."
+            )
+
+        ifile = InputFile.read_ui_json(self.default_ui_json, validate=False)
+
+        attributes = self.flatten()
+
+        ifile.data = {
+            key: attributes.get(key, value) for key, value in ifile.data.items()
+        }
+
+        return ifile
+
+    def write_ui_json(self, path: Path) -> None:
+        """
+        Write the ui.json file for the application.
+
+        :param path: Path to write the ui.json file.
+        """
+        self.input_file.write_ui_json(path.name, str(path.parent))

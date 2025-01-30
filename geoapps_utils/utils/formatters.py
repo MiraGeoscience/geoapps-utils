@@ -10,12 +10,16 @@
 
 from __future__ import annotations
 
-from geoapps_utils.utils.formatters import string_name
 
+def string_name(value: str, characters: str = ".") -> str:
+    """
+    Find and replace characters in a string with underscores '_'.
 
-def test_string_name():
-    chars = "!@#$%^&*().,"
-    value = "H!e(l@l#o.W$o%r^l&d*"
-    assert string_name(value, characters=chars) == "H_e_l_l_o_W_o_r_l_d_", (
-        "string_name validator failed"
-    )
+    :param value: String to be validated
+    :param characters: Characters to be replaced
+
+    :return value: Re-formatted string
+    """
+    for char in characters:
+        value = value.replace(char, "_")
+    return value

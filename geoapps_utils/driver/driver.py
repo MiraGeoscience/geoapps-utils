@@ -1,9 +1,12 @@
-#  Copyright (c) 2023-2024 Mira Geoscience Ltd.
-#
-#  This file is part of geoapps-utils.
-#
-#  geoapps-utils is distributed under the terms and conditions of the MIT License
-#  (see LICENSE file at the root of this source code package).
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#                                                                                   '
+#  This file is part of geoapps-utils package.                                      '
+#                                                                                   '
+#  geoapps-utils is distributed under the terms and conditions of the MIT License   '
+#  (see LICENSE file at the root of this source code package).                      '
+#                                                                                   '
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 from __future__ import annotations
 
@@ -14,27 +17,32 @@ from geoh5py import Workspace
 from geoh5py.objects import ObjectBase
 from geoh5py.ui_json import InputFile, monitored_directory_copy
 
+from geoapps_utils.driver.data import BaseData
 from geoapps_utils.driver.params import BaseParams
 
 
 class BaseDriver(ABC):
     """
+    # todo: Get rid of BaseParams to have a more robust DriverClass
+
     Base driver class.
+
+    :param params: Application parameters.
     """
 
-    _params_class = BaseParams
+    _params_class: type[BaseData] | type[BaseParams] = BaseParams
     _validations: dict | None = None
 
-    def __init__(self, params: BaseParams):
-        """
-        :param params: Application parameters.
-        """
+    def __init__(self, params: BaseParams | BaseData):
         self._workspace: Workspace | None = None
         self._out_group: str | None = None
-        self._params: BaseParams
         self.params = params
 
-        if hasattr(self.params, "out_group") and self.params.out_group is None:
+        if (
+            hasattr(self.params, "out_group")
+            and self.params.out_group is None
+            and not issubclass(self._params_class, BaseData)
+        ):
             self.params.out_group = self.out_group
 
     @property
@@ -43,14 +51,17 @@ class BaseDriver(ABC):
         return self._out_group
 
     @property
-    def params(self) -> BaseParams:
+    def params(self):
         """Application parameters."""
         return self._params
 
     @params.setter
-    def params(self, val: BaseParams):
-        if not isinstance(val, BaseParams):
-            raise TypeError("Parameters must be of type BaseParams.")
+    def params(self, val: BaseParams | BaseData):
+        if not isinstance(val, (BaseParams, BaseData)):
+            raise TypeError(
+                "Parameters must be of type BaseParams or BaseData,"
+                f" get {type(val)} instead."
+            )
         self._params = val
 
     @property
@@ -98,9 +109,10 @@ class BaseDriver(ABC):
         filepath = Path(filepath).resolve()
         ifile = InputFile.read_ui_json(filepath, validations=cls._validations)
 
-        params = driver_class._params_class(ifile)
-        print("Initializing application . . .")
-        driver = driver_class(params)
+        with ifile.geoh5.open(mode="r+"):
+            params = driver_class._params_class.build(ifile)
+            print("Initializing application . . .")
+            driver = driver_class(params)
 
         print("Running application . . .")
         driver.run()

@@ -1,14 +1,18 @@
-#  Copyright (c) 2023-2024 Mira Geoscience Ltd.
-#
-#  This file is part of geoapps-utils.
-#
-#  geoapps-utils is distributed under the terms and conditions of the MIT License
-#  (see LICENSE file at the root of this source code package).
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#                                                                                   '
+#  This file is part of geoapps-utils package.                                      '
+#                                                                                   '
+#  geoapps-utils is distributed under the terms and conditions of the MIT License   '
+#  (see LICENSE file at the root of this source code package).                      '
+#                                                                                   '
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 from __future__ import annotations
 
 from copy import deepcopy
 
+import pytest
 from geoh5py import Workspace
 from geoh5py.ui_json.constants import default_ui_json as base_ui_json
 
@@ -55,3 +59,8 @@ def test_base_driver(tmp_path):
     # Create driver
     driver = TestDriver(params)
     driver.start(tmp_path / "test_ifile.ui.json")
+
+
+def test_params_errors():
+    with pytest.raises(TypeError, match="'input_data' must be "):
+        BaseParams.build(input_data="bidon")  # type: ignore

@@ -2,9 +2,9 @@
 
 
 ..
-    .. |docs| image:: https://readthedocs.org/projects/geoapps-utils/badge/
+    .. |docs| image:: https://readthedocs.com/projects/mirageoscience-geoapps-utils/badge/?version=latest
         :alt: Documentation Status
-        :target: https://geoapps-utils.readthedocs.io/en/latest/?badge=latest
+        :target: https://mirageoscience-geoapps-utils.readthedocs-hosted.com/en/latest/?badge=latest
 
 .. |coverage| image:: https://codecov.io/gh/MiraGeoscience/geoapps-utils/graph/badge.svg?token=Z0Q0T1U5LH
     :alt: Code coverage
@@ -47,7 +47,7 @@ used by `geoapps <https://github.com/MiraGeoscience/geoapps>`_.
 ..
     Documentation
     ^^^^^^^^^^^^^
-    `Online documentation <https://geoapps-utils.readthedocs.io/en/latest/>`_
+    `Online documentation <https://mirageoscience-geoapps-utils.readthedocs-hosted.com/en/latest/>`_
 
 
 Installation
@@ -137,7 +137,7 @@ To configure the development environment and tools, please see `README-dev.rst`_
 
 Third Party Software
 ^^^^^^^^^^^^^^^^^^^^
-The geoapps-utils package may provide links to third party libraries or code (collectively “Third Party Software”)
+The geoapps-utils package may provide links to third party libraries or code (collectively "Third Party Software")
 to implement various functions. Third Party Software does not comprise part of the Software.
 The use of Third Party Software is governed by the terms of such software license(s).
 Third Party Software notices and/or additional terms and conditions are located in the
@@ -171,4 +171,4 @@ SOFTWARE.
 
 Copyright
 ^^^^^^^^^
-Copyright (c) 2023-2024 Mira Geoscience Ltd.
+Copyright (c) 2023-2025 Mira Geoscience Ltd.
