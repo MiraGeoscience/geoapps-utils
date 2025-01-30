@@ -1,5 +1,5 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#  Copyright (c) 2024-2025 Mira Geoscience Ltd.                                     '
 #                                                                                   '
 #  This file is part of geoapps-utils package.                                      '
 #                                                                                   '
@@ -10,12 +10,28 @@
 
 from __future__ import annotations
 
-from geoapps_utils.utils.formatters import string_name
+from typing import Any
+from uuid import UUID
+
+from geoh5py.shared import Entity
+from geoh5py.workspace import Workspace
 
 
-def test_string_name():
-    chars = "!@#$%^&*().,"
-    value = "H!e(l@l#o.W$o%r^l&d*"
-    assert string_name(value, characters=chars) == "H_e_l_l_o_W_o_r_l_d_", (
-        "string_name validator failed"
-    )
+def get_name_from_uid(workspace: Workspace, uid: Any) -> str:
+    """
+    Get a name from a uid.
+
+    :param workspace: The workspace to search the UUID in.
+    :param uid: The UUID to extract a name from.
+
+    :return: the name
+    """
+    if not isinstance(uid, UUID):
+        raise TypeError(f"Expected UUID, got {type(uid)}")
+
+    entity = workspace.get_entity(uid)[0]
+
+    if not isinstance(entity, Entity):
+        raise ValueError(f"No Entity found in workspace for {uid}")
+
+    return entity.name

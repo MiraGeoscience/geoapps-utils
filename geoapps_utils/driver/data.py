@@ -1,15 +1,19 @@
-#  Copyright (c) 2023-2024 Mira Geoscience Ltd.
-#
-#  This file is part of geoapps-utils.
-#
-#  geoapps-utils is distributed under the terms and conditions of the MIT License
-#  (see LICENSE file at the root of this source code package).
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#                                                                                   '
+#  This file is part of geoapps-utils package.                                      '
+#                                                                                   '
+#  geoapps-utils is distributed under the terms and conditions of the MIT License   '
+#  (see LICENSE file at the root of this source code package).                      '
+#                                                                                   '
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
 
 from __future__ import annotations
 
 from copy import copy
 from pathlib import Path
-from typing import Any, ClassVar
+from typing import Any, ClassVar, GenericAlias  # type: ignore
 
 from geoh5py.ui_json import InputFile
 from geoh5py.workspace import Workspace
@@ -40,7 +44,7 @@ class BaseData(BaseModel):
     conda_environment: str | None = None
     geoh5: Workspace
     monitoring_directory: str | Path | None = None
-    workspace_geoh5: Workspace | None = None
+    workspace_geoh5: Path | None = None
     _input_file: InputFile | None = None
 
     @staticmethod
@@ -56,8 +60,10 @@ class BaseData(BaseModel):
         """
         update = {}
         for field, info in base_model.model_fields.items():
-            if isinstance(info.annotation, type) and issubclass(
-                info.annotation, BaseModel
+            if (
+                isinstance(info.annotation, type)
+                and not isinstance(info.annotation, GenericAlias)
+                and issubclass(info.annotation, BaseModel)
             ):
                 update[field] = BaseData.collect_input_from_dict(
                     info.annotation,
@@ -161,3 +167,15 @@ class BaseData(BaseModel):
         :param path: Path to write the ui.json file.
         """
         self.input_file.write_ui_json(path.name, str(path.parent))
+
+    def serialize(self):
+        """Return a demoted uijson dictionary representation the params data."""
+
+        dump = self.model_dump()
+        dump["geoh5"] = str(dump["geoh5"].h5file.resolve())
+        ifile = self.input_file
+        ifile.data = self._recursive_flatten(dump)
+        assert ifile.ui_json is not None
+        options = ifile.stringify(ifile.demote(ifile.ui_json))
+
+        return options

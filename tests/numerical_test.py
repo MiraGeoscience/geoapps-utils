@@ -1,9 +1,12 @@
-#  Copyright (c) 2023-2024 Mira Geoscience Ltd.
-#
-#  This file is part of geoapps-utils.
-#
-#  geoapps-utils is distributed under the terms and conditions of the MIT License
-#  (see LICENSE file at the root of this source code package).
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#                                                                                   '
+#  This file is part of geoapps-utils package.                                      '
+#                                                                                   '
+#  geoapps-utils is distributed under the terms and conditions of the MIT License   '
+#  (see LICENSE file at the root of this source code package).                      '
+#                                                                                   '
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 from __future__ import annotations
 
@@ -11,6 +14,8 @@ import numpy as np
 from numpy import random
 
 from geoapps_utils.utils.numerical import (
+    fibonacci_series,
+    fit_circle,
     running_mean,
     traveling_salesman,
     weighted_average,
@@ -25,12 +30,12 @@ def test_running_mean():
 
     mean_test = (vec[1:] + vec[:-1]) / 2
 
-    assert (
-        np.linalg.norm(mean_back[:-1] - mean_test) < 1e-12
-    ), "Backward averaging does not match expected values."
-    assert (
-        np.linalg.norm(mean_forw[1:] - mean_test) < 1e-12
-    ), "Forward averaging does not match expected values."
+    assert np.linalg.norm(mean_back[:-1] - mean_test) < 1e-12, (
+        "Backward averaging does not match expected values."
+    )
+    assert np.linalg.norm(mean_forw[1:] - mean_test) < 1e-12, (
+        "Forward averaging does not match expected values."
+    )
     assert (
         np.linalg.norm((mean_test[1:] + mean_test[:-1]) / 2 - mean_cent[1:-1]) < 1e-12
     ), "Centered averaging does not match expected values."
@@ -147,3 +152,24 @@ def test_weighted_average_threshold():
     values = [np.array([1, 2, 3])]
     out = weighted_average(xyz_in, xyz_out, values, threshold=1e30)
     assert out[0] == 2
+
+
+def test_fit_cicle():
+    tol = 1e-1
+    n_samples = 200
+    x0, y0 = np.random.randn(2) * 100.0
+    r = np.random.rand() * 10
+    theta = np.random.randn(n_samples) * 2 * np.pi
+
+    x = x0 + r * np.cos(theta) + np.random.randn(n_samples) * tol / 2.0
+    y = y0 + r * np.sin(theta) + np.random.randn(n_samples) * tol / 2.0
+    r_fit, x_fit, y_fit = fit_circle(x, y)
+
+    np.testing.assert_allclose(x0, x_fit, atol=tol)
+    np.testing.assert_allclose(y0, y_fit, atol=tol)
+    np.testing.assert_allclose(r, r_fit, atol=tol)
+
+
+def test_fibonacci_series():
+    np.testing.assert_allclose(fibonacci_series(1), [0])
+    np.testing.assert_allclose(fibonacci_series(6), [0, 1, 1, 2, 3, 5])

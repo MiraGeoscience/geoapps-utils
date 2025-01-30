@@ -1,15 +1,17 @@
-#  Copyright (c) 2022-2024 Mira Geoscience Ltd.
-#
-#  This file is part of geoapps-utils package.
-#
-#  geoapps-utils is distributed under the terms and conditions of the MIT License
-#  (see LICENSE file at the root of this source code package).
-
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+#  Copyright (c) 2022-2025 Mira Geoscience Ltd.                                     '
+#                                                                                   '
+#  This file is part of geoapps-utils package.                                      '
+#                                                                                   '
+#  geoapps-utils is distributed under the terms and conditions of the MIT License   '
+#  (see LICENSE file at the root of this source code package).                      '
+#                                                                                   '
+# '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 from __future__ import annotations
 
 
-__version__ = "0.4.0-beta.2"
+__version__ = "0.5.0-alpha.1"
 
 from pathlib import Path
 
@@ -24,6 +26,7 @@ from geoapps_utils.utils import (
     transformations,
     workspace,
 )
+from geoapps_utils.utils.importing import GeoAppsError
 from geoapps_utils.utils.importing import assets_path as assets_path_impl
 
 
