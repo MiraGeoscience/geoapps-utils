@@ -65,10 +65,13 @@ class BaseData(BaseModel):
                 and not isinstance(info.annotation, GenericAlias)
                 and issubclass(info.annotation, BaseModel)
             ):
-                update[field] = BaseData.collect_input_from_dict(
-                    info.annotation,
-                    data,  # type: ignore
-                )
+                if isinstance(data[field], info.annotation):
+                    update[field] = data[field]
+                else:
+                    update[field] = BaseData.collect_input_from_dict(
+                        info.annotation,
+                        data,  # type: ignore
+                    )
             else:
                 if field in data:
                     update[field] = data.get(field, info.default)
