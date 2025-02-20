@@ -10,9 +10,9 @@
 
 from __future__ import annotations
 
+import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
-from warnings import warn
 
 from geoh5py import Workspace
 from geoh5py.objects import ObjectBase
@@ -21,6 +21,9 @@ from geoh5py.ui_json import InputFile, monitored_directory_copy
 from geoapps_utils.driver.data import BaseData
 from geoapps_utils.driver.params import BaseParams
 from geoapps_utils.utils.importing import GeoAppsError
+
+
+logger = logging.getLogger()
 
 
 class BaseDriver(ABC):
@@ -122,7 +125,7 @@ class BaseDriver(ABC):
 
                 return driver
             except GeoAppsError as error:
-                warn(f"\n\nApplicationError: {error}\n\n")
+                logger.warning("\n\nApplicationError: %s\n\n", error)
                 return None
 
     def add_ui_json(self, entity: ObjectBase):
