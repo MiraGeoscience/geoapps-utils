@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -126,7 +127,7 @@ class BaseDriver(ABC):
                 return driver
             except GeoAppsError as error:
                 logger.warning("\n\nApplicationError: %s\n\n", error)
-                return None
+                sys.exit(1)
 
     def add_ui_json(self, entity: ObjectBase):
         """
