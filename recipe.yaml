@@ -36,14 +36,14 @@ tests:
   - python:
       imports:
         - geoapps_utils
-  - files:
-      source:
-        - tests/
+  - script:
+      - pytest ./tests
     requirements:
       run:
-        - pip
-    script:
-      - pip check
+        - pytest
+    files:
+      source:
+        - tests/
 
 about:
   summary: Provides utility functions used by geoapps.
