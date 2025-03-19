@@ -62,8 +62,7 @@ def test_dataclass_valid_values(tmp_path):
     valid_parameters = get_params_dict(tmp_path / f"{__name__}.geoh5")
     model = BaseData(**valid_parameters)
     output_params = model.model_dump()
-    assert all(k not in output_params for k in ["title", "run_command"])
-    assert len(output_params) == len(valid_parameters) - 2
+    assert len(output_params) == len(valid_parameters)
 
     for k, v in output_params.items():
         assert valid_parameters[k] == v
@@ -84,12 +83,13 @@ def test_dataclass_invalid_values(tmp_path):
     try:
         BaseData(**invalid_params)
     except ValidationError as e:
-        assert len(e.errors()) == 3  # type: ignore
+        assert len(e.errors()) == 4  # type: ignore
         error_params = [error["loc"][0] for error in e.errors()]  # type: ignore
         error_types = [error["type"] for error in e.errors()]  # type: ignore
         for error_param in [
             "monitoring_directory",
             "geoh5",
+            "title",
         ]:
             assert error_param in error_params
         for error_type in ["string_type", "path_type", "is_instance_of"]:
@@ -102,9 +102,7 @@ def test_dataclass_input_file(tmp_path):
     model = BaseData.build(ifile)
 
     assert model.geoh5.h5file == tmp_path / f"{__name__}.geoh5"
-    assert model.flatten() == {
-        k: v for k, v in valid_parameters.items() if k not in ["title", "run_command"]
-    }
+    assert model.flatten() == valid_parameters
     assert model._input_file == ifile  # pylint: disable=protected-access
 
 
@@ -215,18 +213,15 @@ def test_nested_model(tmp_path):
 
     assert isinstance(model.group, GroupParams)
     assert model.group.value == "test"
-    assert model.flatten() == {
-        k: v for k, v in valid_params.items() if k not in ["title", "run_command"]
-    }
-
+    assert model.flatten() == valid_params
     assert model.group.options.group_type == "multi"
 
 
 def test_params_construction(tmp_path):
     params = BaseData(geoh5=Workspace(tmp_path / "test.geoh5"))
     assert BaseData.default_ui_json is None
-    assert BaseData.title == "Base Data"
-    assert BaseData.run_command == "geoapps_utils.driver.driver"
+    assert params.title == "Base Data"
+    assert params.run_command == "geoapps_utils.driver.driver"
     assert str(params.geoh5.h5file) == str(tmp_path / "test.geoh5")
 
 
