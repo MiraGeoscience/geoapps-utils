@@ -1,17 +1,16 @@
 schema_version: 1
 
 context:
-  name: geoapps-utils
-  version: 0.5.0a1
+  name: "geoapps-utils"
+  version: "0.5.0a2"
+  python_min: "3.10"
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  # url: https://github.com/MiraGeoscience/{{ name }}/archive/v{{ version }}.tar.gz
-  # sha256: 4671fc21594f465fe3975ffba037a4a053e63d7038aca6fbcf5da0913532fcc2
-  path: ../${{ name}}
+  path: ../${{ name }}
 
 build:
   number: 0
@@ -20,31 +19,31 @@ build:
 
 requirements:
   host:
-    - python >=3.10.0,<4.0.0
+    - python 3.10.*
     - poetry-core >=1.0.0
     - setuptools
     - pip
   run:
-    - python >=3.10.0,<3.11
-    - numpy >=1.26.0,<1.27.0
-    - pydantic >=2.5.2,<2.6.0
-    - scipy >=1.14.0,<1.15.0
-    - geoh5py >=0.11.0a1,<0.12.0a.dev
-    - h5py >=3.2.1,<4.0.0
-    - pillow >=10.3.0,<10.4.0
+    - python >=${{ python_min }}
+    # Mira packages
+    - geoh5py >=0.11.0a, <0.12.dev
+    # direct dependencies
+    - numpy >=1.26.0, <1.27.dev
+    - pydantic >=2.5.2, <3.0.dev
+    - scipy >=1.14.0, <1.15.dev
 
 tests:
   - python:
       imports:
         - geoapps_utils
-  - files:
-      source:
-        - tests/
+  - script:
+      - pytest --ignore=tests/version_test.py
     requirements:
       run:
-        - pip
-    script:
-      - pip check
+        - pytest
+    files:
+      source:
+        - tests/
 
 about:
   summary: Provides utility functions used by geoapps.
@@ -59,5 +58,5 @@ about:
 
 extra:
   recipe-maintainers:
-    - SophieCurinier
+    - andrewg-mira
     - sebhmg
