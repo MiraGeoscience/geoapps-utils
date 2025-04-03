@@ -15,8 +15,8 @@
 version: 1
 metadata:
   content_hash:
-    win-64: 1d89e1b720e1a2a6dd43416546072e4d0d31479699001b13a79dc77f36b9de5a
-    linux-64: 59c48837e5b81627df9a17bf341b171bc3eb542d6ca68025c8c24f098ecfdf3b
+    win-64: 7628bc12d831d689f1366adee8c9783143941ca847a064d43d1394fabc483697
+    linux-64: 2f3bc6723993269180764d14173c6dd30ac1cde90b8769980e2b4a5ab4269240
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -2521,7 +2521,7 @@ package:
   category: main
   optional: false
 - name: geoh5py
-  version: 0.11.0a2
+  version: 0.11.0-alpha.3
   manager: pip
   platform: linux-64
   dependencies:
@@ -2529,13 +2529,16 @@ package:
     numpy: '>=1.26.0,<1.27.0'
     pillow: '>=10.3.0,<10.4.0'
     pydantic: '>=2.5.2,<3.0.0'
-  url: https://mirageoscienceltd.jfrog.io/artifactory/api/pypi/geoplus-pypi-dev/geoh5py/0.11.0-alpha.2/geoh5py-0.11.0a2-py3-none-any.whl
+  url: git+https://github.com/MiraGeoscience/geoh5py.git@07722a173159bb412c664e07d4e793743adaec81
   hash:
-    sha256: 251fadc1eef53164d8f423f71d0cbbcbc594b04a72e4204395d8480698703279
+    sha256: 07722a173159bb412c664e07d4e793743adaec81
+  source:
+    type: url
+    url: git+https://github.com/MiraGeoscience/geoh5py.git@07722a173159bb412c664e07d4e793743adaec81
   category: main
   optional: false
 - name: geoh5py
-  version: 0.11.0a2
+  version: 0.11.0-alpha.3
   manager: pip
   platform: win-64
   dependencies:
@@ -2543,8 +2546,11 @@ package:
     numpy: '>=1.26.0,<1.27.0'
     pillow: '>=10.3.0,<10.4.0'
     pydantic: '>=2.5.2,<3.0.0'
-  url: https://mirageoscienceltd.jfrog.io/artifactory/api/pypi/geoplus-pypi-dev/geoh5py/0.11.0-alpha.2/geoh5py-0.11.0a2-py3-none-any.whl
+  url: git+https://github.com/MiraGeoscience/geoh5py.git@07722a173159bb412c664e07d4e793743adaec81
   hash:
-    sha256: 251fadc1eef53164d8f423f71d0cbbcbc594b04a72e4204395d8480698703279
+    sha256: 07722a173159bb412c664e07d4e793743adaec81
+  source:
+    type: url
+    url: git+https://github.com/MiraGeoscience/geoh5py.git@07722a173159bb412c664e07d4e793743adaec81
   category: main
   optional: false
