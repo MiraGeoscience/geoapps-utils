@@ -46,7 +46,7 @@ dependencies:
   - libgomp=14.2.0=h767d61c_2
   - libjpeg-turbo=3.0.0=hd590300_1
   - liblapack=3.9.0=31_h7ac8fdf_openblas
-  - liblzma=5.6.4=hb9d3cd8_0
+  - liblzma=5.8.1=hb9d3cd8_0
   - libnghttp2=1.64.0=h161d5f1_0
   - libnsl=2.0.1=hd590300_0
   - libopenblas=0.3.29=pthreads_h94d23a6_0
@@ -73,25 +73,25 @@ dependencies:
   - platformdirs=4.3.7=pyh29332c3_0
   - pluggy=1.5.0=pyhd8ed1ab_1
   - pthread-stubs=0.4=hb9d3cd8_1002
-  - pydantic=2.11.1=pyh3cfb1c2_0
-  - pydantic-core=2.33.0=py312h3b7be25_0
+  - pydantic=2.11.2=pyh3cfb1c2_0
+  - pydantic-core=2.33.1=py312h3b7be25_0
   - pygments=2.19.1=pyhd8ed1ab_0
-  - pylint=3.3.5=pyh29332c3_0
+  - pylint=3.3.6=pyh29332c3_0
   - pytest=8.3.5=pyhd8ed1ab_0
-  - pytest-cov=6.0.0=pyhd8ed1ab_1
+  - pytest-cov=6.1.1=pyhd8ed1ab_0
   - python=3.12.9=h9e4cc4f_1_cpython
   - python_abi=3.12=6_cp312
   - pyyaml=6.0.2=py312h178313f_2
   - readline=8.2=h8c095d6_2
   - scipy=1.14.1=py312h62794b6_2
-  - setuptools=75.8.2=pyhff2d567_0
+  - setuptools=78.1.0=pyhff2d567_0
   - tk=8.6.13=noxft_h4845f30_101
   - toml=0.10.2=pyhd8ed1ab_1
   - tomli=2.2.1=pyhd8ed1ab_1
   - tomlkit=0.13.2=pyha770c72_1
-  - typing-extensions=4.13.0=h9fa5a19_1
+  - typing-extensions=4.13.1=hf5ce1d7_0
   - typing-inspection=0.4.0=pyhd8ed1ab_0
-  - typing_extensions=4.13.0=pyh29332c3_1
+  - typing_extensions=4.13.1=pyh29332c3_0
   - tzdata=2025b=h78e105d_0
   - wheel=0.45.1=pyhd8ed1ab_1
   - xorg-libxau=1.0.12=hb9d3cd8_0
@@ -99,7 +99,7 @@ dependencies:
   - yaml=0.2.5=h7f98852_2
   - zstd=1.5.7=hb8e6e7a_2
   - pip:
-      - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@07722a173159bb412c664e07d4e793743adaec81
+      - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@59dbfbebbcd1cf652e80dda2df29e048ea84509b
 
 variables:
   KMP_WARNINGS: 0
