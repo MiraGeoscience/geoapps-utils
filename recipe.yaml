@@ -46,10 +46,10 @@ tests:
         - tests/
 
 about:
-  summary: Provides utility functions used by geoapps.
+  summary: Utility functions to build applications supported by Mira Geoscience.
   description: |
-    The geoapps-utils package provides utility functions used by
-    (geoapps)<https://github.com/MiraGeoscience/geoapps>.
+    The geoapps-utils package provides utility functions
+    used by Python applications supported by [Mira Geoscience](https://www.mirageoscience.com/mining-industry-software/geoscience-analyst/python-integration/).
   license: MIT
   license_file:
     - LICENSE
