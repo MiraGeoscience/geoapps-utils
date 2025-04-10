@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "geoapps-utils"
-version = "0.5.0-alpha.3"
+version = "0.5.0-alpha.4"
 
 license = "MIT"
 description = "Utility functions to build applications supported by Mira Geoscience"
