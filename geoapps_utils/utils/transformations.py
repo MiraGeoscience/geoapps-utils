@@ -10,6 +10,8 @@
 
 import numpy as np
 from geoh5py.objects import Surface
+
+
 # from simpeg.utils.mat_utils import cartesian2amplitude_dip_azimuth
 
 
@@ -79,6 +81,7 @@ def compute_normals(surface: Surface) -> np.ndarray:
         normals.append(normal)
 
     return np.vstack(normals)
+
 
 def cartesian2spherical(m):
     r"""
@@ -150,6 +153,6 @@ def cartesian2amplitude_dip_azimuth(m):
 
     return atp
 
+
 def normals_to_dip_direction(normals: np.ndarray):
     return cartesian2amplitude_dip_azimuth(normals)
-

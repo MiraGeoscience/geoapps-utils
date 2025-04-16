@@ -15,7 +15,10 @@ from geoh5py import Workspace
 from geoh5py.objects import Surface
 
 from geoapps_utils.utils.transformations import (
-    rotate_xyz, normal_from_triangle, compute_normals, normals_to_dip_direction
+    compute_normals,
+    normal_from_triangle,
+    normals_to_dip_direction,
+    rotate_xyz,
 )
 
 
@@ -40,15 +43,17 @@ def test_2d_input():
 
 
 def test_normal_from_triangle():
-
-    triangle = np.array([
-        [0, 0, 0],
-        [0, 1, 0],
-        [1, 0, 0],
-    ])
+    triangle = np.array(
+        [
+            [0, 0, 0],
+            [0, 1, 0],
+            [1, 0, 0],
+        ]
+    )
     normal = normal_from_triangle(triangle)
 
     assert np.allclose(normal, [0, 0, -1]), "Error in normal calculation from triangle."
+
 
 def create_surface(workspace, upside_down=False):
     k = -5.0 if upside_down else 5.0
@@ -58,7 +63,7 @@ def create_surface(workspace, upside_down=False):
             [10.0, 0.0, 0.0],
             [10.0, 10.0, 0.0],
             [0.0, 10.0, 0.0],
-            [5.0, 5.0, k]
+            [5.0, 5.0, k],
         ]
     )
     triangles = np.array(
@@ -73,6 +78,7 @@ def create_surface(workspace, upside_down=False):
 
     return surface
 
+
 def test_compute_normals(tmp_path):
     ws = Workspace(tmp_path / "test.geoh5")
     surface = create_surface(ws, upside_down=False)
@@ -82,6 +88,6 @@ def test_compute_normals(tmp_path):
 
 
 def test_normals_to_dip_direction():
-    normals = np.array([[np.sqrt(2)/2, 0, np.sqrt(2)/2]])
+    normals = np.array([[np.sqrt(2) / 2, 0, np.sqrt(2) / 2]])
     dipaz = normals_to_dip_direction(normals)
     assert True
