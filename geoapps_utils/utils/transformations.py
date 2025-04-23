@@ -12,18 +12,16 @@ import numpy as np
 from geoh5py.objects import Surface
 
 
-# from simpeg.utils.mat_utils import cartesian2amplitude_dip_azimuth
-
-
 def rotate_xyz(xyz: np.ndarray, center: list, theta: float, phi: float = 0.0):
     """
-    Perform a counterclockwise rotation of scatter points around the x-axis,
-        then z-axis, about a center point.
+    Rotate points counterclockwise around the x then z axes, about a center point.
 
     :param xyz: shape(*, 2) or shape(*, 3) Input coordinates.
     :param center: len(2) or len(3) Coordinates for the center of rotation.
-    :param theta: Angle of rotation around z-axis in degrees.
-    :param phi: Angle of rotation around x-axis in degrees.
+    :param theta: Angle of rotation in counterclockwise degree about the z-axis
+        as viewed from above.
+    :param phi: Angle of rotation in couterclockwise degrees around x-axis
+        as viewed from the east.
     """
     return2d = False
     locs = xyz.copy()
@@ -61,6 +59,83 @@ def rotate_xyz(xyz: np.ndarray, center: list, theta: float, phi: float = 0.0):
     return xyz_out
 
 
+def ccw_east_to_cw_north(azimuth: float) -> float:
+    """
+    Convert counterclockwise azimuth from east to clockwise from north
+
+    :param azimuth: Azimuth angle (in xy plane) measured in counterclockwise radians
+        from east.
+
+    :returns: Azimuth angle (in xy plane) measured in clockwise degrees from north.
+    """
+    return (((5 * np.pi) / 2) - azimuth) % (2 * np.pi)
+
+
+def cartesian_to_spherical(points: np.ndarray) -> np.ndarray:
+    """
+    Convert cartesian to spherical coordinates.
+
+    :param points: Array of shape (n, 3) representing x, y, z coordinates of a point
+        in 3D space.
+
+    :returns: Array of shape (n, 2) representing the azimuth and inclination angles
+        in spherical coordinates. The azimuth angle is measured in radians clockwise
+        from north in the range of 0 to 2pi as viewed from above, and inclination
+        angle is measured in positive radians above the horizon and negative below.
+    """
+    inclination = np.arcsin(points[:, 2] / np.linalg.norm(points, axis=1))
+    azimuth = np.sign(points[:, 1]) * (
+        np.arccos(points[:, 0] / np.linalg.norm(points[:, :2], axis=1))
+    )
+    azimuth = ccw_east_to_cw_north(azimuth)
+    return np.column_stack((azimuth, inclination))
+
+
+def spherical_to_direction_and_dip(angles: np.ndarray) -> np.ndarray:
+    """
+    Convert normals in spherical coordinates to dip and direction of the tangent plane.
+
+    Confines the solution to the eastern hemisphere and applies a dip
+    correction for normals originally oriented in the west.
+
+    :param angles: Array of shape (n, 2) representing the azimuth and inclination angles
+        in spherical coordinates. The azimuth angle is measured in radians clockwise
+        from north in the range of 0 to 2pi as viewed from above, and inclination
+        angle is measured in positive radians above the horizon and negative below.
+
+    :returns: Array of shape (n, 2) representing azimuth from 0 to pi radians
+        clockwise from north as viewed from above and dip from -pi to pi in positive
+        radians below the horizon and negative above.
+
+    """
+    azimuth = angles[:, 0]
+    inclination = angles[:, 1]
+    inclination = np.sign(inclination) * ((np.pi / 2) - np.abs(inclination))
+    greater_than_pi = azimuth > np.pi
+    inclination[greater_than_pi] = -1 * (inclination[greater_than_pi])
+    azimuth[greater_than_pi] = azimuth[greater_than_pi] - np.pi
+
+    return np.column_stack((azimuth, inclination))
+
+
+def normal_to_direction_and_dip(points: np.ndarray) -> np.ndarray:
+    """
+    Convert 3D normal vectors to dip and direction within the eastern hemisphere.
+
+    :param points: Array of shape (n, 3) representing x, y, z coordinates of a point
+        in 3D space.
+
+    :returns: Array of shape (n, 2) representing azimuth from 0 to pi radians
+        clockwise from north as viewed from above and dip from -pi to pi in positive
+        radians below the horizon and negative above.
+    """
+
+    spherical_coords = cartesian_to_spherical(points)
+    direction_and_dip = spherical_to_direction_and_dip(spherical_coords)
+
+    return direction_and_dip
+
+
 def normal_from_triangle(triangle: np.ndarray) -> np.ndarray:
     """Compute the normal vector from a triangle defined by three vertices."""
     v1 = triangle[1] - triangle[0]
@@ -81,78 +156,3 @@ def compute_normals(surface: Surface) -> np.ndarray:
         normals.append(normal)
 
     return np.vstack(normals)
-
-
-def cartesian2spherical(m):
-    r"""
-    Converts a set of 3D vectors from Cartesian to spherical coordinates.
-
-    Parameters
-    ----------
-    m : (n, 3) array_like
-        An array whose columns represent the x, y and z components of
-        a set of vectors.
-
-    Returns
-    -------
-    (n, 3) numpy.ndarray
-        An array whose columns represent the *a*, *t* and *p* components
-        of a set of vectors in spherical coordinates.
-
-    Notes
-    -----
-
-    In Cartesian space, the components of each vector are defined as
-
-    .. math::
-
-        \mathbf{v} = (v_x, v_y, v_z)
-
-    In spherical coordinates, vectors are is defined as:
-
-    .. math::
-
-        \mathbf{v^\prime} = (a, t, p)
-
-    where
-
-        - :math:`a` is the amplitude of the vector
-        - :math:`t` is the azimuthal angle defined positive from vertical
-        - :math:`p` is the radial angle defined positive CCW from Easting
-
-    """
-
-    # nC = int(len(m)/3)
-
-    x = m[:, 0]
-    y = m[:, 1]
-    z = m[:, 2]
-
-    a = (x**2.0 + y**2.0 + z**2.0) ** 0.5
-
-    t = np.zeros_like(x)
-    t[a > 0] = np.arcsin(z[a > 0] / a[a > 0])
-
-    p = np.zeros_like(x)
-    p[a > 0] = np.arctan2(y[a > 0], x[a > 0])
-
-    m_atp = np.r_[a, t, p]
-
-    return m_atp
-
-
-def cartesian2amplitude_dip_azimuth(m):
-    """
-    Convert from cartesian to amplitude, dip (positive down) and
-    azimuth (clockwise for North), in degree.
-    """
-    m = m.reshape((-1, 3), order="F")
-    atp = cartesian2spherical(m).reshape((-1, 3), order="F")
-    atp[:, 1] = np.rad2deg(-1.0 * atp[:, 1])
-    atp[:, 2] = (450.0 - np.rad2deg(atp[:, 2])) % 360.0
-
-    return atp
-
-
-def normals_to_dip_direction(normals: np.ndarray):
-    return cartesian2amplitude_dip_azimuth(normals)

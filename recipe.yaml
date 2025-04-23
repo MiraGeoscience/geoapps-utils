@@ -2,7 +2,7 @@ schema_version: 1
 
 context:
   name: "geoapps-utils"
-  version: "0.5.0a3"
+  version: "0.6.0a1"
   python_min: "3.10"
 
 package:
@@ -26,7 +26,7 @@ requirements:
   run:
     - python >=${{ python_min }}
     # Mira packages
-    - geoh5py >=0.11.0a, <0.12.dev
+    - geoh5py >=0.12.0a, <0.13.dev
     # direct dependencies
     - numpy >=1.26.0, <1.27.dev
     - pydantic >=2.5.2, <3.0.dev
@@ -46,10 +46,10 @@ tests:
         - tests/
 
 about:
-  summary: Provides utility functions used by geoapps.
+  summary: Utility functions to build applications supported by Mira Geoscience.
   description: |
-    The geoapps-utils package provides utility functions used by
-    (geoapps)<https://github.com/MiraGeoscience/geoapps>.
+    The geoapps-utils package provides utility functions
+    used by Python applications supported by [Mira Geoscience](https://www.mirageoscience.com/mining-industry-software/geoscience-analyst/python-integration/).
   license: MIT
   license_file:
     - LICENSE
