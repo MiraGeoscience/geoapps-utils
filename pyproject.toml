@@ -1,16 +1,27 @@
-[tool.poetry]
+[project]
 name = "geoapps-utils"
-version = "0.6.0-alpha.1"
-
-license = "MIT"
 description = "Utility functions to build applications supported by Mira Geoscience"
-authors = ["Mira Geoscience <support@mirageoscience.com>"]
-maintainers = ["Dominique Fournier <dominiquef@mirageoscience.com>"]
-repository = "https://github.com/MiraGeoscience/geoapps-utils"
-#documentation  = "https://mirageoscience-geoapps-utils.readthedocs-hosted.com/"
-homepage = "https://www.mirageoscience.com/mining-industry-software/python-integration/"
-readme = "README.rst"
+license = "MIT"
 keywords = ["geology", "geophysics", "data", "interoperability"]
+version = "0.6.0-alpha.1"
+dynamic = ["classifiers"]
+readme = "README.rst"
+authors = [{name = "Mira Geoscience", email = "support@mirageoscience.com"}]
+maintainers = [{name = "Dominique Fournier", email = "dominiquef@mirageoscience.com"}]
+requires-python = '>=3.10,<4.0'
+dependencies = ['numpy (>=1.26.0,<1.27.0)', 'pydantic (>=2.5.2,<3.0.0)', 'scipy (>=1.14.0,<1.15.0)', 'geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@develop']
+
+[project.urls]
+homepage = "https://www.mirageoscience.com/mining-industry-software/python-integration/"
+repository = "https://github.com/MiraGeoscience/geoapps-utils"
+
+[project.scripts]
+
+[project.optional-dependencies]
+
+[tool.poetry]
+
+#documentation  = "https://mirageoscience-geoapps-utils.readthedocs-hosted.com/"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
@@ -40,12 +51,10 @@ include = [
 ]
 
 exclude = [] # files to exclude from packaging
-
-[tool.poetry.scripts]
+requires-poetry = '>=2.0.0,<3.0.0'
 
 [tool.poetry.dependencies]
 python = "^3.10"
-
 numpy = "~1.26.0"
 pydantic = "^2.5.2"
 scipy = "~1.14.0"
@@ -84,8 +93,6 @@ channels = ['conda-forge']
 #---------------------------------------------------------------------------------
 Pillow = ">=10.3.0, <10.4.dev"  # from geoh5py
 h5py = ">=3.2.1, <4.0.dev"  # from geoh5py
-
-[tool.poetry.extras]
 
 [tool.ruff]
 target-version = "py310"
