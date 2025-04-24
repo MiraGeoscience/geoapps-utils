@@ -3,7 +3,7 @@ name = "geoapps-utils"
 description = "Utility functions to build applications supported by Mira Geoscience"
 license = "MIT"
 keywords = ["geology", "geophysics", "data", "interoperability"]
-version = "0.6.0-alpha.1"
+version = "0.6.0a1"
 dynamic = ["classifiers"]
 readme = "README.rst"
 authors = [{name = "Mira Geoscience", email = "support@mirageoscience.com"}]
