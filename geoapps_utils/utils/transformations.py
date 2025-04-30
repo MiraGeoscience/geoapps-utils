@@ -58,7 +58,7 @@ def rotate_xyz(xyz: np.ndarray, center: list, theta: float, phi: float = 0.0):
     return xyz_out
 
 
-def ccw_east_to_cw_north(azimuth: float) -> float:
+def ccw_east_to_cw_north(azimuth: np.ndarray) -> np.ndarray:
     """
     Convert counterclockwise azimuth from east to clockwise from north
 
@@ -77,17 +77,15 @@ def cartesian_to_spherical(points: np.ndarray) -> np.ndarray:
     :param points: Array of shape (n, 3) representing x, y, z coordinates of a point
         in 3D space.
 
-    :returns: Array of shape (n, 2) representing the azimuth and inclination angles
+    :returns: Array of shape (n, 3) representing the magnitude, azimuth and inclination
         in spherical coordinates. The azimuth angle is measured in radians clockwise
         from north in the range of 0 to 2pi as viewed from above, and inclination
-        angle is measured in positive radians below the horizon and negative above.
+        angle is measured in radians from the positive z-axis.
     """
 
     magnitude = np.linalg.norm(points, axis=1)
-    inclination = -1 * np.arcsin(points[:, 2] / magnitude)
-    azimuth = np.sign(points[:, 1]) * (
-        np.arccos(points[:, 0] / np.linalg.norm(points[:, :2], axis=1))
-    )
+    inclination = np.arccos(points[:, 2] / magnitude)
+    azimuth = np.arctan2(points[:, 1], points[:, 0])
     azimuth = ccw_east_to_cw_north(azimuth)
     return np.column_stack((magnitude, azimuth, inclination))
 
@@ -96,42 +94,45 @@ def spherical_normal_to_direction_and_dip(angles: np.ndarray) -> np.ndarray:
     """
     Convert normals in spherical coordinates to dip and direction of the tangent plane.
 
-    Confines the solution to the eastern hemisphere and applies a dip
-    correction for normals originally oriented in the west.
-
     :param angles: Array of shape (n, 2) representing the azimuth and inclination angles
-        in spherical coordinates. The azimuth angle is measured in radians clockwise
-        from north in the range of 0 to 2pi as viewed from above, and inclination
-        angle is measured in positive radians above the horizon and negative below.
+        of a normal vector in spherical coordinates. The azimuth angle is measured in
+        radians clockwise from north in the range of 0 to 2pi as viewed from above, and
+        inclination angle is measured in radians from the positive z-axis.
 
-    :returns: Array of shape (n, 2) representing azimuth from 0 to pi radians
+    :returns: Array of shape (n, 2) representing direction from 0 to 2pi radians
         clockwise from north as viewed from above and dip from -pi to pi in positive
         radians below the horizon and negative above.
-
     """
-    azimuth = angles[:, 0]
-    inclination = angles[:, 1]
-    # inclination *= -1
-    sign = np.sign(inclination)
-    sign[sign == 0] = 1
-    # inclination = sign * ((np.pi / 2) - np.abs(inclination))
-    inclination = sign * (np.abs(inclination) - (np.pi / 2))
-    #
-    # greater_than_pi = azimuth > np.pi
-    # inclination[greater_than_pi] = -1 * (inclination[greater_than_pi])
-    # azimuth[greater_than_pi] = azimuth[greater_than_pi] - np.pi
+
+    tangents = []
+    for azim, incl in angles:
+        tangents.append(
+            np.squeeze(
+                rotate_xyz(
+                    xyz=np.c_[0, 1, 0],
+                    center=[0, 0, 0],
+                    theta=-1 * np.rad2deg(azim),
+                    phi=-1 * np.rad2deg(incl),
+                )
+            )
+        )
+
+    tangent_angles = cartesian_to_spherical(np.vstack(tangents))
+    azimuth = tangent_angles[:, 1]
+    inclination = tangent_angles[:, 2]
+    inclination = inclination - (np.pi / 2)
 
     return np.column_stack((azimuth, inclination))
 
 
 def cartesian_normal_to_direction_and_dip(normals: np.ndarray) -> np.ndarray:
     """
-    Convert 3D normal vectors to dip and direction within the eastern hemisphere.
+    Convert 3D normal vectors to dip and direction.
 
     :param normals: Array of shape (n, 3) representing the x, y, z components of a
         normal vector in 3D space.
 
-    :returns: Array of shape (n, 2) representing azimuth from 0 to pi radians
+    :returns: Array of shape (n, 2) representing azimuth from 0 to 2pi radians
         clockwise from north as viewed from above and dip from -pi to pi in positive
         radians below the horizon and negative above.
     """

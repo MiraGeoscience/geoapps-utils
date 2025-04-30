@@ -46,49 +46,49 @@ def test_2d_input():
 def test_cartesian_to_spherical_first_quadrant_upwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-60, phi=-30)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[60, 60]])
+    assert np.allclose(angles, [[60, 30]])
 
 
 def test_cartesian_to_spherical_second_quadrant_upwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-150, phi=-30)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[150, 60]])
+    assert np.allclose(angles, [[150, 30]])
 
 
 def test_cartesian_to_spherical_third_quadrant_upwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-240, phi=-30)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[240, 60]])
+    assert np.allclose(angles, [[240, 30]])
 
 
 def test_cartesian_to_spherical_fourth_quadrant_upwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-330, phi=-30)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[330, 60]])
+    assert np.allclose(angles, [[330, 30]])
 
 
 def test_cartesian_to_spherical_first_quadrant_downwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-60, phi=30)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[60, -60]])
+    assert np.allclose(angles, [[60, 150]])
 
 
 def test_cartesian_to_spherical_second_quadrant_downwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-150, phi=30)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[150, -60]])
+    assert np.allclose(angles, [[150, 150]])
 
 
 def test_cartesian_to_spherical_third_quadrant_downwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-240, phi=30)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[240, -60]])
+    assert np.allclose(angles, [[240, 150]])
 
 
 def test_cartesian_to_spherical_fourth_quadrant_downwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-330, phi=30)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[330, -60]])
+    assert np.allclose(angles, [[330, 150]])
 
 
 def test_spherical_to_direction_and_dip_first_quadrant_upwards():
@@ -109,28 +109,28 @@ def test_spherical_to_direction_and_dip_third_quadrant_upwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-240, phi=-30)
     spherical_coords = cartesian_to_spherical(pole)[:, 1:]
     angles = np.rad2deg(spherical_normal_to_direction_and_dip(spherical_coords))
-    assert np.allclose(angles, [[60, -30]])
+    assert np.allclose(angles, [[240, 30]])
 
 
 def test_spherical_to_direction_and_dip_fourth_quadrant_upwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-330, phi=-30)
     spherical_coords = cartesian_to_spherical(pole)[:, 1:]
     angles = np.rad2deg(spherical_normal_to_direction_and_dip(spherical_coords))
-    assert np.allclose(angles, [[150, -30]])
+    assert np.allclose(angles, [[330, 30]])
 
 
 def test_spherical_to_direction_and_dip_first_quadrant_downwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-60, phi=30)
     spherical_coords = cartesian_to_spherical(pole)[:, 1:]
     angles = np.rad2deg(spherical_normal_to_direction_and_dip(spherical_coords))
-    assert np.allclose(angles, [[60, -30]])
+    assert np.allclose(angles, [[240, 30]])
 
 
 def test_spherical_to_direction_and_dip_second_quadrant_downwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-150, phi=30)
     spherical_coords = cartesian_to_spherical(pole)[:, 1:]
     angles = np.rad2deg(spherical_normal_to_direction_and_dip(spherical_coords))
-    assert np.allclose(angles, [[150, -30]])
+    assert np.allclose(angles, [[330, 30]])
 
 
 def test_spherical_to_direction_and_dip_third_quadrant_downwards():
@@ -147,7 +147,7 @@ def test_spherical_to_direction_and_dip_fourth_quadrant_downwards():
     assert np.allclose(angles, [[150, 30]])
 
 
-def test_spherical_values(tmp_path):
+def test_spherical_values(tmp_path):  # pylint: disable=too-many-locals
     theta, phi = np.meshgrid(np.arange(0, 360, 10), np.arange(-90, 90, 10))
     theta = theta.flatten()
     phi = phi.flatten()
@@ -177,22 +177,17 @@ def test_spherical_values(tmp_path):
                 "z": {"values": z / rad},
             }
         )
-        prop_group = points.create_property_group(
+        _ = points.create_property_group(
             name="sphere_normals_vector",
             properties=unit_normals,
             property_group_type=GroupTypeEnum.VECTOR,
         )
 
-        azimuth, inclination = points.add_data(
+        _ = points.add_data(
             {
                 "azimuth": {"values": np.rad2deg(rad_azim_incl[:, 1])},
                 "inclination": {"values": np.rad2deg(rad_azim_incl[:, 2])},
             }
-        )
-        prop_group = points.create_property_group(
-            name="sphere_normals_dip_dir",
-            properties=[azimuth, inclination],
-            property_group_type=GroupTypeEnum.DIPDIR,
         )
 
         direction, dip = points.add_data(
@@ -201,7 +196,7 @@ def test_spherical_values(tmp_path):
                 "dip": {"values": np.rad2deg(dirdip[:, 1])},
             }
         )
-        prop_group = points.create_property_group(
+        _ = points.create_property_group(
             name="direction_dip",
             properties=[direction, dip],
             property_group_type=GroupTypeEnum.DIPDIR,
