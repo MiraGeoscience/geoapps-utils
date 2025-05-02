@@ -137,7 +137,7 @@ def inclination_to_dip(inclination: np.ndarray) -> np.ndarray:
 
 def cartesian_to_spherical(points: np.ndarray) -> np.ndarray:
     """
-    Convert cartesian to spherical coordinates.
+    Convert cartesian to spherical coordinate system.
 
     :param points: Array of shape (n, 3) representing x, y, z coordinates of a point
         in 3D space.
