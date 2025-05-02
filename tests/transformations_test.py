@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 from geoh5py import Workspace
 from geoh5py.groups.property_group import GroupTypeEnum
 from geoh5py.objects import Points
@@ -45,108 +46,43 @@ def test_2d_input():
     assert (rotate_xyz(np.c_[1, 0], [0, 0], 45)).shape[1] == 2, "Error on 2D input."
 
 
-def test_cartesian_to_spherical_first_quadrant_upwards():
-    pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-60, phi=-30)
+testdata = [
+    (-60, -30, 1, [30, 30]),
+    (-150, -30, 1, [-60, 30]),
+    (-240, -30, 1, [-150, 30]),
+    (-330, -30, 1, [120, 30]),
+    (-60, 30, -1, [30, 150]),
+    (-150, 30, -1, [-60, 150]),
+    (-240, 30, -1, [-150, 150]),
+    (-330, 30, -1, [120, 150]),
+]
+
+
+@pytest.mark.parametrize("theta,phi,polarity,expected", testdata)
+def test_cartesian_to_spherical(theta, phi, polarity, expected):
+    pole = rotate_xyz(xyz=np.c_[0, 0, polarity], center=[0, 0, 0], theta=theta, phi=phi)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[30, 30]])
+    assert np.allclose(angles, [expected])
 
 
-def test_cartesian_to_spherical_second_quadrant_upwards():
-    pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-150, phi=-30)
-    angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[-60, 30]])
+testdata = [
+    (-60, -30, 1, [60, 30]),
+    (-150, -30, 1, [150, 30]),
+    (-240, -30, 1, [240, 30]),
+    (-330, -30, 1, [330, 30]),
+    (-60, 30, -1, [240, 30]),
+    (-150, 30, -1, [330, 30]),
+    (-240, 30, -1, [60, 30]),
+    (-330, 30, -1, [150, 30]),
+]
 
 
-def test_cartesian_to_spherical_third_quadrant_upwards():
-    pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-240, phi=-30)
-    angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[-150, 30]])
-
-
-def test_cartesian_to_spherical_fourth_quadrant_upwards():
-    pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-330, phi=-30)
-    angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[120, 30]])
-
-
-def test_cartesian_to_spherical_first_quadrant_downwards():
-    pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-60, phi=30)
-    angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[30, 150]])
-
-
-def test_cartesian_to_spherical_second_quadrant_downwards():
-    pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-150, phi=30)
-    angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[-60, 150]])
-
-
-def test_cartesian_to_spherical_third_quadrant_downwards():
-    pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-240, phi=30)
-    angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[-150, 150]])
-
-
-def test_cartesian_to_spherical_fourth_quadrant_downwards():
-    pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-330, phi=30)
-    angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[120, 150]])
-
-
-def test_spherical_to_direction_and_dip_first_quadrant_upwards():
-    pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-60, phi=-30)
+@pytest.mark.parametrize("theta,phi,polarity,expected", testdata)
+def test_spherical_to_direction_and_dip_upwards(theta, phi, polarity, expected):
+    pole = rotate_xyz(xyz=np.c_[0, 0, polarity], center=[0, 0, 0], theta=theta, phi=phi)
     spherical_coords = cartesian_to_spherical(pole)[:, 1:]
     angles = np.rad2deg(spherical_normal_to_direction_and_dip(spherical_coords))
-    assert np.allclose(angles, [[60, 30]])
-
-
-def test_spherical_to_direction_and_dip_second_quadrant_upwards():
-    pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-150, phi=-30)
-    spherical_coords = cartesian_to_spherical(pole)[:, 1:]
-    angles = np.rad2deg(spherical_normal_to_direction_and_dip(spherical_coords))
-    assert np.allclose(angles, [[150, 30]])
-
-
-def test_spherical_to_direction_and_dip_third_quadrant_upwards():
-    pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-240, phi=-30)
-    spherical_coords = cartesian_to_spherical(pole)[:, 1:]
-    angles = np.rad2deg(spherical_normal_to_direction_and_dip(spherical_coords))
-    assert np.allclose(angles, [[240, 30]])
-
-
-def test_spherical_to_direction_and_dip_fourth_quadrant_upwards():
-    pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-330, phi=-30)
-    spherical_coords = cartesian_to_spherical(pole)[:, 1:]
-    angles = np.rad2deg(spherical_normal_to_direction_and_dip(spherical_coords))
-    assert np.allclose(angles, [[330, 30]])
-
-
-def test_spherical_to_direction_and_dip_first_quadrant_downwards():
-    pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-60, phi=30)
-    spherical_coords = cartesian_to_spherical(pole)[:, 1:]
-    angles = np.rad2deg(spherical_normal_to_direction_and_dip(spherical_coords))
-    assert np.allclose(angles, [[240, 30]])
-
-
-def test_spherical_to_direction_and_dip_second_quadrant_downwards():
-    pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-150, phi=30)
-    spherical_coords = cartesian_to_spherical(pole)[:, 1:]
-    angles = np.rad2deg(spherical_normal_to_direction_and_dip(spherical_coords))
-    assert np.allclose(angles, [[330, 30]])
-
-
-def test_spherical_to_direction_and_dip_third_quadrant_downwards():
-    pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-240, phi=30)
-    spherical_coords = cartesian_to_spherical(pole)[:, 1:]
-    angles = np.rad2deg(spherical_normal_to_direction_and_dip(spherical_coords))
-    assert np.allclose(angles, [[60, 30]])
-
-
-def test_spherical_to_direction_and_dip_fourth_quadrant_downwards():
-    pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-330, phi=30)
-    spherical_coords = cartesian_to_spherical(pole)[:, 1:]
-    angles = np.rad2deg(spherical_normal_to_direction_and_dip(spherical_coords))
-    assert np.allclose(angles, [[150, 30]])
+    assert np.allclose(angles, [expected])
 
 
 def test_spherical_values(tmp_path):  # pylint: disable=too-many-locals
