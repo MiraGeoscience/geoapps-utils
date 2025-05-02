@@ -20,6 +20,8 @@ from geoapps_utils.utils.transformations import (
     cartesian_to_spherical,
     rotate_xyz,
     spherical_normal_to_direction_and_dip,
+    x_rotation_matrix,
+    z_rotation_matrix,
 )
 
 
@@ -46,49 +48,49 @@ def test_2d_input():
 def test_cartesian_to_spherical_first_quadrant_upwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-60, phi=-30)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[60, 30]])
+    assert np.allclose(angles, [[30, 30]])
 
 
 def test_cartesian_to_spherical_second_quadrant_upwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-150, phi=-30)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[150, 30]])
+    assert np.allclose(angles, [[-60, 30]])
 
 
 def test_cartesian_to_spherical_third_quadrant_upwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-240, phi=-30)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[240, 30]])
+    assert np.allclose(angles, [[-150, 30]])
 
 
 def test_cartesian_to_spherical_fourth_quadrant_upwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, 1], center=[0, 0, 0], theta=-330, phi=-30)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[330, 30]])
+    assert np.allclose(angles, [[120, 30]])
 
 
 def test_cartesian_to_spherical_first_quadrant_downwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-60, phi=30)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[60, 150]])
+    assert np.allclose(angles, [[30, 150]])
 
 
 def test_cartesian_to_spherical_second_quadrant_downwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-150, phi=30)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[150, 150]])
+    assert np.allclose(angles, [[-60, 150]])
 
 
 def test_cartesian_to_spherical_third_quadrant_downwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-240, phi=30)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[240, 150]])
+    assert np.allclose(angles, [[-150, 150]])
 
 
 def test_cartesian_to_spherical_fourth_quadrant_downwards():
     pole = rotate_xyz(xyz=np.c_[0, 0, -1], center=[0, 0, 0], theta=-330, phi=30)
     angles = np.rad2deg(cartesian_to_spherical(pole)[:, 1:])
-    assert np.allclose(angles, [[330, 150]])
+    assert np.allclose(angles, [[120, 150]])
 
 
 def test_spherical_to_direction_and_dip_first_quadrant_upwards():
@@ -159,10 +161,14 @@ def test_spherical_values(tmp_path):  # pylint: disable=too-many-locals
 
     xyz = np.c_[x, y, z]
     rad_azim_incl = cartesian_to_spherical(xyz)
-    assert np.allclose(rad_azim_incl[:, 0], rad)
-
     dirdip = cartesian_normal_to_direction_and_dip(xyz)
+    assert np.allclose(rad_azim_incl[:, 0], rad)
+    rot_x = x_rotation_matrix(-1 * dirdip[:, 1])
+    rot_z = z_rotation_matrix(-1 * dirdip[:, 0])
+    tangents = np.reshape(rot_z * rot_x * np.tile([0, 1, 0], len(dirdip)), (-1, 3))
+    assert np.allclose(np.linalg.norm(np.cross(xyz, tangents), axis=1), 100)
 
+    # Create a workspace and add the data for visual inspection
     with Workspace.create(tmp_path / f"{__name__}.geoh5") as workspace:
         points = Points.create(
             workspace,
