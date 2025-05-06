@@ -20,7 +20,6 @@ from geoapps_utils.utils.transformations import (
     cartesian_normal_to_direction_and_dip,
     cartesian_to_spherical,
     compute_normals,
-    normal_from_triangle,
     rotate_xyz,
     spherical_normal_to_direction_and_dip,
     x_rotation_matrix,
@@ -147,19 +146,6 @@ def test_spherical_values(tmp_path):  # pylint: disable=too-many-locals
         )
 
 
-def test_normal_from_triangle():
-    triangle = np.array(
-        [
-            [0, 0, 0],
-            [0, 1, 0],
-            [1, 0, 0],
-        ]
-    )
-    normal = normal_from_triangle(triangle)
-
-    assert np.allclose(normal, [0, 0, -1]), "Error in normal calculation from triangle."
-
-
 def create_surface(workspace, upside_down=False):
     k = -5.0 if upside_down else 5.0
     vertices = np.array(
@@ -189,4 +175,6 @@ def test_compute_normals(tmp_path):
     surface = create_surface(ws, upside_down=False)
     normals = compute_normals(surface)
 
-    assert np.allclose(normals[0], [])
+    h = np.sqrt(2) / 2
+    validation = np.array([[0, -h, h], [h, 0, h], [0, h, h], [-h, 0, h]])
+    assert np.allclose(normals, validation)

@@ -198,23 +198,15 @@ def cartesian_normal_to_direction_and_dip(normals: np.ndarray) -> np.ndarray:
     return direction_and_dip
 
 
-def normal_from_triangle(triangle: np.ndarray) -> np.ndarray:
-    """Compute the normal vector from a triangle defined by three vertices."""
-    v1 = triangle[1] - triangle[0]
-    v2 = triangle[2] - triangle[0]
-    normal = np.cross(v1, v2)
-    norm = np.linalg.norm(normal)
-    if norm == 0:
-        return np.zeros(3)
-    return normal / norm
-
-
 def compute_normals(surface: Surface) -> np.ndarray:
     """Compute normals for each triangle in a surface."""
-    normals = []
-    for cell in surface.cells:
-        triangle = surface.vertices[cell, :]
-        normal = normal_from_triangle(triangle)
-        normals.append(normal)
 
-    return np.vstack(normals)
+    vertices = surface.vertices
+    cells = surface.cells
+
+    v1 = vertices[cells[:, 1]] - vertices[cells[:, 0]]
+    v2 = vertices[cells[:, 2]] - vertices[cells[:, 0]]
+    normals = np.cross(v1, v2)
+    normals = normals / np.linalg.norm(normals, axis=1)[:, np.newaxis]
+
+    return normals
