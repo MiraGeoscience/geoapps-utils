@@ -14,11 +14,12 @@ import numpy as np
 import pytest
 from geoh5py import Workspace
 from geoh5py.groups.property_group import GroupTypeEnum
-from geoh5py.objects import Points
+from geoh5py.objects import Points, Surface
 
 from geoapps_utils.utils.transformations import (
     cartesian_normal_to_direction_and_dip,
     cartesian_to_spherical,
+    compute_normals,
     rotate_xyz,
     spherical_normal_to_direction_and_dip,
     x_rotation_matrix,
@@ -143,3 +144,37 @@ def test_spherical_values(tmp_path):  # pylint: disable=too-many-locals
             properties=[direction, dip],
             property_group_type=GroupTypeEnum.DIPDIR,
         )
+
+
+def create_surface(workspace, upside_down=False):
+    k = -5.0 if upside_down else 5.0
+    vertices = np.array(
+        [
+            [0.0, 0.0, 0.0],
+            [10.0, 0.0, 0.0],
+            [10.0, 10.0, 0.0],
+            [0.0, 10.0, 0.0],
+            [5.0, 5.0, k],
+        ]
+    )
+    triangles = np.array(
+        [
+            [0, 1, 4],
+            [1, 2, 4],
+            [2, 3, 4],
+            [3, 0, 4],
+        ]
+    )
+    surface = Surface.create(workspace, vertices=vertices, cells=triangles)
+
+    return surface
+
+
+def test_compute_normals(tmp_path):
+    ws = Workspace(tmp_path / "test.geoh5")
+    surface = create_surface(ws, upside_down=False)
+    normals = compute_normals(surface)
+
+    h = np.sqrt(2) / 2
+    validation = np.array([[0, -h, h], [h, 0, h], [0, h, h], [-h, 0, h]])
+    assert np.allclose(normals, validation)

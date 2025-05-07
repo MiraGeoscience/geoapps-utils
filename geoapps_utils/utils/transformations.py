@@ -10,6 +10,7 @@
 
 import numpy as np
 import scipy.sparse as ssp
+from geoh5py.objects import Surface
 
 
 def z_rotation_matrix(angle: np.ndarray) -> ssp.csr_matrix:
@@ -195,3 +196,24 @@ def cartesian_normal_to_direction_and_dip(normals: np.ndarray) -> np.ndarray:
     direction_and_dip = spherical_normal_to_direction_and_dip(spherical_normals[:, 1:])
 
     return direction_and_dip
+
+
+def compute_normals(surface: Surface) -> np.ndarray:
+    """
+    Compute normals for each triangle in a surface.
+
+    :param surface: Surface object containing vertices and cells.
+
+    :returns: Array of shape (n, 3) representing the normals for
+        each cell in the mesh.
+    """
+
+    vertices = surface.vertices
+    cells = surface.cells
+
+    v1 = vertices[cells[:, 1]] - vertices[cells[:, 0]]
+    v2 = vertices[cells[:, 2]] - vertices[cells[:, 0]]
+    normals = np.cross(v1, v2)
+    normals = normals / np.linalg.norm(normals, axis=1)[:, np.newaxis]
+
+    return normals
