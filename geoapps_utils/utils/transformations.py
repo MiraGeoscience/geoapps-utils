@@ -199,7 +199,14 @@ def cartesian_normal_to_direction_and_dip(normals: np.ndarray) -> np.ndarray:
 
 
 def compute_normals(surface: Surface) -> np.ndarray:
-    """Compute normals for each triangle in a surface."""
+    """
+    Compute normals for each triangle in a surface.
+
+    :param surface: Surface object containing vertices and cells.
+
+    :returns: Array of shape (n, 3) representing the normals for
+        each cell in the mesh.
+    """
 
     vertices = surface.vertices
     cells = surface.cells
