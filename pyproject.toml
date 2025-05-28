@@ -4,12 +4,11 @@ description = "Utility functions to build applications supported by Mira Geoscie
 license = "MIT"
 keywords = ["geology", "geophysics", "data", "interoperability"]
 version = "0.6.0a1"
-dynamic = ["classifiers"]
+dynamic = ["classifiers", "dependencies"]
 readme = "README.rst"
 authors = [{name = "Mira Geoscience", email = "support@mirageoscience.com"}]
 maintainers = [{name = "Dominique Fournier", email = "dominiquef@mirageoscience.com"}]
 requires-python = '>=3.10,<4.0'
-dependencies = ['numpy (>=1.26.0,<1.27.0)', 'pydantic (>=2.5.2,<3.0.0)', 'scipy (>=1.14.0,<1.15.0)', 'geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@develop']
 
 [project.urls]
 homepage = "https://www.mirageoscience.com/mining-industry-software/python-integration/"
@@ -20,6 +19,7 @@ repository = "https://github.com/MiraGeoscience/geoapps-utils"
 [project.optional-dependencies]
 
 [tool.poetry]
+requires-poetry = '>=2.0.0,<3.0.0'
 
 #documentation  = "https://mirageoscience-geoapps-utils.readthedocs-hosted.com/"
 classifiers = [
@@ -51,7 +51,6 @@ include = [
 ]
 
 exclude = [] # files to exclude from packaging
-requires-poetry = '>=2.0.0,<3.0.0'
 
 [tool.poetry.dependencies]
 python = "^3.10"
