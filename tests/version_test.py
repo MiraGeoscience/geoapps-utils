@@ -10,13 +10,12 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 import tomli as toml
 import yaml
 from jinja2 import Template
-from packaging.version import Version, InvalidVersion
+from packaging.version import InvalidVersion, Version
 
 import geoapps_utils
 
@@ -55,12 +54,14 @@ def test_conda_version_is_pep440():
     version = Version(get_conda_recipe_version())
     assert version is not None
 
+
 def validate_version(version_str):
     try:
         version = Version(version_str)
         return (version.major, version.minor, version.micro, version.pre, version.post)
     except InvalidVersion:
         return None
+
 
 def test_version_is_valid():
     assert validate_version(geoapps_utils.__version__) is not None
