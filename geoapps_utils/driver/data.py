@@ -48,6 +48,24 @@ class BaseData(BaseModel):
     _input_file: InputFile | None = None
 
     @staticmethod
+    def get_aliases_value(info, field, data: dict[str, Any]) -> Any:
+        """
+        Get the value of the alias from the data dictionary.
+
+        :param info: Field information from BaseModel.
+        :param data: Dictionary of parameters and values without nesting structure.
+        """
+        if info.validation_alias is not None:
+            names = info.validation_alias.choices
+        else:
+            names = [field]
+        for name in names:
+            if name in data:
+                return data.get(name)
+
+        return None
+
+    @staticmethod
     def collect_input_from_dict(
         base_model: type[BaseModel], data: dict[str, Any]
     ) -> dict[str, dict | Any]:
@@ -60,23 +78,28 @@ class BaseData(BaseModel):
         """
         update = {}
         for field, info in base_model.model_fields.items():
+            value = BaseData.get_aliases_value(info, field, data)
+
             if (
-                isinstance(info.annotation, type)
+                value is None
+                and isinstance(info.annotation, type)
                 and not isinstance(info.annotation, GenericAlias)
                 and issubclass(info.annotation, BaseModel)
             ):
-                update[field] = BaseData.collect_input_from_dict(
+                value = BaseData.collect_input_from_dict(
                     info.annotation,
                     data,  # type: ignore
                 )
-            else:
-                if field in data:
-                    update[field] = data.get(field, info.default)
+
+            if value is None:
+                continue
+
+            update[field] = value
 
         return update
 
     @classmethod
-    def build(cls, input_data: InputFile | dict) -> Self:
+    def build(cls, input_data: InputFile | None = None, **data) -> Self:
         """
         Build a dataclass from a dictionary or InputFile.
 
@@ -84,9 +107,6 @@ class BaseData(BaseModel):
 
         :return: Dataclass of application parameters.
         """
-
-        data = input_data
-
         if isinstance(input_data, InputFile) and input_data.data is not None:
             data = input_data.data.copy()
 
