@@ -48,24 +48,6 @@ class BaseData(BaseModel):
     _input_file: InputFile | None = None
 
     @staticmethod
-    def get_aliases_value(info, field, data: dict[str, Any]) -> Any:
-        """
-        Get the value of the alias from the data dictionary.
-
-        :param info: Field information from BaseModel.
-        :param data: Dictionary of parameters and values without nesting structure.
-        """
-        if info.validation_alias is not None:
-            names = info.validation_alias.choices
-        else:
-            names = [field]
-        for name in names:
-            if name in data:
-                return data.get(name)
-
-        return None
-
-    @staticmethod
     def collect_input_from_dict(
         base_model: type[BaseModel], data: dict[str, Any]
     ) -> dict[str, dict | Any]:
@@ -76,25 +58,15 @@ class BaseData(BaseModel):
             BaseModel objects.
         :param data: Dictionary of parameters and values without nesting structure.
         """
-        update = {}
+        update = data.copy()
         for field, info in base_model.model_fields.items():
-            value = BaseData.get_aliases_value(info, field, data)
-
             if (
-                value is None
-                and isinstance(info.annotation, type)
+                isinstance(info.annotation, type)
                 and not isinstance(info.annotation, GenericAlias)
                 and issubclass(info.annotation, BaseModel)
             ):
-                value = BaseData.collect_input_from_dict(
-                    info.annotation,
-                    data,  # type: ignore
-                )
-
-            if value is None:
-                continue
-
-            update[field] = value
+                nested = info.annotation.model_construct(**data)
+                update[field] = nested.model_dump(exclude_unset=True)
 
         return update
 
