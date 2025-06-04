@@ -79,7 +79,7 @@ class BaseData(BaseModel):
         :return: Dataclass of application parameters.
         """
         if isinstance(input_data, InputFile) and input_data.data is not None:
-            data = input_data.data.copy()
+            data = dict(input_data.data.copy(), **data))
 
         if not isinstance(data, dict):
             raise TypeError("Input data must be a dictionary or InputFile.")
