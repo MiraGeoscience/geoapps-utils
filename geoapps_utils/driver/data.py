@@ -63,7 +63,8 @@ class BaseData(BaseModel):
                 and issubclass(info.annotation, BaseModel)
             ):
                 # Nest and deal with aliases
-                nested = info.annotation.model_construct(**data)
+                update = BaseData.collect_input_from_dict(info.annotation, update)
+                nested = info.annotation.model_construct(**update)
                 update[field] = nested.model_dump(exclude_unset=True)
 
         return update
