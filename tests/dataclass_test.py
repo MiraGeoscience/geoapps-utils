@@ -32,7 +32,6 @@ def get_params_dict(tmp_path):
     workspace = Workspace.create(tmp_path)
     param_dict = {
         "monitoring_directory": None,
-        "workspace_geoh5": workspace.h5file,
         "geoh5": workspace,
         "run_command": "test.driver",
         "title": "test title",
