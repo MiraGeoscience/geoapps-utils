@@ -70,7 +70,7 @@ class BaseData(BaseModel):
         return update
 
     @classmethod
-    def build(cls, input_data: InputFile | None = None, **data) -> Self:
+    def build(cls, input_data: InputFile | None = None, **kwargs) -> Self:
         """
         Build a dataclass from a dictionary or InputFile.
 
@@ -78,8 +78,11 @@ class BaseData(BaseModel):
 
         :return: Dataclass of application parameters.
         """
+        data = {}
         if isinstance(input_data, InputFile) and input_data.data is not None:
-            data = dict(input_data.data.copy(), **data))
+            data = input_data.data.copy()
+
+        data.update(kwargs)
 
         if not isinstance(data, dict):
             raise TypeError("Input data must be a dictionary or InputFile.")
