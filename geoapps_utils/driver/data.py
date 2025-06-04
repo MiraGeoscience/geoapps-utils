@@ -31,7 +31,6 @@ class BaseData(BaseModel):
         are automatically processed by GA.
     :param run_command: Command to run the application through GA.
     :param title: Application title.
-    :param workspace_geoh5: Current workspace, where results will be exported.
     """
 
     model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
@@ -44,7 +43,6 @@ class BaseData(BaseModel):
     conda_environment: str | None = None
     geoh5: Workspace
     monitoring_directory: str | Path | None = None
-    workspace_geoh5: Path | None = None
     _input_file: InputFile | None = None
 
     @staticmethod
@@ -52,31 +50,27 @@ class BaseData(BaseModel):
         base_model: type[BaseModel], data: dict[str, Any]
     ) -> dict[str, dict | Any]:
         """
-        Recursively replace BaseModel objects with dictionary of 'data' values.
+        Recursively replace BaseModel objects with nested dictionary of 'data' values.
 
-        :param base_model: BaseModel object holding data and possibly other nested
-            BaseModel objects.
-        :param data: Dictionary of parameters and values without nesting structure.
+        :param base_model: BaseModel object to structure data for.
+        :param data: Flat dictionary of parameters and values without nesting structure.
         """
-        update = {}
+        update = data.copy()
         for field, info in base_model.model_fields.items():
             if (
                 isinstance(info.annotation, type)
                 and not isinstance(info.annotation, GenericAlias)
                 and issubclass(info.annotation, BaseModel)
             ):
-                update[field] = BaseData.collect_input_from_dict(
-                    info.annotation,
-                    data,  # type: ignore
-                )
-            else:
-                if field in data:
-                    update[field] = data.get(field, info.default)
+                # Nest and deal with aliases
+                update = BaseData.collect_input_from_dict(info.annotation, update)
+                nested = info.annotation.model_construct(**update)
+                update[field] = nested.model_dump(exclude_unset=True)
 
         return update
 
     @classmethod
-    def build(cls, input_data: InputFile | dict) -> Self:
+    def build(cls, input_data: InputFile | None = None, **kwargs) -> Self:
         """
         Build a dataclass from a dictionary or InputFile.
 
@@ -84,11 +78,11 @@ class BaseData(BaseModel):
 
         :return: Dataclass of application parameters.
         """
-
-        data = input_data
-
+        data = {}
         if isinstance(input_data, InputFile) and input_data.data is not None:
             data = input_data.data.copy()
+
+        data.update(kwargs)
 
         if not isinstance(data, dict):
             raise TypeError("Input data must be a dictionary or InputFile.")
