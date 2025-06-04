@@ -52,11 +52,10 @@ class BaseData(BaseModel):
         base_model: type[BaseModel], data: dict[str, Any]
     ) -> dict[str, dict | Any]:
         """
-        Recursively replace BaseModel objects with dictionary of 'data' values.
+        Recursively replace BaseModel objects with nested dictionary of 'data' values.
 
-        :param base_model: BaseModel object holding data and possibly other nested
-            BaseModel objects.
-        :param data: Dictionary of parameters and values without nesting structure.
+        :param base_model: BaseModel object to structure data for.
+        :param data: Flat dictionary of parameters and values without nesting structure.
         """
         update = data.copy()
         for field, info in base_model.model_fields.items():
@@ -65,6 +64,7 @@ class BaseData(BaseModel):
                 and not isinstance(info.annotation, GenericAlias)
                 and issubclass(info.annotation, BaseModel)
             ):
+                # Nest and deal with aliases
                 nested = info.annotation.model_construct(**data)
                 update[field] = nested.model_dump(exclude_unset=True)
 
