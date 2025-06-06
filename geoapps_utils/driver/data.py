@@ -62,6 +62,8 @@ class BaseData(BaseModel):
                 and not isinstance(info.annotation, GenericAlias)
                 and issubclass(info.annotation, BaseModel)
             ):
+                if isinstance(update.get(field, None), BaseModel):
+                    continue
                 # Nest and deal with aliases
                 update = BaseData.collect_input_from_dict(info.annotation, update)
                 nested = info.annotation.model_construct(**update)
