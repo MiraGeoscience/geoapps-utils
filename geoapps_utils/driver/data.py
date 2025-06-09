@@ -56,14 +56,17 @@ class BaseData(BaseModel):
         :param data: Flat dictionary of parameters and values without nesting structure.
         """
         update = data.copy()
+        nested_fields: list[str] = []
         for field, info in base_model.model_fields.items():
             if (
                 isinstance(info.annotation, type)
                 and not isinstance(info.annotation, GenericAlias)
                 and issubclass(info.annotation, BaseModel)
             ):
+                # Already a BaseModel, no need to nest
                 if isinstance(update.get(field, None), BaseModel):
                     continue
+
                 # Nest and deal with aliases
                 update = BaseData.collect_input_from_dict(info.annotation, update)
                 nested = info.annotation.model_construct(**update).model_dump(
@@ -72,6 +75,11 @@ class BaseData(BaseModel):
 
                 if any(nested):
                     update[field] = nested
+                    nested_fields += nested
+
+        for field in nested_fields:
+            if field in update:
+                del update[field]
 
         return update
 
