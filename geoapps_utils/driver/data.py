@@ -47,7 +47,7 @@ class BaseData(BaseModel):
 
     @staticmethod
     def collect_input_from_dict(
-        base_model: type[BaseModel], data: dict[str, Any]
+        model: type[BaseModel], data: dict[str, Any]
     ) -> dict[str, dict | Any]:
         """
         Recursively replace BaseModel objects with nested dictionary of 'data' values.
@@ -57,16 +57,16 @@ class BaseData(BaseModel):
         """
         update = data.copy()
         nested_fields: list[str] = []
-        for field, info in base_model.model_fields.items():
+        for field, info in model.model_fields.items():
+            # Already a BaseModel, no need to nest
+            if isinstance(update.get(field, None), BaseModel):
+                continue
+
             if (
                 isinstance(info.annotation, type)
                 and not isinstance(info.annotation, GenericAlias)
                 and issubclass(info.annotation, BaseModel)
             ):
-                # Already a BaseModel, no need to nest
-                if isinstance(update.get(field, None), BaseModel):
-                    continue
-
                 # Nest and deal with aliases
                 update = BaseData.collect_input_from_dict(info.annotation, update)
                 nested = info.annotation.model_construct(**update).model_dump(
@@ -179,7 +179,7 @@ class BaseData(BaseModel):
     def serialize(self):
         """Return a demoted uijson dictionary representation the params data."""
 
-        dump = self.model_dump()
+        dump = self.model_dump(exclude_unset=True)
         dump["geoh5"] = str(dump["geoh5"].h5file.resolve())
         ifile = self.input_file
         ifile.data = self._recursive_flatten(dump)
