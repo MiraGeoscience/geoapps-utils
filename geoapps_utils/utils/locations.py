@@ -13,12 +13,16 @@ from __future__ import annotations
 from uuid import UUID
 
 import numpy as np
+import scipy.sparse as ssp
 from geoh5py import Workspace
 from geoh5py.data import Data
 from geoh5py.objects import Grid2D, Points
 from geoh5py.objects.grid_object import GridObject
+from pydantic import BaseModel, ConfigDict
 from scipy.interpolate import LinearNDInterpolator
 from scipy.spatial import Delaunay, cKDTree
+
+from geoapps_utils.utils.transformations import x_rotation_matrix, z_rotation_matrix
 
 
 def mask_under_horizon(locations: np.ndarray, horizon: np.ndarray) -> np.ndarray:
@@ -132,3 +136,118 @@ def get_overlapping_limits(size: int, width: int, overlap: float = 0.25) -> list
         limits = left_limits(n_tiles)
 
     return limits.tolist()
+
+
+def rotate_points(
+    points: np.ndarray,
+    origin: tuple[float, float, float],
+    rotations: list[ssp.csr_matrix],
+) -> np.ndarray:
+    """
+    Rotate points through a series of rotations about the provided origin.
+
+    :param points: Array of shape (n, 3) representing the x, y, z coordinates.
+    :param origin: Origin point of the rotation in the form [x, y, z].
+    :param rotations: List of rotation matrices to apply to the points.  These must
+        be in the form of scipy sparse matrices (csr_matrix) produced by the
+        x_rotation_matrix(), y_rotation_matrix(), and z_rotation_matrix() functions.
+    """
+
+    out = points.copy() - origin
+    out = out.flatten()
+    for rotation in rotations:
+        out = rotation.dot(out).T
+    out = out.reshape(-1, 3)
+    return out + origin
+
+
+class PlateOptions(BaseModel):
+    """
+    Options for creating a dipping plate model.
+
+    :param strike_length: Length of the plate in the strike direction.
+    :param dip_length: Length of the plate in the dip direction.
+    :param width: Width of the plate.
+    :param origin: Origin point of the plate in the form [x, y, z].
+    :param direction: Dip direction of the plate in degrees from North.
+    :param dip: Dip angle of the plate in degrees below the horizontal.
+    :param background: Background value for the model. Can be an existing model, or a value
+        to be filled everywhere outside the plate.
+    :param anomaly: Value to fill inside the plate.
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    strike_length: float
+    dip_length: float
+    width: float
+    origin: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    direction: float = 0.0
+    dip: float = 0.0
+    background: float | np.ndarray = 0.0
+    anomaly: float = 1.0
+
+
+def fill_plate(
+    points: np.ndarray,
+    model: np.ndarray,
+    options: PlateOptions,
+) -> np.ndarray:
+    """
+    Create a plate model at a set of points from background, anomaly and size.
+
+    :param points: Array of shape (n, 3) representing the x, y, z coordinates of the
+        model space (often the cell centers of a mesh).
+    :param model: Array of existing model values of shape (n,).
+    :param options: PlateOptions object containing the parameters for the plate model.
+
+    """
+
+    xmin = options.origin[0] - options.strike_length / 2
+    xmax = options.origin[0] + options.strike_length / 2
+    ymin = options.origin[1] - options.dip_length / 2
+    ymax = options.origin[1] + options.dip_length / 2
+    zmin = options.origin[2] - options.width / 2
+    zmax = options.origin[2] + options.width / 2
+
+    mask = (
+        (points[:, 0] >= xmin)
+        & (points[:, 0] <= xmax)
+        & (points[:, 1] >= ymin)
+        & (points[:, 1] <= ymax)
+        & (points[:, 2] >= zmin)
+        & (points[:, 2] <= zmax)
+    )
+
+    model[mask] = options.anomaly
+
+    return model
+
+
+def make_plate(
+    points: np.ndarray,
+    options: PlateOptions,
+):
+    """
+    Create a plate model at a set of points from background, anomaly, size and attitude.
+
+    :param points: Array of shape (n, 3) representing the x, y, z coordinates of the
+        model space (often the cell centers of a mesh).
+    :param options: PlateOptions object containing the parameters for the plate model.
+    """
+    if isinstance(options.background, float):
+        model = np.ones(len(points)) * options.background
+    else:
+        model = options.background.copy()
+
+    rotations = [
+        z_rotation_matrix(np.deg2rad(options.direction * np.ones_like(model))),
+        x_rotation_matrix(np.deg2rad(options.dip * np.ones_like(model))),
+    ]
+    rotated_centers = rotate_points(points, origin=options.origin, rotations=rotations)
+
+    return fill_plate(
+        rotated_centers,
+        model=model,
+        options=options,
+    )
