@@ -13,8 +13,10 @@ from __future__ import annotations
 
 __version__ = "0.6.0-alpha.1"
 
+import sys
 from pathlib import Path
 
+from geoapps_utils.driver.driver import BaseDriver, fetch_driver_class
 from geoapps_utils.utils import (
     conversions,
     formatters,
@@ -47,3 +49,9 @@ __all__ = [
     "transformations",
     "workspace",
 ]
+
+
+if __name__ == "__main__":
+    file = sys.argv[1]
+    driver_class = fetch_driver_class(file)
+    driver_class.start(file)
