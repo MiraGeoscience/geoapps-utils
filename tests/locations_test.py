@@ -20,6 +20,17 @@ from geoapps_utils.utils.locations import (
     map_indices_to_coordinates,
     mask_under_horizon,
 )
+from geoapps_utils.utils.transformations import rotate_points, z_rotation_matrix
+
+
+def test_rotate_points():
+    points = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1], [2, 3, 4]])
+    validation = rotate_points(
+        points,
+        (0.0, 0.0, 0.0),
+        [z_rotation_matrix(90), z_rotation_matrix(np.array([-90] * 4))],
+    )
+    assert np.allclose(points, validation)
 
 
 def test_mask_under_horizon():
