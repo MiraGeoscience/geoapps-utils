@@ -10,11 +10,9 @@
 
 from __future__ import annotations
 
-import inspect
 import logging
 import sys
 from abc import ABC, abstractmethod
-from json import load
 from pathlib import Path
 
 from geoh5py import Workspace
@@ -27,26 +25,6 @@ from geoapps_utils.utils.importing import GeoAppsError
 
 
 logger = logging.getLogger()
-
-
-def fetch_driver_class(filepath: str | Path):
-    with open(filepath, encoding="utf-8") as jsonfile:
-        uijson = load(jsonfile)
-
-    module = __import__(uijson["run_command"], fromlist=[""])
-
-    cls = None
-    for _, cls in inspect.getmembers(module):
-        try:
-            if issubclass(cls, BaseDriver) and cls.__module__ == module.__name__:
-                break
-        except TypeError:
-            continue
-
-    else:
-        raise ValueError(f"No valid driver class found in {uijson['run_command']}")
-
-    return cls
 
 
 class BaseDriver(ABC):
@@ -182,9 +160,3 @@ class BaseDriver(ABC):
             monitored_directory_copy(
                 str(Path(self.params.monitoring_directory).resolve()), entity
             )
-
-
-if __name__ == "__main__":
-    file = sys.argv[1]
-    driver_cls = fetch_driver_class(file)
-    driver_cls.start(file)
