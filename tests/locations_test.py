@@ -15,10 +15,10 @@ from geoh5py import Workspace
 from geoh5py.objects import BlockModel, Grid2D, Points
 
 from geoapps_utils.utils.locations import (
-    PlateOptions,
-    fill_plate,
+    PlateModel,
     get_locations,
     get_overlapping_limits,
+    inside_plate,
     make_plate,
     map_indices_to_coordinates,
     mask_under_horizon,
@@ -27,17 +27,17 @@ from geoapps_utils.utils.locations import (
 from geoapps_utils.utils.transformations import z_rotation_matrix
 
 
-def test_rotation_points():
-    points = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+def test_rotate_points():
+    points = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1], [2, 3, 4]])
     validation = rotate_points(
         points,
         (0.0, 0.0, 0.0),
-        [z_rotation_matrix(np.array([90] * 3)), z_rotation_matrix(np.array([-90] * 3))],
+        [z_rotation_matrix(90), z_rotation_matrix(np.array([-90] * 4))],
     )
     assert np.allclose(points, validation)
 
 
-def test_fill_plate(tmp_path):
+def test_inside_plate(tmp_path):
     with Workspace(tmp_path / "test.geoh5") as workspace:
         grid = BlockModel.create(
             workspace,
@@ -51,21 +51,19 @@ def test_fill_plate(tmp_path):
         strike_length = 15
         dip_length = 7
         width = 2
-        model = fill_plate(
+        mask = inside_plate(
             grid.centroids,
-            np.zeros(grid.n_cells),
-            options=PlateOptions(
+            plate=PlateModel(
                 strike_length=strike_length,
                 dip_length=dip_length,
                 width=width,
                 origin=(1.0, 0.0, 0.0),
-                anomaly=2.0,
             ),
         )
+        model = np.zeros(len(grid.centroids))
+        model[mask] = 2.0
 
-        grid.add_data({"plate model": {"values": model}})
-
-        inside_plate = (
+        validation_mask = (
             (grid.centroids[:, 0] >= ((-strike_length / 2) + 1))
             & (grid.centroids[:, 0] <= ((strike_length / 2) + 1))
             & (grid.centroids[:, 1] >= -dip_length / 2)
@@ -73,8 +71,8 @@ def test_fill_plate(tmp_path):
             & (grid.centroids[:, 2] >= -width / 2)
             & (grid.centroids[:, 2] <= width / 2)
         )
-        assert np.all(model[inside_plate] == 2.0)
-        assert np.all(model[~inside_plate] == 0.0)
+        assert np.all(model[validation_mask] == 2.0)
+        assert np.all(model[~validation_mask] == 0.0)
 
 
 def test_make_plate(tmp_path):
@@ -95,18 +93,18 @@ def test_make_plate(tmp_path):
         dip = 0
         model = make_plate(
             grid.centroids,
-            options=PlateOptions(
+            plate=PlateModel(
                 strike_length=strike_length,
                 dip_length=dip_length,
                 width=width,
                 direction=direction,
                 dip=dip,
-                background=0.0,
             ),
+            background=0.0,
         )
         grid.add_data({"plate model 1": {"values": model}})
 
-        inside_plate = (
+        mask = (
             (grid.centroids[:, 0] >= (-dip_length / 2))
             & (grid.centroids[:, 0] <= (dip_length / 2))
             & (grid.centroids[:, 1] >= (-strike_length / 2))
@@ -114,24 +112,24 @@ def test_make_plate(tmp_path):
             & (grid.centroids[:, 2] >= (-width / 2))
             & (grid.centroids[:, 2] <= (width / 2))
         )
-        assert np.all(model[inside_plate] == 1.0)
+        assert np.all(model[mask] == 1.0)
 
         direction = 0
         dip = 90
         model = make_plate(
             grid.centroids,
-            options=PlateOptions(
+            plate=PlateModel(
                 strike_length=strike_length,
                 dip_length=dip_length,
                 width=width,
                 direction=direction,
                 dip=dip,
-                background=0.0,
             ),
+            background=0.0,
         )
         grid.add_data({"plate model 2": {"values": model}})
 
-        inside_plate = (
+        mask = (
             (grid.centroids[:, 0] >= (-strike_length / 2))
             & (grid.centroids[:, 0] <= (strike_length / 2))
             & (grid.centroids[:, 1] >= (-width / 2))
@@ -139,6 +137,51 @@ def test_make_plate(tmp_path):
             & (grid.centroids[:, 2] >= (-dip_length / 2))
             & (grid.centroids[:, 2] <= (dip_length / 2))
         )
+    assert np.all(model[mask] == 1.0)
+
+
+def test_make_plate_multiple(tmp_path):
+    with Workspace(tmp_path / "test.geoh5") as workspace:
+        grid = BlockModel.create(
+            workspace,
+            name="test_block_model",
+            u_cell_delimiters=np.linspace(-10, 10, 41),
+            v_cell_delimiters=np.linspace(-10, 10, 41),
+            z_cell_delimiters=np.linspace(-10, 10, 41),
+            origin=np.r_[0, 0, 0],
+        )
+
+        strike_length = 15
+        dip_length = 7
+        width = 2
+        direction = 90
+        dip = 90
+        plate = PlateModel(
+            strike_length=strike_length,
+            dip_length=dip_length,
+            width=width,
+            direction=direction,
+            dip=dip,
+            origin=(-1, 0, 0),
+        )
+        model = make_plate(
+            grid.centroids,
+            plate=plate,
+            background=0.0,
+        )
+        plate.origin = (1, 0, 0)
+        model = make_plate(grid.centroids, plate=plate, background=model)
+        grid.add_data({"plate model": {"values": model}})
+
+        mask = (
+            (grid.centroids[:, 0] >= (-width))
+            & (grid.centroids[:, 0] <= (width))
+            & (grid.centroids[:, 1] >= (-strike_length / 2))
+            & (grid.centroids[:, 1] <= (strike_length / 2))
+            & (grid.centroids[:, 2] >= (-dip_length / 2))
+            & (grid.centroids[:, 2] <= (dip_length / 2))
+        )
+        assert np.all(model[mask] == 1.0)
 
 
 def test_mask_under_horizon():
