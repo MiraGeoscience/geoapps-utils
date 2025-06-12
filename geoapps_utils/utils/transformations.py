@@ -13,7 +13,7 @@ import scipy.sparse as ssp
 from geoh5py.objects import Surface
 
 
-def z_rotation_matrix(angle: np.ndarray) -> ssp.csr_matrix:
+def z_rotation_matrix(angle: np.ndarray | float) -> ssp.csr_matrix:
     """
     Sparse matrix for heterogeneous vector rotation about the z axis.
 
@@ -23,19 +23,27 @@ def z_rotation_matrix(angle: np.ndarray) -> ssp.csr_matrix:
     :param angle: Array of angles in radians for counterclockwise rotation
         about the z-axis.
     """
-    n = len(angle)
-    rza = np.c_[np.cos(angle), np.cos(angle), np.ones(n)].T
-    rza = rza.flatten(order="F")
-    rzb = np.c_[np.sin(angle), np.zeros(n), np.zeros(n)].T
-    rzb = rzb.flatten(order="F")
-    rzc = np.c_[-np.sin(angle), np.zeros(n), np.zeros(n)].T
-    rzc = rzc.flatten(order="F")
-    rot_z = ssp.diags([rzb[:-1], rza, rzc[:-1]], [-1, 0, 1])
+
+    if isinstance(angle, np.ndarray):
+        n = len(angle)
+        rza = np.c_[np.cos(angle), np.cos(angle), np.ones(n)].T
+        rza = rza.flatten(order="F")
+        rzb = np.c_[np.sin(angle), np.zeros(n), np.zeros(n)].T
+        rzb = rzb.flatten(order="F")
+        rzc = np.c_[-np.sin(angle), np.zeros(n), np.zeros(n)].T
+        rzc = rzc.flatten(order="F")
+        rot_z = ssp.diags([rzb[:-1], rza, rzc[:-1]], [-1, 0, 1])
+    else:
+        rot_z = np.r_[
+            np.c_[np.cos(angle), -np.sin(angle), 0],
+            np.c_[np.sin(angle), np.cos(angle), 0],
+            np.c_[0, 0, 1],
+        ]
 
     return rot_z
 
 
-def x_rotation_matrix(angle: np.ndarray) -> ssp.csr_matrix:
+def x_rotation_matrix(angle: np.ndarray | float) -> ssp.csr_matrix:
     """
     Sparse matrix for heterogeneous vector rotation about the x axis.
 
@@ -45,19 +53,27 @@ def x_rotation_matrix(angle: np.ndarray) -> ssp.csr_matrix:
     :param angle: Array of angles in radians for counterclockwise rotation
         about the x-axis.
     """
-    n = len(angle)
-    rxa = np.c_[np.ones(n), np.cos(angle), np.cos(angle)].T
-    rxa = rxa.flatten(order="F")
-    rxb = np.c_[np.zeros(n), np.sin(angle), np.zeros(n)].T
-    rxb = rxb.flatten(order="F")
-    rxc = np.c_[np.zeros(n), -np.sin(angle), np.zeros(n)].T
-    rxc = rxc.flatten(order="F")
-    rot_x = ssp.diags([rxb[:-1], rxa, rxc[:-1]], [-1, 0, 1])
+
+    if isinstance(angle, np.ndarray):
+        n = len(angle)
+        rxa = np.c_[np.ones(n), np.cos(angle), np.cos(angle)].T
+        rxa = rxa.flatten(order="F")
+        rxb = np.c_[np.zeros(n), np.sin(angle), np.zeros(n)].T
+        rxb = rxb.flatten(order="F")
+        rxc = np.c_[np.zeros(n), -np.sin(angle), np.zeros(n)].T
+        rxc = rxc.flatten(order="F")
+        rot_x = ssp.diags([rxb[:-1], rxa, rxc[:-1]], [-1, 0, 1])
+    else:
+        rot_x = np.r_[
+            np.c_[1, 0, 0],
+            np.c_[0, np.cos(angle), -np.sin(angle)],
+            np.c_[0, np.sin(angle), np.cos(angle)],
+        ]
 
     return rot_x
 
 
-def y_rotation_matrix(angle: np.ndarray) -> ssp.csr_matrix:
+def y_rotation_matrix(angle: np.ndarray | float) -> ssp.csr_matrix:
     """
     Sparse matrix for heterogeneous vector rotation about the y axis.
 
@@ -67,16 +83,71 @@ def y_rotation_matrix(angle: np.ndarray) -> ssp.csr_matrix:
     :param angle: Array of angles in radians for counterclockwise rotation
         about the y-axis.
     """
-    n = len(angle)
-    rxa = np.c_[np.cos(angle), np.ones(n), np.cos(angle)].T
-    rxa = rxa.flatten(order="F")
-    rxb = np.c_[-np.sin(angle), np.zeros(n), np.zeros(n)].T
-    rxb = rxb.flatten(order="F")
-    rxc = np.c_[np.sin(angle), np.zeros(n), np.zeros(n)].T
-    rxc = rxc.flatten(order="F")
-    rot_y = ssp.diags([rxb[:-2], rxa, rxc[:-2]], [-2, 0, 2])
+
+    if isinstance(angle, np.ndarray):
+        n = len(angle)
+        rxa = np.c_[np.cos(angle), np.ones(n), np.cos(angle)].T
+        rxa = rxa.flatten(order="F")
+        rxb = np.c_[-np.sin(angle), np.zeros(n), np.zeros(n)].T
+        rxb = rxb.flatten(order="F")
+        rxc = np.c_[np.sin(angle), np.zeros(n), np.zeros(n)].T
+        rxc = rxc.flatten(order="F")
+        rot_y = ssp.diags([rxb[:-2], rxa, rxc[:-2]], [-2, 0, 2])
+    else:
+        rot_y = np.r_[
+            np.c_[np.cos(angle), 0, np.sin(angle)],
+            np.c_[0, 1, 0],
+            np.c_[-np.sin(angle), 0, np.cos(angle)],
+        ]
 
     return rot_y
+
+
+def apply_rotation(operator: np.ndarray, points: np.ndarray) -> np.ndarray:
+    """
+    Apply heterogeneous or homogeneous rotation matrix to point set.
+
+    :param operator: Rotation matrix of shape (3, 3) or (n, 3, 3) where n is the number of
+        points.
+    :param points: Array of shape (n, 3) representing the x, y, z coordinates to be rotated.
+    """
+
+    if operator.shape[0] == points.shape[1]:
+        return operator.dot(points.T).T
+
+    if operator.shape[0] == np.prod(points.shape):
+        vec = points.copy()
+        vec = vec.flatten()
+        vec = operator.dot(vec.T).T
+        vec = vec.reshape(-1, 3)
+        return vec
+
+    raise ValueError(
+        f"Shape mismatch between operator ({operator.shape}) and points "
+        f"({points.shape}). For n points, the rotation operator should be size n "
+        "if homogeneous, or 3n if heterogeneous."
+    )
+
+
+def rotate_points(
+    points: np.ndarray,
+    origin: tuple[float, float, float],
+    rotations: list[ssp.csr_matrix],
+) -> np.ndarray:
+    """
+    Rotate points through a series of rotations about the provided origin.
+
+    :param points: Array of shape (n, 3) representing the x, y, z coordinates.
+    :param origin: Origin point of the rotation in the form [x, y, z].
+    :param rotations: List of rotation matrices to apply to the points.  These must
+        be in the form of scipy sparse matrices (csr_matrix) produced by the
+        x_rotation_matrix(), y_rotation_matrix(), and z_rotation_matrix() functions.
+    """
+
+    out = points.copy() - origin
+    for rotation in rotations:
+        out = apply_rotation(rotation, out)
+    return out + origin
 
 
 def rotate_xyz(xyz: np.ndarray, center: list, theta: float, phi: float = 0.0):
@@ -100,25 +171,13 @@ def rotate_xyz(xyz: np.ndarray, center: list, theta: float, phi: float = 0.0):
         locs = np.concatenate((locs, np.zeros((locs.shape[0], 1))), axis=1)
         return2d = True
 
-    locs = np.subtract(locs, center)
     phi = np.deg2rad(phi)
     theta = np.deg2rad(theta)
-
-    # Construct rotation matrix
-    mat_x = np.r_[
-        np.c_[1, 0, 0],
-        np.c_[0, np.cos(phi), -np.sin(phi)],
-        np.c_[0, np.sin(phi), np.cos(phi)],
-    ]
-    mat_z = np.r_[
-        np.c_[np.cos(theta), -np.sin(theta), 0],
-        np.c_[np.sin(theta), np.cos(theta), 0],
-        np.c_[0, 0, 1],
-    ]
-    mat = mat_z.dot(mat_x)
-
-    xyz_rot = mat.dot(locs.T).T
-    xyz_out = xyz_rot + center
+    xyz_out = rotate_points(
+        locs,
+        tuple(center),
+        rotations=[x_rotation_matrix(phi), z_rotation_matrix(theta)],
+    )
 
     if return2d:
         # Return 2-dimensional data if the input xyz was 2-dimensional.
