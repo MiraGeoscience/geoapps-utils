@@ -143,7 +143,7 @@ def get_overlapping_limits(size: int, width: int, overlap: float = 0.25) -> list
 
 class PlateModel(BaseModel):
     """
-    Options for creating a dipping plate model.
+    Parameters describing the position and orientation of a dipping plate.
 
     :param strike_length: Length of the plate in the strike direction.
     :param dip_length: Length of the plate in the dip direction.
@@ -172,7 +172,7 @@ def inside_plate(
 
     :param points: Array of shape (n, 3) representing the x, y, z coordinates of the
         model space (often the cell centers of a mesh).
-
+    :param plate: Dipping plate parameters.
     """
 
     xmin = plate.origin[0] - plate.strike_length / 2
