@@ -35,11 +35,10 @@ def fetch_driver_class(filepath: str | Path):
 
     module = __import__(uijson["run_command"], fromlist=[""])
 
-    driver_class = None
+    cls = None
     for _, cls in inspect.getmembers(module):
         try:
             if issubclass(cls, BaseDriver) and cls.__module__ == module.__name__:
-                driver_class = cls
                 break
         except TypeError:
             continue
@@ -47,7 +46,7 @@ def fetch_driver_class(filepath: str | Path):
     else:
         raise ValueError(f"No valid driver class found in {uijson['run_command']}")
 
-    return driver_class
+    return cls
 
 
 class BaseDriver(ABC):
@@ -183,3 +182,9 @@ class BaseDriver(ABC):
             monitored_directory_copy(
                 str(Path(self.params.monitoring_directory).resolve()), entity
             )
+
+
+if __name__ == "__main__":
+    file = sys.argv[1]
+    driver_cls = fetch_driver_class(file)
+    driver_cls.start(file)
