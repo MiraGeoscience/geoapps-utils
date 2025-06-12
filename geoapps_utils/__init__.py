@@ -15,7 +15,6 @@ __version__ = "0.6.0-alpha.1"
 
 from pathlib import Path
 
-from geoapps_utils.driver.driver import BaseDriver
 from geoapps_utils.utils import (
     conversions,
     formatters,
