@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from copy import deepcopy
 
@@ -17,9 +18,9 @@ import pytest
 from geoh5py import Workspace
 from geoh5py.ui_json.constants import default_ui_json as base_ui_json
 
-from geoapps_utils.base import Options
+from geoapps_utils.base import Options, fetch_driver_class
 from geoapps_utils.driver.data import BaseData
-from geoapps_utils.driver.driver import BaseDriver
+from geoapps_utils.driver.driver import BaseDriver, Driver
 from geoapps_utils.driver.params import BaseParams
 
 
@@ -89,3 +90,29 @@ def test_old_base_options(caplog):
         BaseData(geoh5=ws)
 
     assert "removed in future release" in caplog.text
+
+
+def test_fetch_driver(tmp_path):
+    params = Options.model_construct()  # type: ignore
+    dict_params = params.model_dump()
+    with open(tmp_path / f"{__name__}.ui.json", "w", encoding="utf-8") as file:
+        json.dump(params.model_dump(), file, indent=4)
+
+    driver_class = fetch_driver_class(tmp_path / f"{__name__}.ui.json")
+
+    assert driver_class is Driver
+
+    # Repeat with bad run_command
+    dict_params["run_command"] = "hello.world"
+    with pytest.raises(ModuleNotFoundError, match="No module named 'hello'"):
+        fetch_driver_class(dict_params)
+
+    # Repeat with missing run_command
+    del dict_params["run_command"]
+    with pytest.raises(ValueError, match="must contain a 'run_command'"):
+        fetch_driver_class(dict_params)
+
+    # Repeat with missing driver in module
+    dict_params["run_command"] = "geoapps_utils.utils.plotting"
+    with pytest.raises(ValueError, match="No valid driver"):
+        fetch_driver_class(dict_params)

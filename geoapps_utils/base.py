@@ -185,7 +185,7 @@ class Options(BaseModel):
     default_ui_json: ClassVar[Path | None] = None
 
     title: str = "Base Data"
-    run_command: str = "geoapps_utils.driver"
+    run_command: str = "geoapps_utils.base"
     conda_environment: str | None = None
     geoh5: Workspace
     monitoring_directory: str | Path | None = None
@@ -335,17 +335,27 @@ class Options(BaseModel):
         return options
 
 
-def fetch_driver_class(filepath: str | Path):
+def fetch_driver_class(json_dict: str | Path | dict) -> type[Driver]:
     """
     Fetch the driver class from the ui.json 'run_command'.
+
+    :param filepath: Path to a ui.json file with a 'run_command' key.
     """
     # TODO Remove after deprecation of geoapps_utils.driver
     from geoapps_utils.driver.driver import (  # pylint: disable=import-outside-toplevel, cyclic-import
         BaseDriver,
     )
 
-    with open(filepath, encoding="utf-8") as jsonfile:
-        uijson = load(jsonfile)
+    if isinstance(json_dict, (str, Path)):
+        with open(json_dict, encoding="utf-8") as jsonfile:
+            uijson = load(jsonfile)
+    else:
+        uijson = json_dict
+
+    if not isinstance(uijson, dict) or "run_command" not in uijson:
+        raise ValueError(
+            f"Invalid ui.json file: {json_dict}. It must contain a 'run_command' key."
+        )
 
     module = __import__(uijson["run_command"], fromlist=["Driver"])
 
