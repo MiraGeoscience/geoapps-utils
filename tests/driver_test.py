@@ -16,8 +16,8 @@ import pytest
 from geoh5py import Workspace
 from geoh5py.ui_json.constants import default_ui_json as base_ui_json
 
-from geoapps_utils.driver.driver import BaseDriver
-from geoapps_utils.driver.params import BaseParams
+from geoapps_utils.driver import BaseDriver
+from geoapps_utils.params import BaseParams
 
 
 def test_base_driver(tmp_path):

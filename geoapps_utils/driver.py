@@ -179,7 +179,9 @@ def fetch_driver_class(filepath: str | Path):
             continue
 
     else:
-        raise ValueError(f"No valid driver class found in {uijson['run_command']}")
+        raise ValueError(
+            f"No valid driver class found in module {uijson['run_command']}"
+        )
 
     return cls
 

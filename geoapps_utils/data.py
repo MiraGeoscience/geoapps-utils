@@ -39,7 +39,7 @@ class BaseData(BaseModel):
     default_ui_json: ClassVar[Path | None] = None
 
     title: str = "Base Data"
-    run_command: str = "geoapps_utils.driver.driver"
+    run_command: str = "geoapps_utils.driver"
     conda_environment: str | None = None
     geoh5: Workspace
     monitoring_directory: str | Path | None = None

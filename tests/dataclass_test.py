@@ -24,7 +24,7 @@ from geoh5py.workspace import Workspace
 from pydantic import BaseModel, ValidationError
 
 from geoapps_utils import assets_path
-from geoapps_utils.driver.data import BaseData
+from geoapps_utils.data import BaseData
 from geoapps_utils.utils.importing import DrillholeGroupValue
 
 
@@ -220,7 +220,7 @@ def test_params_construction(tmp_path):
     params = BaseData(geoh5=Workspace(tmp_path / "test.geoh5"))
     assert BaseData.default_ui_json is None
     assert params.title == "Base Data"
-    assert params.run_command == "geoapps_utils.driver.driver"
+    assert params.run_command == "geoapps_utils.driver"
     assert str(params.geoh5.h5file) == str(tmp_path / "test.geoh5")
 
 
