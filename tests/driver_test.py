@@ -10,16 +10,24 @@
 
 from __future__ import annotations
 
+import logging
 from copy import deepcopy
 
 import pytest
 from geoh5py import Workspace
 from geoh5py.ui_json.constants import default_ui_json as base_ui_json
 
-from geoapps_utils.driver import BaseDriver
-from geoapps_utils.driver.driver import BaseDriver as OldBaseDriver
-from geoapps_utils.options import BaseOptions
-from geoapps_utils.params import BaseParams
+from geoapps_utils.base import Options
+from geoapps_utils.driver.data import BaseData
+from geoapps_utils.driver.driver import BaseDriver
+from geoapps_utils.driver.params import BaseParams
+
+
+class TestParams(BaseParams):
+    _default_ui_json = deepcopy(base_ui_json)
+
+    def __init__(self, input_file=None, **kwargs):
+        super().__init__(input_file=input_file, **kwargs)
 
 
 def test_base_driver(tmp_path):
@@ -38,16 +46,8 @@ def test_base_driver(tmp_path):
         "run_command_boolean": False,
     }
 
-    class TestParams(BaseParams):
-        _default_ui_json = deepcopy(base_ui_json)
-
-        def __init__(self, input_file=None, **kwargs):
-            super().__init__(input_file=input_file, **kwargs)
-
     class TestDriver(BaseDriver):
-        _params: TestParams
-        _params_class: type[BaseParams] = TestParams
-        _validations = {}
+        _params_class = TestParams
 
         def __init__(self, params: TestParams):
             super().__init__(params)
@@ -68,6 +68,24 @@ def test_params_errors():
         BaseParams.build(input_data="bidon")  # type: ignore
 
 
-def test_base_driver_old(tmp_path):
-    params = BaseOptions.model_construc()
-    driver = OldBaseDriver(params)
+def test_old_base_driver(caplog):
+    ws = Workspace()
+    params = Options(geoh5=ws)
+
+    class TestDriver(BaseDriver):
+        def run(self):
+            pass
+
+    with caplog.at_level(logging.WARNING):
+        TestDriver(params)
+
+    assert "removed in future release" in caplog.text
+
+
+def test_old_base_options(caplog):
+    ws = Workspace()
+
+    with caplog.at_level(logging.WARNING):
+        BaseData(geoh5=ws)
+
+    assert "removed in future release" in caplog.text

@@ -8,20 +8,166 @@
 #                                                                                   '
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-
 from __future__ import annotations
 
+import inspect
+import logging
+import sys
+from abc import ABC, abstractmethod
 from copy import copy
+from json import load
 from pathlib import Path
 from typing import Any, ClassVar, GenericAlias  # type: ignore
 
-from geoh5py.ui_json import InputFile
-from geoh5py.workspace import Workspace
+from geoh5py import Workspace
+from geoh5py.objects import ObjectBase
+from geoh5py.ui_json import InputFile, monitored_directory_copy
 from pydantic import BaseModel, ConfigDict
 from typing_extensions import Self
 
+from geoapps_utils.driver.params import BaseParams
+from geoapps_utils.utils.importing import GeoAppsError
 
-class BaseData(BaseModel):
+
+logger = logging.getLogger()
+
+
+class Driver(ABC):
+    """
+    # todo: Get rid of BaseParams to have a more robust DriverClass
+
+    Base driver class.
+
+    :param params: Application parameters.
+    """
+
+    _params_class: type[Options | BaseParams]
+    _validations: dict | None = None
+
+    def __init__(self, params: Options | BaseParams):
+        self._workspace: Workspace | None = None
+        self._out_group: str | None = None
+        self.params = params
+
+        if (
+            hasattr(self.params, "out_group")
+            and self.params.out_group is None
+            and not issubclass(self._params_class, Options | BaseParams)
+        ):
+            self.params.out_group = self.out_group
+
+    @property
+    def out_group(self):
+        """Output group."""
+        return self._out_group
+
+    @property
+    def params(self):
+        """Application parameters."""
+        return self._params
+
+    @params.setter
+    def params(self, val: Options):
+        if not isinstance(val, Options | BaseParams):
+            raise TypeError(
+                "Parameters must be of type BaseParams or Options,"
+                f" get {type(val)} instead."
+            )
+        self._params = val
+
+    @property
+    def workspace(self):
+        """Application workspace."""
+        if self._workspace is None and self._params is not None:
+            self._workspace = self._params.geoh5
+
+        return self._workspace
+
+    @workspace.setter
+    def workspace(self, workspace):
+        """Application workspace."""
+
+        if not isinstance(workspace, Workspace):
+            raise TypeError(
+                "Input value for `workspace` must be of type geoh5py.Workspace."
+            )
+
+        self._workspace = workspace
+
+    @property
+    def params_class(self):
+        """Default parameter class."""
+        return self._params_class
+
+    @abstractmethod
+    def run(self):
+        """Run the application."""
+        raise NotImplementedError
+
+    @classmethod
+    def start(cls, filepath: str | Path, driver_class=None, **kwargs):
+        """
+        Run application specified by 'filepath' ui.json file.
+
+        :param filepath: Path to valid ui.json file for the application driver.
+        :param driver_class: Application driver class.
+        :param kwargs: Additional keyword arguments for InputFile read_ui_json.
+        """
+
+        if driver_class is None:
+            driver_class = cls
+
+        print("Loading input file . . .")
+        filepath = Path(filepath).resolve()
+        ifile = InputFile.read_ui_json(filepath, validations=cls._validations, **kwargs)
+        with ifile.geoh5.open(mode="r+"):
+            try:
+                params = driver_class._params_class.build(ifile)
+                print("Initializing application . . .")
+                driver = driver_class(params)
+                print("Running application . . .")
+                driver.run()
+                print(f"Results saved to {params.geoh5.h5file}")
+
+                return driver
+            except GeoAppsError as error:
+                logger.warning("\n\nApplicationError: %s\n\n", error)
+                sys.exit(1)
+
+    def add_ui_json(self, entity: ObjectBase):
+        """
+        Add ui.json file to entity.
+
+        :param entity: Object to add ui.json file to.
+        """
+        if (
+            self.params.input_file is None
+            or self.params.input_file.path is None
+            or self.params.input_file.name is None
+        ):
+            raise ValueError("Input file and it's name and path must be set.")
+
+        entity.add_file(
+            str(Path(self.params.input_file.path) / self.params.input_file.name)
+        )
+
+    def update_monitoring_directory(self, entity: ObjectBase):
+        """
+        If monitoring directory is active, copy entity to monitoring directory.
+
+        :param entity: Object being added to monitoring directory.
+        """
+        self.add_ui_json(entity)
+        if (
+            self.params.monitoring_directory is not None
+            and Path(self.params.monitoring_directory).is_dir()
+        ):
+            monitored_directory_copy(
+                str(Path(self.params.monitoring_directory).resolve()), entity
+            )
+
+
+class Options(BaseModel):
     """
     Core parameters expected by the ui.json file format.
 
@@ -68,7 +214,7 @@ class BaseData(BaseModel):
                 and issubclass(info.annotation, BaseModel)
             ):
                 # Nest and deal with aliases
-                update = BaseData.collect_input_from_dict(info.annotation, update)
+                update = Options.collect_input_from_dict(info.annotation, update)
                 nested = info.annotation.model_construct(**update).model_dump(
                     exclude_unset=True
                 )
@@ -101,7 +247,7 @@ class BaseData(BaseModel):
         if not isinstance(data, dict):
             raise TypeError("Input data must be a dictionary or InputFile.")
 
-        kwargs = BaseData.collect_input_from_dict(cls, data)  # type: ignore
+        kwargs = Options.collect_input_from_dict(cls, data)  # type: ignore
         out = cls(**kwargs)
         if isinstance(input_data, InputFile):
             out._input_file = input_data
@@ -187,3 +333,42 @@ class BaseData(BaseModel):
         options = ifile.stringify(ifile.demote(ifile.ui_json))
 
         return options
+
+
+def fetch_driver_class(filepath: str | Path):
+    """
+    Fetch the driver class from the ui.json 'run_command'.
+    """
+    # TODO Remove after deprecation of geoapps_utils.driver
+    from geoapps_utils.driver.driver import (  # pylint: disable=import-outside-toplevel, cyclic-import
+        BaseDriver,
+    )
+
+    with open(filepath, encoding="utf-8") as jsonfile:
+        uijson = load(jsonfile)
+
+    module = __import__(uijson["run_command"], fromlist=["Driver"])
+
+    cls = None
+    for _, cls in inspect.getmembers(module):
+        try:
+            if (
+                issubclass(cls, Driver | BaseDriver)
+                and cls.__module__ == module.__name__
+            ):
+                break
+        except TypeError:
+            continue
+
+    else:
+        raise ValueError(
+            f"No valid driver class found in module {uijson['run_command']}"
+        )
+
+    return cls
+
+
+if __name__ == "__main__":
+    file = sys.argv[1]
+    driver_cls = fetch_driver_class(file)
+    driver_cls.start(file)

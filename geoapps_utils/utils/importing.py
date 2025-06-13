@@ -84,16 +84,3 @@ class GeoAppsError(Exception):
     """
     Base class for exceptions in this module.
     """
-
-
-def deprecated_class(cls):
-    """
-    Decorator for Deprecated classes.
-    """
-
-    def decorator():
-        current = cls.__name__
-        future = cls.__bases__[0].__name__
-        logger.warning("Class %s will be deprecated, please use %s.")
-
-    return decorator

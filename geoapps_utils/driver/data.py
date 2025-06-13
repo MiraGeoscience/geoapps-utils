@@ -1,5 +1,5 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#  Copyright (c) 2025 Mira Geoscience Ltd.                                          '
+#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
 #                                                                                   '
 #  This file is part of geoapps-utils package.                                      '
 #                                                                                   '
@@ -7,23 +7,26 @@
 #  (see LICENSE file at the root of this source code package).                      '
 #                                                                                   '
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-from abc import ABC
+
+
+from __future__ import annotations
+
 from logging import getLogger
 
-from geoapps_utils.base import Driver
+from geoapps_utils.base import Options
 
 
 logger = getLogger(__name__)
 
 
-class BaseDriver(Driver, ABC):
+class BaseData(Options):
     """
-    Deprecated base driver class import.
+    Deprecated base class for data handling in geoapps-utils.
     """
 
     def __init__(self, *args, **kwargs):
         logger.warning(
-            "Class 'geoapps_utils.driver.driver.BaseDriver' will be removed in future release.\n "
-            "Use 'geoapps_utils.base.Driver' instead."
+            "Class 'geoapps_utils.driver.data.BaseData' will be removed in future release.\n "
+            "Use 'geoapps_utils.base.Options' instead."
         )
         super().__init__(*args, **kwargs)
