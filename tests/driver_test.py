@@ -17,6 +17,8 @@ from geoh5py import Workspace
 from geoh5py.ui_json.constants import default_ui_json as base_ui_json
 
 from geoapps_utils.driver import BaseDriver
+from geoapps_utils.driver.driver import BaseDriver as OldBaseDriver
+from geoapps_utils.options import BaseOptions
 from geoapps_utils.params import BaseParams
 
 
@@ -64,3 +66,8 @@ def test_base_driver(tmp_path):
 def test_params_errors():
     with pytest.raises(TypeError, match="'input_data' must be "):
         BaseParams.build(input_data="bidon")  # type: ignore
+
+
+def test_base_driver_old(tmp_path):
+    params = BaseOptions.model_construc()
+    driver = OldBaseDriver(params)
