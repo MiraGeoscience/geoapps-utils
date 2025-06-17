@@ -245,10 +245,10 @@ def test_base_data_write_ui_json(tmp_path):
     ifile = InputFile.read_ui_json(tmp_path / "validation.ui.json")
     assert ifile.data["my_param"] == "test it"
 
-    params3 = Options(geoh5=Workspace(tmp_path / "test.geoh5"))
+    ifile.data = None
+    params3 = Options(geoh5=Workspace(tmp_path / "test.geoh5"), _input_file=ifile)
 
-    with pytest.raises(FileNotFoundError, match="Default uijson file "):
-        params3._create_input_file_from_attributes()  # pylint: disable=protected-access
+    assert isinstance(params3._create_input_file_from_attributes(), InputFile)  # pylint: disable=protected-access
 
 
 def test_drillhole_groups(tmp_path):
