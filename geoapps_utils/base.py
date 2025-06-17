@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any, ClassVar, GenericAlias  # type: ignore
 
 from geoh5py import Workspace
+from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import ObjectBase
 from geoh5py.ui_json import InputFile, monitored_directory_copy
 from pydantic import BaseModel, ConfigDict
@@ -47,21 +48,8 @@ class Driver(ABC):
     _validations: dict | None = None
 
     def __init__(self, params: Options | BaseParams):
-        self._workspace: Workspace | None = None
-        self._out_group: str | None = None
+        self._out_group: UIJsonGroup | None = None
         self.params = params
-
-        if (
-            hasattr(self.params, "out_group")
-            and self.params.out_group is None
-            and not issubclass(self._params_class, Options | BaseParams)
-        ):
-            self.params.out_group = self.out_group
-
-    @property
-    def out_group(self):
-        """Output group."""
-        return self._out_group
 
     @property
     def params(self):
@@ -80,21 +68,14 @@ class Driver(ABC):
     @property
     def workspace(self):
         """Application workspace."""
-        if self._workspace is None and self._params is not None:
-            self._workspace = self._params.geoh5
+        return self._params.geoh5
 
-        return self._workspace
-
-    @workspace.setter
-    def workspace(self, workspace):
-        """Application workspace."""
-
-        if not isinstance(workspace, Workspace):
-            raise TypeError(
-                "Input value for `workspace` must be of type geoh5py.Workspace."
-            )
-
-        self._workspace = workspace
+    @property
+    def out_group(self) -> UIJsonGroup | None:
+        if self._out_group is None:
+            if self.params.out_group is not None:
+                self._out_group = self.params.out_group
+        return self._out_group
 
     @property
     def params_class(self):
@@ -191,6 +172,7 @@ class Options(BaseModel):
     conda_environment: str | None = None
     geoh5: Workspace
     monitoring_directory: str | Path | None = None
+    out_group: UIJsonGroup | None = None
     _input_file: InputFile | None = None
 
     @staticmethod

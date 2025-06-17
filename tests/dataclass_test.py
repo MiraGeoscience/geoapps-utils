@@ -36,6 +36,7 @@ def get_params_dict(tmp_path):
         "run_command": "test.driver",
         "title": "test title",
         "conda_environment": "test_env",
+        "out_group": None,
     }
     return param_dict
 
