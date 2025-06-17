@@ -230,7 +230,7 @@ class Options(BaseModel):
         return update
 
     @classmethod
-    def build(cls, input_data: InputFile | None = None, **kwargs) -> Self:
+    def build(cls, input_data: InputFile | dict | None = None, **kwargs) -> Self:
         """
         Build a dataclass from a dictionary or InputFile.
 
@@ -238,17 +238,17 @@ class Options(BaseModel):
 
         :return: Dataclass of application parameters.
         """
-        data = {}
+        data = input_data or {}
         if isinstance(input_data, InputFile) and input_data.data is not None:
             data = input_data.data.copy()
-
-        data.update(kwargs)
 
         if not isinstance(data, dict):
             raise TypeError("Input data must be a dictionary or InputFile.")
 
-        kwargs = Options.collect_input_from_dict(cls, data)  # type: ignore
-        out = cls(**kwargs)
+        data.update(kwargs)
+        options = Options.collect_input_from_dict(cls, data)  # type: ignore
+        out = cls(**options)
+
         if isinstance(input_data, InputFile):
             out._input_file = input_data
 
