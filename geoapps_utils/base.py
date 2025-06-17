@@ -292,9 +292,9 @@ class Options(BaseModel):
             )
 
         attributes = self.flatten()
-        ifile.data = {
-            key: attributes.get(key, value) for key, value in ifile.data.items()
-        }
+        ifile.update_ui_values(
+            {key: value for key, value in attributes.items() if value is not None}
+        )
 
         return ifile
 
