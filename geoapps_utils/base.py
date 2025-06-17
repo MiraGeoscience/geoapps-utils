@@ -280,14 +280,18 @@ class Options(BaseModel):
         """
         # ensure default uijson (PAth )exists or raise an error
         if self.default_ui_json is None or not self.default_ui_json.exists():
-            raise FileNotFoundError(
-                f"Default uijson file '{self.default_ui_json}' not a valid path."
+            ifile = InputFile(
+                ui_json=recursive_flatten(self.model_dump()), validate=False
+            )
+        else:
+            ifile = InputFile.read_ui_json(self.default_ui_json, validate=False)
+
+        if ifile.data is None:
+            raise ValueError(
+                f"Input file {self.default_ui_json} does not contain any data."
             )
 
-        ifile = InputFile.read_ui_json(self.default_ui_json, validate=False)
-
         attributes = self.flatten()
-
         ifile.data = {
             key: attributes.get(key, value) for key, value in ifile.data.items()
         }

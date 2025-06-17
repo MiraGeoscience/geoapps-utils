@@ -14,9 +14,12 @@ import json
 import logging
 from copy import deepcopy
 
+import numpy as np
 import pytest
 from geoh5py import Workspace
+from geoh5py.objects import Points
 from geoh5py.ui_json.constants import default_ui_json as base_ui_json
+from pydantic import BaseModel, ConfigDict
 
 from geoapps_utils.base import Options, fetch_driver_class
 from geoapps_utils.driver.data import BaseData
@@ -24,11 +27,49 @@ from geoapps_utils.driver.driver import BaseDriver, Driver
 from geoapps_utils.driver.params import BaseParams
 
 
+class NestedModel(BaseModel):
+    """
+    Mock nested model
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    client: Points
+
+
+class TestOptions(Options):
+    """
+    Mock nested options
+    """
+
+    nested_model: NestedModel
+
+
 class TestParams(BaseParams):
     _default_ui_json = deepcopy(base_ui_json)
 
     def __init__(self, input_file=None, **kwargs):
         super().__init__(input_file=input_file, **kwargs)
+
+
+class TestOptionsDriver(BaseDriver):
+    _params_class = TestOptions
+
+    def __init__(self, params: TestOptions):
+        super().__init__(params)
+
+    def run(self):
+        pass
+
+
+class TestParamsDriver(BaseDriver):
+    _params_class = TestParams
+
+    def __init__(self, params: TestParams):
+        super().__init__(params)
+
+    def run(self):
+        pass
 
 
 def test_base_driver(tmp_path):
@@ -47,15 +88,6 @@ def test_base_driver(tmp_path):
         "run_command_boolean": False,
     }
 
-    class TestDriver(BaseDriver):
-        _params_class = TestParams
-
-        def __init__(self, params: TestParams):
-            super().__init__(params)
-
-        def run(self):
-            pass
-
     params = TestParams(**test_params)
     params.write_input_file(path=tmp_path, name="test_ifile.ui.json")
 
@@ -63,34 +95,30 @@ def test_base_driver(tmp_path):
     with pytest.raises(
         TypeError, match="Parameters must be of type BaseParams or Options"
     ):
-        TestDriver("not a params object")  # type: ignore
+        TestParamsDriver("not a params object")  # type: ignore
 
-    driver = TestDriver(params)
+    driver = TestParamsDriver(params)
     driver.start(tmp_path / "test_ifile.ui.json")
 
 
 def test_base_options(tmp_path):
     workspace = Workspace.create(tmp_path / f"{__name__}.geoh5")
     # Create params
-
-    class TestDriver(BaseDriver):
-        _params_class = Options
-
-        def __init__(self, params: Options):
-            super().__init__(params)
-
-        def run(self):
-            pass
+    pts = Points.create(workspace, vertices=np.random.randn(10, 3))
 
     with pytest.raises(TypeError, match="Input data must be a dictionary"):
-        Options.build("not a dict")  # type: ignore
+        TestOptions.build("not a dict")  # type: ignore
 
-    options = Options.build({"geoh5": workspace})
-    driver = TestDriver(options)
-    assert isinstance(driver.params, Options)
-    assert driver.params_class == Options
+    options = TestOptions.build({"geoh5": workspace, "client": pts})
+    driver = TestOptionsDriver(options)
+
+    assert isinstance(driver.params, TestOptions)
+    assert driver.params_class == TestOptions
     assert isinstance(driver.workspace, Workspace)
     assert driver.out_group is None
+
+    demoted = options.serialize()
+    assert demoted["client"] == "{" + str(pts.uid) + "}"
 
 
 def test_params_errors():
