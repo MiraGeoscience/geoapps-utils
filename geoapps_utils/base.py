@@ -15,6 +15,7 @@ import logging
 import sys
 from abc import ABC, abstractmethod
 from copy import copy
+from importlib import import_module
 from json import load
 from pathlib import Path
 from typing import Any, ClassVar, GenericAlias  # type: ignore
@@ -354,7 +355,7 @@ def fetch_driver_class(json_dict: str | Path | dict) -> type[Driver]:
             f"Invalid ui.json file: {json_dict}. It must contain a 'run_command' key."
         )
 
-    module = __import__(uijson["run_command"], fromlist=["Driver"])
+    module = import_module(uijson["run_command"])
 
     cls = None
     for _, cls in inspect.getmembers(module):
