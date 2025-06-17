@@ -32,7 +32,7 @@ class TestParams(BaseParams):
 
 
 def test_base_driver(tmp_path):
-    workspace = Workspace.create(tmp_path / "test_workspace.geoh5")
+    workspace = Workspace.create(tmp_path / f"{__name__}.geoh5")
     # Create params
     test_params = {
         "monitoring_directory": None,
@@ -60,8 +60,37 @@ def test_base_driver(tmp_path):
     params.write_input_file(path=tmp_path, name="test_ifile.ui.json")
 
     # Create driver
+    with pytest.raises(
+        TypeError, match="Parameters must be of type BaseParams or Options"
+    ):
+        TestDriver("not a params object")  # type: ignore
+
     driver = TestDriver(params)
     driver.start(tmp_path / "test_ifile.ui.json")
+
+
+def test_base_options(tmp_path):
+    workspace = Workspace.create(tmp_path / f"{__name__}.geoh5")
+    # Create params
+
+    class TestDriver(BaseDriver):
+        _params_class = Options
+
+        def __init__(self, params: Options):
+            super().__init__(params)
+
+        def run(self):
+            pass
+
+    with pytest.raises(TypeError, match="Input data must be a dictionary"):
+        Options.build("not a dict")  # type: ignore
+
+    options = Options.build({"geoh5": workspace})
+    driver = TestDriver(options)
+    assert isinstance(driver.params, Options)
+    assert driver.params_class == Options
+    assert isinstance(driver.workspace, Workspace)
+    assert driver.out_group is None
 
 
 def test_params_errors():
