@@ -10,6 +10,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 
 def string_name(value: str, characters: str = ".") -> str:
     """
@@ -23,3 +25,21 @@ def string_name(value: str, characters: str = ".") -> str:
     for char in characters:
         value = value.replace(char, "_")
     return value
+
+
+def recursive_flatten(data: dict[str, Any]) -> dict[str, Any]:
+    """
+    Recursively flatten nested dictionary.
+
+    To be used on output of BaseModel.model_dump.
+
+    :param data: Dictionary of parameters and values.
+    """
+    out_dict = {}
+    for key, value in data.items():
+        if isinstance(value, dict):
+            out_dict.update(recursive_flatten(value))
+        else:
+            out_dict.update({key: value})
+
+    return out_dict

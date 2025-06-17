@@ -26,6 +26,7 @@ from pydantic import BaseModel, ConfigDict
 from typing_extensions import Self
 
 from geoapps_utils.driver.params import BaseParams
+from geoapps_utils.utils.formatters import recursive_flatten
 from geoapps_utils.utils.importing import GeoAppsError
 
 
@@ -262,14 +263,10 @@ class Options(BaseModel):
 
         :param data: Dictionary of parameters and values.
         """
-        out_dict = {}
-        for key, value in data.items():
-            if isinstance(value, dict):
-                out_dict.update(self._recursive_flatten(value))
-            else:
-                out_dict.update({key: value})
-
-        return out_dict
+        logger.warning(
+            "Deprecated method: Use geoapps_utils.utils.formatters._recursive_flatten"
+        )
+        return recursive_flatten(data)
 
     def flatten(self) -> dict:
         """
@@ -277,7 +274,7 @@ class Options(BaseModel):
 
         :return: Dictionary of parameters.
         """
-        out = self._recursive_flatten(self.model_dump())
+        out = recursive_flatten(self.model_dump())
         out.pop("input_file", None)
 
         return out
@@ -328,7 +325,7 @@ class Options(BaseModel):
         dump = self.model_dump(exclude_unset=True)
         dump["geoh5"] = str(dump["geoh5"].h5file.resolve())
         ifile = self.input_file
-        ifile.update_ui_values(self._recursive_flatten(dump))
+        ifile.update_ui_values(recursive_flatten(dump))
         assert ifile.ui_json is not None
         options = ifile.stringify(ifile.demote(ifile.ui_json))
 
