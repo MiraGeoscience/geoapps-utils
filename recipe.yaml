@@ -2,7 +2,7 @@ schema_version: 1
 
 context:
   name: "geoapps-utils"
-  version: "0.5.0a4"
+  version: "0.5.0"
   python_min: "3.10"
 
 package:
