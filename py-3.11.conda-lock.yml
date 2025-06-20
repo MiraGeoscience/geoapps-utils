@@ -15,8 +15,8 @@
 version: 1
 metadata:
   content_hash:
-    win-64: bf41e87792c836950ed525e9c7738b8a96f47bc7544f97d0a6b4c7a7164b71cd
-    linux-64: e760c5b542c32e56c6c49927de21e34da0aae8ac376c74244cb38fc2d9c34ae0
+    win-64: 7e08a1946b5d8b54042121d6d7a797eaeeed821b145325fda60d73a1e8dc6586
+    linux-64: 980dc9a9a088f628f3e5d761ccd0c874dce0b5cc373a68dd9f7c2655025753a6
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -361,6 +361,38 @@ package:
   hash:
     md5: 633504fe3f96031192e40e3e6c18ef06
     sha256: 0bcc9c868d769247c12324f957c97c4dbee7e4095485db90d9c295bcb3b1bb43
+  category: main
+  optional: false
+- name: geoh5py
+  version: 0.11.0
+  manager: conda
+  platform: linux-64
+  dependencies:
+    h5py: '>=3.2.1,<4.0.dev'
+    numpy: '>=1.26.0,<1.27.dev'
+    pillow: '>=10.3.0,<10.4.dev'
+    pydantic: '>=2.5.2,<3.0.dev'
+    python: '>=3.10'
+  url: https://repo.prefix.dev/conda-forge/noarch/geoh5py-0.11.0-pyhe01879c_0.conda
+  hash:
+    md5: 2127ebe65d5b7f1d45b535d4ef3bf2c6
+    sha256: 80b213cd2d118a8e486512d9c0c3295e570ebb7158350c812cf85f79633a971b
+  category: main
+  optional: false
+- name: geoh5py
+  version: 0.11.0
+  manager: conda
+  platform: win-64
+  dependencies:
+    h5py: '>=3.2.1,<4.0.dev'
+    numpy: '>=1.26.0,<1.27.dev'
+    pillow: '>=10.3.0,<10.4.dev'
+    pydantic: '>=2.5.2,<3.0.dev'
+    python: '>=3.10'
+  url: https://repo.prefix.dev/conda-forge/noarch/geoh5py-0.11.0-pyhe01879c_0.conda
+  hash:
+    md5: 2127ebe65d5b7f1d45b535d4ef3bf2c6
+    sha256: 80b213cd2d118a8e486512d9c0c3295e570ebb7158350c812cf85f79633a971b
   category: main
   optional: false
 - name: h5py
@@ -2414,35 +2446,35 @@ package:
   manager: conda
   platform: win-64
   dependencies:
-    vc14_runtime: '>=14.42.34433'
-  url: https://repo.prefix.dev/conda-forge/win-64/vc-14.3-h2b53caa_26.conda
+    vc14_runtime: '>=14.44.35208'
+  url: https://repo.prefix.dev/conda-forge/win-64/vc-14.3-h41ae7f8_26.conda
   hash:
-    md5: d3f0381e38093bde620a8d85f266ae55
-    sha256: 7a685b5c37e9713fa314a0d26b8b1d7a2e6de5ab758698199b5d5b6dba2e3ce1
+    md5: 18b6bf6f878501547786f7bf8052a34d
+    sha256: b388d88e04aa0257df4c1d28f8d85d985ad07c1e5645aa62335673c98704c4c6
   category: main
   optional: false
 - name: vc14_runtime
-  version: 14.42.34438
+  version: 14.44.35208
   manager: conda
   platform: win-64
   dependencies:
     ucrt: '>=10.0.20348.0'
-  url: https://repo.prefix.dev/conda-forge/win-64/vc14_runtime-14.42.34438-hfd919c2_26.conda
+  url: https://repo.prefix.dev/conda-forge/win-64/vc14_runtime-14.44.35208-h818238b_26.conda
   hash:
-    md5: 91651a36d31aa20c7ba36299fb7068f4
-    sha256: 30dcb71bb166e351aadbdc18f1718757c32cdaa0e1e5d9368469ee44f6bf4709
+    md5: 14d65350d3f5c8ff163dc4f76d6e2830
+    sha256: 7bad6e25a7c836d99011aee59dcf600b7f849a6fa5caa05a406255527e80a703
   category: main
   optional: false
 - name: vs2015_runtime
-  version: 14.42.34438
+  version: 14.44.35208
   manager: conda
   platform: win-64
   dependencies:
-    vc14_runtime: '>=14.42.34438'
-  url: https://repo.prefix.dev/conda-forge/win-64/vs2015_runtime-14.42.34438-h7142326_26.conda
+    vc14_runtime: '>=14.44.35208'
+  url: https://repo.prefix.dev/conda-forge/win-64/vs2015_runtime-14.44.35208-h38c0c73_26.conda
   hash:
-    md5: 3357e4383dbce31eed332008ede242ab
-    sha256: 432f2937206f1ad4a77e39f84fabc1ce7d2472b669836fb72bd2bfd19a2defc9
+    md5: 312f3a0a6b3c5908e79ce24002411e32
+    sha256: d18d77c8edfbad37fa0e0bb0f543ad80feb85e8fe5ced0f686b8be463742ec0b
   category: dev
   optional: true
 - name: wheel
@@ -2576,33 +2608,5 @@ package:
   hash:
     md5: 21f56217d6125fb30c3c3f10c786d751
     sha256: bc64864377d809b904e877a98d0584f43836c9f2ef27d3d2a1421fa6eae7ca04
-  category: main
-  optional: false
-- name: geoh5py
-  version: 0.11.0
-  manager: pip
-  platform: linux-64
-  dependencies:
-    h5py: '>=3.2.1,<4.0.0'
-    numpy: '>=1.26.0,<1.27.0'
-    pillow: '>=10.3.0,<10.4.0'
-    pydantic: '>=2.5.2,<3.0.0'
-  url: https://mirageoscienceltd.jfrog.io/artifactory/api/pypi/geoplus-pypi-dev/geoh5py/0.11.0/geoh5py-0.11.0-py3-none-any.whl
-  hash:
-    sha256: 862e1ceaf08f57ff889bd80a3dee404b97083c272753e050748557b24f803c27
-  category: main
-  optional: false
-- name: geoh5py
-  version: 0.11.0
-  manager: pip
-  platform: win-64
-  dependencies:
-    h5py: '>=3.2.1,<4.0.0'
-    numpy: '>=1.26.0,<1.27.0'
-    pillow: '>=10.3.0,<10.4.0'
-    pydantic: '>=2.5.2,<3.0.0'
-  url: https://mirageoscienceltd.jfrog.io/artifactory/api/pypi/geoplus-pypi-dev/geoh5py/0.11.0/geoh5py-0.11.0-py3-none-any.whl
-  hash:
-    sha256: 862e1ceaf08f57ff889bd80a3dee404b97083c272753e050748557b24f803c27
   category: main
   optional: false
