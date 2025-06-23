@@ -11,22 +11,19 @@
 from __future__ import annotations
 
 import argparse
-import importlib
-import inspect
 import itertools
 import json
 import shutil
 import uuid
 from pathlib import Path
-from typing import Any
 
 import numpy as np
-from geoh5py.shared.exceptions import BaseValidationError
 from geoh5py.ui_json import InputFile
 from geoh5py.workspace import Workspace
 from pydantic import ConfigDict
 
 from geoapps_utils.base import Driver, Options
+from geoapps_utils.run import fetch_driver_class
 
 
 class SweepParams(Options):
@@ -41,7 +38,12 @@ class SweepParams(Options):
 
     def worker_parameters(self) -> list[str]:
         """Return all sweep parameter names."""
-        return [k.replace("_start", "") for k in self.__dict__ if k.endswith("_start")]
+        if self.model_extra is None:
+            return []
+
+        return [
+            k.replace("_start", "") for k in self.model_extra if k.endswith("_start")
+        ]
 
     def parameter_sets(self) -> dict:
         """Return sets of parameter values that will be combined to form the sweep."""
@@ -139,60 +141,18 @@ class SweepDriver(Driver):
         self.write_files(lookup)
 
         for name, trial in lookup.items():
-            ifile = InputFile.read_ui_json(
-                Path(self.working_directory) / f"{name}.ui.json"
-            )
-
+            file_path = Path(self.working_directory) / f"{name}.ui.json"
             if trial["status"] == "complete":
                 continue
 
             trial["status"] = "processing"
             self.update_lookup(lookup)
-            call_worker(ifile)
+
+            driver = fetch_driver_class(file_path)
+            driver.start(file_path)
+
             trial["status"] = "complete"
             self.update_lookup(lookup)
-
-
-def call_worker(ifile: InputFile):
-    """Runs the worker for the sweep parameters contained in 'ifile'."""
-    if ifile.data is None:
-        raise ValueError("Input file data is empty.")
-
-    run_cmd = ifile.data["run_command"]
-    module = importlib.import_module(run_cmd)
-
-    def filt(member: Any) -> bool:
-        return (
-            inspect.isclass(member)
-            and member.__module__ == run_cmd
-            and hasattr(member, "run")
-        )
-
-    driver = inspect.getmembers(module, filt)[0][1]
-    driver.start(ifile.path_name)
-
-
-def file_validation(filepath: str | Path):
-    """Validate file."""
-    if "".join(Path(filepath).suffixes) == ".ui.json":
-        try:
-            InputFile.read_ui_json(filepath)
-        except BaseValidationError as err:
-            raise OSError(
-                f"File argument {filepath} is not a valid ui.json file."
-            ) from err
-    else:
-        raise OSError(f"File argument {filepath} must have extension 'ui.json'.")
-
-
-def main(file_path: str | Path):
-    """Run the program."""
-
-    file_validation(file_path)
-    print("Reading parameters and workspace...")
-    input_file = InputFile.read_ui_json(file_path)
-    sweep_params = SweepParams.build(input_file)
-    SweepDriver(sweep_params).run()
 
 
 if __name__ == "__main__":
@@ -202,4 +162,4 @@ if __name__ == "__main__":
     parser.add_argument("file", help="File with ui.json format.")
 
     args = parser.parse_args()
-    main(Path(args.file).resolve(strict=True))
+    SweepDriver.start(Path(args.file).resolve(strict=True))
