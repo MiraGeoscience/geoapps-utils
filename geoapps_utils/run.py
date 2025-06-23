@@ -23,6 +23,28 @@ from geoapps_utils.base import Driver
 logger = logging.getLogger()
 
 
+def load_ui_json(filepath: str | Path | dict) -> dict:
+    """
+    Load a ui.json file.
+
+    :param filepath: Path to a ui.json file.
+    :return: Parsed JSON dictionary.
+    """
+
+    if isinstance(filepath, (str, Path)):
+        with open(filepath, encoding="utf-8") as jsonfile:
+            uijson = load(jsonfile)
+    else:
+        uijson = filepath
+
+    if not isinstance(uijson, dict) or "run_command" not in uijson:
+        raise ValueError(
+            f"Invalid ui.json file: {filepath}. It must contain a 'run_command' key."
+        )
+
+    return uijson
+
+
 def fetch_driver_class(json_dict: str | Path | dict) -> type[Driver]:
     """
     Fetch the driver class from the ui.json 'run_command'.
@@ -35,19 +57,8 @@ def fetch_driver_class(json_dict: str | Path | dict) -> type[Driver]:
         BaseDriver,
     )
 
-    if isinstance(json_dict, (str, Path)):
-        with open(json_dict, encoding="utf-8") as jsonfile:
-            uijson = load(jsonfile)
-    else:
-        uijson = json_dict
-
-    if not isinstance(uijson, dict) or "run_command" not in uijson:
-        raise ValueError(
-            f"Invalid ui.json file: {json_dict}. It must contain a 'run_command' key."
-        )
-
+    uijson = load_ui_json(json_dict)
     module = import_module(uijson["run_command"])
-
     cls = None
     for _, cls in inspect.getmembers(module):
         try:
