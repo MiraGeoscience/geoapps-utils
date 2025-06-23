@@ -58,10 +58,10 @@ class Driver(ABC):
 
     @params.setter
     def params(self, val: Options):
-        if not isinstance(val, Options | BaseParams):
+        if not isinstance(val, self._params_class):
             raise TypeError(
-                "Parameters must be of type BaseParams or Options,"
-                f" get {type(val)} instead."
+                f"Parameters must be of type {self._params_class}.\n"
+                f"Got {type(val)} instead."
             )
         self._params = val
 
