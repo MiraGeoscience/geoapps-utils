@@ -21,10 +21,11 @@ from geoh5py.objects import Points
 from geoh5py.ui_json.constants import default_ui_json as base_ui_json
 from pydantic import BaseModel, ConfigDict
 
-from geoapps_utils.base import Options, fetch_driver_class
+from geoapps_utils.base import Options
 from geoapps_utils.driver.data import BaseData
 from geoapps_utils.driver.driver import BaseDriver, Driver
 from geoapps_utils.driver.params import BaseParams
+from geoapps_utils.run import fetch_driver_class
 
 
 class NestedModel(BaseModel):
@@ -171,5 +172,5 @@ def test_fetch_driver(tmp_path):
 
     # Repeat with missing driver in module
     dict_params["run_command"] = "geoapps_utils.utils.plotting"
-    with pytest.raises(ValueError, match="No valid driver"):
+    with pytest.raises(SystemExit, match="1"):
         fetch_driver_class(dict_params)
