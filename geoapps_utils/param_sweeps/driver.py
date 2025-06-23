@@ -68,6 +68,8 @@ class SweepParams(Options):
 class SweepDriver(Driver):
     """Sweeps parameters of a worker driver."""
 
+    _params_class = SweepParams
+
     def __init__(self, params: SweepParams):
         super().__init__(params)
         self.working_directory = str(Path(self.params.geoh5.h5file).parent)
@@ -112,25 +114,24 @@ class SweepDriver(Driver):
     def write_files(self, lookup):
         """Write ui.geoh5 and ui.json files for sweep trials."""
         ifile = InputFile.read_ui_json(self.params.worker_uijson)
-        with ifile.data["geoh5"].open(mode="r") as workspace:
-            for name, trial in lookup.items():
-                if trial["status"] != "pending":
-                    continue
+        for name, trial in lookup.items():
+            if trial["status"] != "pending":
+                continue
 
-                iter_h5file = str(Path(workspace.h5file).parent / f"{name}.ui.geoh5")
-                shutil.copy(workspace.h5file, iter_h5file)
+            iter_h5file = str(Path(self.workspace.h5file).parent / f"{name}.ui.geoh5")
+            shutil.copy(self.workspace.h5file, iter_h5file)
 
-                ifile.update_ui_values(
-                    dict(
-                        {key: val for key, val in trial.items() if key != "status"},
-                        **{"geoh5": Workspace(iter_h5file)},
-                    )
+            ifile.update_ui_values(
+                dict(
+                    {key: val for key, val in trial.items() if key != "status"},
+                    **{"geoh5": Workspace(iter_h5file)},
                 )
+            )
 
-                ifile.name = f"{name}.ui.json"
-                ifile.path = str(Path(workspace.h5file).parent)
-                ifile.write_ui_json()
-                lookup[name]["status"] = "written"
+            ifile.name = f"{name}.ui.json"
+            ifile.path = str(Path(self.workspace.h5file).parent)
+            ifile.write_ui_json()
+            lookup[name]["status"] = "written"
 
         _ = self.update_lookup(lookup)
 
@@ -162,4 +163,4 @@ if __name__ == "__main__":
     parser.add_argument("file", help="File with ui.json format.")
 
     args = parser.parse_args()
-    SweepDriver.start(Path(args.file).resolve(strict=True))
+    SweepDriver.start(Path(args.file).resolve(strict=True), mode="r")

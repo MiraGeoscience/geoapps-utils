@@ -84,7 +84,9 @@ class Driver(ABC):
         """Run the application."""
 
     @classmethod
-    def start(cls, filepath: str | Path, driver_class=None, **kwargs) -> Driver:
+    def start(
+        cls, filepath: str | Path, driver_class=None, mode="r+", **kwargs
+    ) -> Driver:
         """
         Run application specified by 'filepath' ui.json file.
 
@@ -99,7 +101,7 @@ class Driver(ABC):
         logger.info("Loading input file . . .")
         filepath = Path(filepath).resolve()
         ifile = InputFile.read_ui_json(filepath, validations=cls._validations, **kwargs)
-        with ifile.geoh5.open(mode="r+"):
+        with ifile.geoh5.open(mode=mode):
             try:
                 params = driver_class._params_class.build(ifile)
                 logger.info("Initializing application . . .")
