@@ -96,17 +96,17 @@ class Driver(ABC):
         if driver_class is None:
             driver_class = cls
 
-        print("Loading input file . . .")
+        logger.info("Loading input file . . .")
         filepath = Path(filepath).resolve()
         ifile = InputFile.read_ui_json(filepath, validations=cls._validations, **kwargs)
         with ifile.geoh5.open(mode="r+"):
             try:
                 params = driver_class._params_class.build(ifile)
-                print("Initializing application . . .")
+                logger.info("Initializing application . . .")
                 driver = driver_class(params)
-                print("Running application . . .")
+                logger.info("Running application . . .")
                 driver.run()
-                print(f"Results saved to {params.geoh5.h5file}")
+                logger.info("Results saved to %s", params.geoh5.h5file)
             except GeoAppsError as error:
                 logger.warning("\n\nApplicationError: %s\n\n", error)
                 sys.exit(1)
