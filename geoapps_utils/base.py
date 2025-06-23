@@ -10,13 +10,10 @@
 
 from __future__ import annotations
 
-import inspect
 import logging
 import sys
 from abc import ABC, abstractmethod
 from copy import copy
-from importlib import import_module
-from json import load
 from pathlib import Path
 from typing import Any, ClassVar, GenericAlias  # type: ignore
 
@@ -85,7 +82,6 @@ class Driver(ABC):
     @abstractmethod
     def run(self):
         """Run the application."""
-        raise NotImplementedError
 
     @classmethod
     def start(cls, filepath: str | Path, driver_class=None, **kwargs):
@@ -111,11 +107,11 @@ class Driver(ABC):
                 print("Running application . . .")
                 driver.run()
                 print(f"Results saved to {params.geoh5.h5file}")
-
-                return driver
             except GeoAppsError as error:
                 logger.warning("\n\nApplicationError: %s\n\n", error)
                 sys.exit(1)
+
+            return driver
 
     def add_ui_json(self, entity: ObjectBase):
         """
@@ -317,52 +313,3 @@ class Options(BaseModel):
         options = ifile.stringify(ifile.demote(ifile.ui_json))
 
         return options
-
-
-def fetch_driver_class(json_dict: str | Path | dict) -> type[Driver]:
-    """
-    Fetch the driver class from the ui.json 'run_command'.
-
-    :param filepath: Path to a ui.json file with a 'run_command' key.
-    """
-    # TODO Remove after deprecation of geoapps_utils.driver
-    from geoapps_utils.driver.driver import (  # pylint: disable=import-outside-toplevel, cyclic-import
-        BaseDriver,
-    )
-
-    if isinstance(json_dict, (str, Path)):
-        with open(json_dict, encoding="utf-8") as jsonfile:
-            uijson = load(jsonfile)
-    else:
-        uijson = json_dict
-
-    if not isinstance(uijson, dict) or "run_command" not in uijson:
-        raise ValueError(
-            f"Invalid ui.json file: {json_dict}. It must contain a 'run_command' key."
-        )
-
-    module = import_module(uijson["run_command"])
-
-    cls = None
-    for _, cls in inspect.getmembers(module):
-        try:
-            if (
-                issubclass(cls, Driver | BaseDriver)
-                and cls.__module__ == module.__name__
-            ):
-                break
-        except TypeError:
-            continue
-
-    else:
-        raise ValueError(
-            f"No valid driver class found in module {uijson['run_command']}"
-        )
-
-    return cls
-
-
-if __name__ == "__main__":
-    file = sys.argv[1]
-    driver_cls = fetch_driver_class(file)
-    driver_cls.start(file)
