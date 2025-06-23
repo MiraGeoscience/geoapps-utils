@@ -84,7 +84,7 @@ class Driver(ABC):
         """Run the application."""
 
     @classmethod
-    def start(cls, filepath: str | Path, driver_class=None, **kwargs):
+    def start(cls, filepath: str | Path, driver_class=None, **kwargs) -> Driver:
         """
         Run application specified by 'filepath' ui.json file.
 
