@@ -276,3 +276,19 @@ def compute_normals(surface: Surface) -> np.ndarray:
     normals = normals / np.linalg.norm(normals, axis=1)[:, np.newaxis]
 
     return normals
+
+
+def azimuth_to_unit_vector(azimuth: float) -> np.ndarray:
+    """
+    Convert an azimuth to a unit vector.
+
+    :param azimuth: Azimuth in degrees from north (0 to 360).
+    :return: Unit vector in the direction of the azimuth.
+    """
+    theta = np.deg2rad(azimuth)
+    mat_z = np.r_[
+        np.c_[np.cos(theta), -np.sin(theta), 0.0],
+        np.c_[np.sin(theta), np.cos(theta), 0.0],
+        np.c_[0.0, 0.0, 1.0],
+    ]
+    return np.array([0.0, 1.0, 0.0]).dot(mat_z)
