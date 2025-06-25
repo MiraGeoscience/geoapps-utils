@@ -12,34 +12,38 @@ from __future__ import annotations
 
 import argparse
 import re
-from copy import deepcopy
 from pathlib import Path
 
 from geoh5py.ui_json import InputFile
-from param_sweeps.constants import default_ui_json
+
+from geoapps_utils.base import Options
 
 
 def generate(
-    worker: str,
+    worker_uijson: str,
     parameters: list[str] | None = None,
     update_values: dict | None = None,
 ):
     """
     Generate an *_sweep.ui.json file to sweep parameters of the driver associated with 'file'.
 
-    :param file: Name of .ui.json file
+    :param worker_uijson: Name of .ui.json file used to generate the sweep file.
     :param parameters: Parameters to include in the _sweep.ui.json file
     :param update_values: Updates for sweep files parameters
     """
 
-    file_path = Path(worker).resolve(strict=True)
+    file_path = Path(worker_uijson).resolve(strict=True)
     ifile = InputFile.read_ui_json(file_path)
-    sweepfile = InputFile(ui_json=deepcopy(default_ui_json), validate=False)
+
+    options = Options(geoh5=ifile.data["geoh5"])
+    ui_json = options.serialize()
+
+    sweepfile = InputFile(ui_json=ui_json, validate=False)
 
     if sweepfile.data is None or sweepfile.ui_json is None:
         raise ValueError("Sweep file data is empty.")
 
-    sweepfile.data.update({"worker_uijson": str(worker)})
+    sweepfile.data.update({"worker_uijson": str(worker_uijson)})
     if update_values:
         sweepfile.data.update(**update_values)
 
@@ -51,7 +55,6 @@ def generate(
             forms = sweep_forms(param, value)
             sweepfile.ui_json.update(forms)
 
-    sweepfile.data["geoh5"] = ifile.data["geoh5"]
     dirpath = file_path.parent
     filename = file_path.name.removesuffix(".ui.json")
     filename = re.sub(r"\._sweep$", "", filename)
