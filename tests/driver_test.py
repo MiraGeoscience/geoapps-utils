@@ -93,9 +93,7 @@ def test_base_driver(tmp_path):
     params.write_input_file(path=tmp_path, name="test_ifile.ui.json")
 
     # Create driver
-    with pytest.raises(
-        TypeError, match="Parameters must be of type BaseParams or Options"
-    ):
+    with pytest.raises(TypeError, match="Parameters must be of type"):
         TestParamsDriver("not a params object")  # type: ignore
 
     driver = TestParamsDriver(params)
@@ -132,6 +130,8 @@ def test_old_base_driver(caplog):
     params = Options(geoh5=ws)
 
     class TestDriver(BaseDriver):
+        _params_class = Options
+
         def run(self):
             pass
 

@@ -55,10 +55,10 @@ class Driver(ABC):
 
     @params.setter
     def params(self, val: Options):
-        if not isinstance(val, Options | BaseParams):
+        if not isinstance(val, self._params_class):
             raise TypeError(
-                "Parameters must be of type BaseParams or Options,"
-                f" get {type(val)} instead."
+                f"Parameters must be of type {self._params_class}.\n"
+                f"Got {type(val)} instead."
             )
         self._params = val
 
@@ -84,26 +84,21 @@ class Driver(ABC):
         """Run the application."""
 
     @classmethod
-    def start(cls, filepath: str | Path, driver_class=None, **kwargs) -> Driver:
+    def start(cls, filepath: str | Path, mode="r+", **kwargs) -> Driver:
         """
         Run application specified by 'filepath' ui.json file.
 
         :param filepath: Path to valid ui.json file for the application driver.
-        :param driver_class: Application driver class.
         :param kwargs: Additional keyword arguments for InputFile read_ui_json.
         """
-
-        if driver_class is None:
-            driver_class = cls
-
         logger.info("Loading input file . . .")
         filepath = Path(filepath).resolve()
         ifile = InputFile.read_ui_json(filepath, validations=cls._validations, **kwargs)
-        with ifile.geoh5.open(mode="r+"):
+        with ifile.geoh5.open(mode=mode):
             try:
-                params = driver_class._params_class.build(ifile)
+                params = cls._params_class.build(ifile)
                 logger.info("Initializing application . . .")
-                driver = driver_class(params)
+                driver = cls(params)
                 logger.info("Running application . . .")
                 driver.run()
                 logger.info("Results saved to %s", params.geoh5.h5file)
