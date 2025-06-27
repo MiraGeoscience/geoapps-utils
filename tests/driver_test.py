@@ -21,7 +21,7 @@ from geoh5py.objects import Points
 from geoh5py.ui_json.constants import default_ui_json as base_ui_json
 from pydantic import BaseModel, ConfigDict
 
-from geoapps_utils.base import Options
+from geoapps_utils.base import Options, get_logger
 from geoapps_utils.driver.data import BaseData
 from geoapps_utils.driver.driver import BaseDriver, Driver
 from geoapps_utils.driver.params import BaseParams
@@ -174,3 +174,17 @@ def test_fetch_driver(tmp_path):
     dict_params["run_command"] = "geoapps_utils.utils.plotting"
     with pytest.raises(SystemExit, match="1"):
         fetch_driver_class(dict_params)
+
+
+def test_logger(caplog):
+    """
+    Test that the logger is set up correctly.
+    """
+    logger = get_logger("my-app")
+    with caplog.at_level("INFO"):
+        logger.info("Test log message")
+
+    assert "Test log message" in caplog.text
+    assert "my-app" in caplog.text
+    assert caplog.records[0].levelname == "INFO"
+    assert caplog.records[0].name == "my-app"

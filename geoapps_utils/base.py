@@ -29,7 +29,37 @@ from geoapps_utils.utils.formatters import recursive_flatten
 from geoapps_utils.utils.importing import GeoAppsError
 
 
-logger = logging.getLogger()
+def get_logger(name: str | None = None, timestamp: bool = False) -> logging.Logger:
+    """
+    Get a logger with a timestamped stream and specified log level.
+
+    :param name: Name of the logger.
+    :param timestamp: Whether to include a timestamp in the log format.
+    """
+    log = logging.getLogger(name)
+
+    if log.handlers:
+        stream_handler = log.handlers[0]
+    else:
+        stream_handler = logging.StreamHandler()
+
+    # Set the format for the logger
+    formatting = "%(levelname)s"
+
+    if name:
+        formatting += " [%(name)s]"
+
+    if timestamp:
+        formatting += " %(asctime)s"
+
+    formatter = logging.Formatter(formatting + " %(message)s")
+    stream_handler.setFormatter(formatter)
+    log.addHandler(stream_handler)
+
+    return log
+
+
+logger = get_logger(name=__name__)
 
 
 class Driver(ABC):
