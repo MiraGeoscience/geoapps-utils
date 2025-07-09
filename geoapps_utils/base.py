@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 import sys
+import tempfile
 from abc import ABC, abstractmethod
 from copy import copy
 from pathlib import Path
@@ -151,9 +152,8 @@ class Driver(ABC):
         ):
             raise ValueError("Input file and it's name and path must be set.")
 
-        entity.add_file(
-            str(Path(self.params.input_file.path) / self.params.input_file.name)
-        )
+        file = self.params.input_file.write_ui_json(path=tempfile.mkdtemp())
+        entity.add_file(file)
 
     def update_monitoring_directory(self, entity: ObjectBase):
         """

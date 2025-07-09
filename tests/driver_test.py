@@ -13,6 +13,8 @@ from __future__ import annotations
 import json
 import logging
 from copy import deepcopy
+from pathlib import Path
+from typing import ClassVar
 
 import numpy as np
 import pytest
@@ -21,6 +23,7 @@ from geoh5py.objects import Points
 from geoh5py.ui_json.constants import default_ui_json as base_ui_json
 from pydantic import BaseModel, ConfigDict
 
+from geoapps_utils import assets_path
 from geoapps_utils.base import Options, get_logger
 from geoapps_utils.driver.data import BaseData
 from geoapps_utils.driver.driver import BaseDriver, Driver
@@ -43,6 +46,7 @@ class TestOptions(Options):
     Mock nested options
     """
 
+    default_ui_json: ClassVar[Path] = assets_path() / "uijson/base.ui.json"
     nested_model: NestedModel
 
 
@@ -118,6 +122,16 @@ def test_base_options(tmp_path):
 
     demoted = options.serialize()
     assert demoted["client"] == "{" + str(pts.uid) + "}"
+
+    # Write the options as file attached
+    driver.update_monitoring_directory(pts)
+
+    assert len(pts.children) == 1
+    file_data = pts.children[0]
+    assert file_data.name == "base.ui.json"
+
+    json_dict = json.loads(file_data.file_bytes.decode())
+    assert json_dict.get("client", None) == "{" + str(pts.uid) + "}"
 
 
 def test_params_errors():
