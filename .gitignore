@@ -144,4 +144,4 @@ dmypy.json
 
 # tempory generated files
 pyproject-sha.toml
-/poetry.lock
+
