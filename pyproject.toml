@@ -1,3 +1,7 @@
+[build-system]
+requires = ["poetry-core>=1.0.0", "setuptools"]
+build-backend = "poetry.core.masonry.api"
+
 [project]
 name = "geoapps-utils"
 version = "0.6.0-alpha.1"
@@ -165,7 +169,3 @@ fail_under = 75
 [tool.coverage.html]
 skip_empty = true
 skip_covered = true
-
-[build-system]
-requires = ["poetry-core>=1.0.0", "setuptools"]
-build-backend = "poetry.core.masonry.api"
