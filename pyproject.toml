@@ -43,7 +43,7 @@ include = [
     { path = "docs/**/THIRD_PARTY_SOFTWARE.rst" },
 ]
 
-exclude = "" # files to exclude from packaging
+exclude = [] # files to exclude from packaging
 
 [project.urls]
 repository = "https://github.com/MiraGeoscience/geoapps-utils"
