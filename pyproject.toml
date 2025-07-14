@@ -58,10 +58,9 @@ homepage = "https://www.mirageoscience.com/mining-industry-software/python-integ
 
 
 [tool.poetry.dependencies]
-h5py = ">=3.2.1,<4.0.0"
-numpy = ">=1.26.0,<1.27.0"
-Pillow = ">=10.3.0,<10.4.0"
-pydantic = ">=2.5.2"
+numpy = "~1.26.0"
+pydantic = "^2.5.2"
+scipy = "~1.14.0"
 
 ## pip dependencies from Git repositories
 #----------------------------------------
