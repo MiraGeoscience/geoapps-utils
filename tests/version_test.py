@@ -16,7 +16,7 @@ from pathlib import Path
 import tomli as toml
 import yaml
 from jinja2 import Template
-from packaging.version import Version
+from packaging.version import InvalidVersion, Version
 
 import geoapps_utils
 
