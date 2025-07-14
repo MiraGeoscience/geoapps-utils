@@ -15,8 +15,8 @@
 version: 1
 metadata:
   content_hash:
-    win-64: 51b08ff7da777ae76571565ec6bfa1f83e75735cffb12502e91aa8ae7252b05a
-    linux-64: d26d9a952531bff1f7db437969798ad9d9aadcde04cde7c9abcf23ffb9d4e060
+    win-64: 419359b0e2eefb802674bbaba5588b034df7ac8e2b6dbaf23f658a96dec2c8f9
+    linux-64: b98a45216385660ceb23e80d763cf44bb1e1806d2d80cf5f33d1168e9136aab7
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -2136,6 +2136,48 @@ package:
   hash:
     md5: 283b96675859b20a825f8fa30f311446
     sha256: 2d6d0c026902561ed77cd646b5021aef2d4db22e57a5b0178dfc669231e06d2c
+  category: main
+  optional: false
+- name: scipy
+  version: 1.14.1
+  manager: conda
+  platform: linux-64
+  dependencies:
+    __glibc: '>=2.17,<3.0.a0'
+    libblas: '>=3.9.0,<4.0a0'
+    libcblas: '>=3.9.0,<4.0a0'
+    libgcc: '>=13'
+    libgfortran: ''
+    libgfortran5: '>=13.3.0'
+    liblapack: '>=3.9.0,<4.0a0'
+    libstdcxx: '>=13'
+    numpy: <2.3
+    python: '>=3.12,<3.13.0a0'
+    python_abi: 3.12.*
+  url: https://repo.prefix.dev/conda-forge/linux-64/scipy-1.14.1-py312h62794b6_2.conda
+  hash:
+    md5: 94688dd449f6c092e5f951780235aca1
+    sha256: 6e4916d610dc15f9b504517bd6c1f3dbbae019a3c7abf0aeb55f310c452a4474
+  category: main
+  optional: false
+- name: scipy
+  version: 1.14.1
+  manager: conda
+  platform: win-64
+  dependencies:
+    libblas: '>=3.9.0,<4.0a0'
+    libcblas: '>=3.9.0,<4.0a0'
+    liblapack: '>=3.9.0,<4.0a0'
+    numpy: <2.3
+    python: '>=3.12,<3.13.0a0'
+    python_abi: 3.12.*
+    ucrt: '>=10.0.20348.0'
+    vc: '>=14.2,<15'
+    vc14_runtime: '>=14.29.30139'
+  url: https://repo.prefix.dev/conda-forge/win-64/scipy-1.14.1-py312h337df96_2.conda
+  hash:
+    md5: 3ef0017e79039d4767ba3b4891113a07
+    sha256: eb67adcca33026895b6539d02e1bc01f495e1d593a26053d734fe7a180e708f4
   category: main
   optional: false
 - name: setuptools
