@@ -11,7 +11,7 @@ dependencies:
   - annotated-types=0.7.0=pyhd8ed1ab_1
   - bzip2=1.0.8=h4bc722e_7
   - c-ares=1.34.5=hb9d3cd8_0
-  - ca-certificates=2025.7.9=hbd8a1cb_0
+  - ca-certificates=2025.7.14=hbd8a1cb_0
   - cached-property=1.5.2=hd8ed1ab_1
   - cached_property=1.5.2=pyha770c72_1
   - freetype=2.13.3=ha770c72_1
@@ -79,7 +79,7 @@ dependencies:
   - xorg-libxdmcp=1.1.5=hb9d3cd8_0
   - zstd=1.5.7=hb8e6e7a_2
   - pip:
-    - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@87f68c3a25cb3fac2a4c9de8c0d74ec4e58d0963
+    - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@a29cd93edd90cc7ad20c227104c58150a69c6c34
 
 variables:
   KMP_WARNINGS: 0
