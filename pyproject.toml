@@ -51,31 +51,28 @@ include = [
 
 exclude = [] # files to exclude from packaging
 
-[project.urls]
-repository = "https://github.com/MiraGeoscience/geoapps-utils"
-homepage = "https://www.mirageoscience.com/mining-industry-software/python-integration/"
-#documentation  = "https://mirageoscience-geoapps-utils.readthedocs-hosted.com/"
 
 
-[tool.poetry.dependencies]
-numpy = "~1.26.0"
-pydantic = "^2.5.2"
-scipy = "~1.14.0"
 
-## pip dependencies from Git repositories
-#----------------------------------------
-#geoh5py = {version = ">=0.12.0a1, <0.13.dev", source = "pypi", allow-prereleases = true}
-geoh5py = {git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop"}
+dependencies = [
+    "numpy ~=1.26.0",
+    "pydantic >=2.5.2,<3.0.0",
+    "scipy ~=1.14.0",
 
+    ## pip dependencies from Git repositories
+    #----------------------------------------
+    # "geoh5py >=0.12.0a1, <0.13.dev",  # source = "pypi", allow-prereleases = true
+    "geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@develop"
 
-## about pip dependencies
-# to be specified to work with conda-lock
-# - from PyPI: my_package = { version = "1.2.3", source = "pypi" }
-# - from URL: !!! no actual lock, as tag or branch can move and installation will fetch current !!!
-#   - for a tag:    my_package = { url = "https://github.com/ORGANISATION/REPO/archive/refs/tags/TAG.tar.gz" }
-#   - for a branch: my_package = { url = "https://github.com/ORGANISATION/REPO/archive/refs/heads/BRANCH.tar.gz" }
-# - to actually lock on a revision: my_package = { git = "https://github.com/ORGANISATION/REPO.git", rev = "GIT_REV" }
-#   (where rev value is a tag, a branch name or a commit hash). Can also use ``branch`` or ``tag`` instead of ``rev``
+    ## about pip dependencies
+    # to be specified to work with conda-lock
+    # - from PyPI: my_package = { version = "1.2.3", source = "pypi" }
+    # - from URL: !!! no actual lock, as tag or branch can move and installation will fetch current !!!
+    #   - for a tag:    my_package = { url = "https://github.com/ORGANISATION/REPO/archive/refs/tags/TAG.tar.gz" }
+    #   - for a branch: my_package = { url = "https://github.com/ORGANISATION/REPO/archive/refs/heads/BRANCH.tar.gz" }
+    # - to actually lock on a revision: my_package = { git = "https://github.com/ORGANISATION/REPO.git", rev = "GIT_REV" }
+    #   (where rev value is a tag, a branch name or a commit hash). Can also use ``branch`` or ``tag`` instead of ``rev``
+]
 
 [tool.poetry.group.dev.dependencies]
 Pygments = "*"
@@ -99,8 +96,15 @@ h5py = ">=3.2.1, <4.0.dev"  # from geoh5py
 
 [project.optional-dependencies]
 
+[project.urls]
+repository = "https://github.com/MiraGeoscience/geoapps-utils"
+homepage = "https://www.mirageoscience.com/mining-industry-software/python-integration/"
+#documentation  = "https://mirageoscience-geoapps-utils.readthedocs-hosted.com/"
+
+
 [tool.ruff]
 target-version = "py310"
+
 
 [tool.ruff.lint]
 ignore = [
@@ -170,3 +174,5 @@ fail_under = 75
 [tool.coverage.html]
 skip_empty = true
 skip_covered = true
+
+
