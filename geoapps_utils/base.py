@@ -22,7 +22,7 @@ from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import ObjectBase
 from geoh5py.ui_json import InputFile, monitored_directory_copy
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, ValidationError
 from typing_extensions import Self
 
 from geoapps_utils.driver.params import BaseParams
@@ -252,7 +252,18 @@ class Options(BaseModel):
 
         data.update(kwargs)
         options = Options.collect_input_from_dict(cls, data)  # type: ignore
-        out = cls(**options)
+
+        try:
+            out = cls(**options)
+        except ValidationError as errors:
+            summary = "\n - ".join(
+                f"{'.'.join(str(loc) for loc in error['loc'])}: {error['msg']}"
+                for error in errors.errors()
+            )
+
+            raise GeoAppsError(
+                f"Invalid input data for {cls.__name__}:\n - {summary}"
+            ) from errors
 
         if isinstance(input_data, InputFile):
             out._input_file = input_data
