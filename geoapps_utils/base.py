@@ -13,6 +13,7 @@ from __future__ import annotations
 import logging
 import sys
 import tempfile
+import warnings
 from abc import ABC, abstractmethod
 from copy import copy
 from pathlib import Path
@@ -208,25 +209,29 @@ class Options(BaseModel):
         """
         update = data.copy()
         nested_fields: list[str] = []
-        for field, info in model.model_fields.items():
-            # Already a BaseModel, no need to nest
-            if isinstance(update.get(field, None), BaseModel):
-                continue
 
-            if (
-                isinstance(info.annotation, type)
-                and not isinstance(info.annotation, GenericAlias)
-                and issubclass(info.annotation, BaseModel)
-            ):
-                # Nest and deal with aliases
-                update = Options.collect_input_from_dict(info.annotation, update)
-                nested = info.annotation.model_construct(**update).model_dump(
-                    exclude_unset=True
-                )
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
-                if any(nested):
-                    update[field] = nested
-                    nested_fields += nested
+            for field, info in model.model_fields.items():
+                # Already a BaseModel, no need to nest
+                if isinstance(update.get(field, None), BaseModel):
+                    continue
+
+                if (
+                    isinstance(info.annotation, type)
+                    and not isinstance(info.annotation, GenericAlias)
+                    and issubclass(info.annotation, BaseModel)
+                ):
+                    # Nest and deal with aliases
+                    update = Options.collect_input_from_dict(info.annotation, update)
+                    nested = info.annotation.model_construct(**update).model_dump(
+                        exclude_unset=True
+                    )
+
+                    if any(nested):
+                        update[field] = nested
+                        nested_fields += nested
 
         for field in nested_fields:
             if field in update:
