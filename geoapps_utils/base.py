@@ -257,7 +257,8 @@ class Options(BaseModel):
             out = cls(**options)
         except ValidationError as errors:
             summary = "\n - ".join(
-                f"{'.'.join(str(loc) for loc in error['loc'])}: {error['msg']} for value  -> {error['input']}"
+                f"{'.'.join(str(loc) for loc in error['loc'])}: "
+                f"{error['msg']} for value -> {error['input']}"
                 for error in errors.errors()
             )
 

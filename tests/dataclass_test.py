@@ -339,8 +339,8 @@ def test_pydantic_error(tmp_path):
     expected_message = (
         "Invalid input data for TestData:\n"
         " - problematic: Input should be a valid number, "
-        "unable to parse string as a number\n"
-        " - problematoc: Input should be a valid string"
+        "unable to parse string as a number for value -> not a float\n"
+        " - problematoc: Input should be a valid string for value -> 1"
     )
 
     with pytest.raises(GeoAppsError, match=expected_message):
