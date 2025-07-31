@@ -13,12 +13,45 @@ from __future__ import annotations
 from uuid import UUID
 
 import numpy as np
+from typing import Callable
 from geoh5py import Workspace
 from geoh5py.data import Data
-from geoh5py.objects import Grid2D, Points
+from geoh5py.objects import Grid2D, Points, CellObject
 from geoh5py.objects.grid_object import GridObject
 from scipy.interpolate import LinearNDInterpolator
 from scipy.spatial import Delaunay, cKDTree
+
+def gaussian(
+    x: np.ndarray, y: np.ndarray, amplitude: float, width: float
+) -> np.ndarray:
+    """
+    Gaussian function for 2D data.
+
+    :param x: X-coordinates.
+    :param y: Y-coordinates.
+    :param amplitude: Amplitude of the Gaussian.
+    :param width: Width parameter of the Gaussian.
+    """
+
+    return amplitude * np.exp(-0.5 * ((x / width) ** 2.0 + (y / width) ** 2.0))
+
+def mask_large_connections(cell_object: CellObject, distance_threshold: float):
+    """
+    Trim connections in cell based objects.
+
+    :param cell_object: Cell object containing segments with small vertex spacing
+        along-line, but large spacing between segments.
+
+    :return: Cleaned object without cells exceeding the distance threshold.
+    """
+
+    dist = np.linalg.norm(
+        cell_object.vertices[cell_object.cells[:, 0], :]
+        - cell_object.vertices[cell_object.cells[:, 1], :],
+        axis=1,
+    )
+
+    return np.where(dist > distance_threshold)[0]
 
 
 def mask_under_horizon(locations: np.ndarray, horizon: np.ndarray) -> np.ndarray:
