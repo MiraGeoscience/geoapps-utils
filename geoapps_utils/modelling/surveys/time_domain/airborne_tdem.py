@@ -16,16 +16,15 @@ from geoh5py.objects import (
 )
 
 from geoapps_utils.utils.locations import mask_large_connections
+
 from . import channels, waveform
+
 
 def generate_airborne_tdem_survey(
     geoh5: Workspace,
     vertices: np.ndarray,
 ):
-
-    survey = AirborneTEMReceivers.create(
-        geoh5, vertices=vertices, name="Airborne_rx"
-    )
+    survey = AirborneTEMReceivers.create(geoh5, vertices=vertices, name="Airborne_rx")
     transmitters = AirborneTEMTransmitters.create(
         geoh5, vertices=vertices, name="Airborne_tx"
     )

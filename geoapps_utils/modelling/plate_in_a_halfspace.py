@@ -8,20 +8,15 @@
 #                                                                                   '
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-import numpy as np
 from pathlib import Path
-from scipy.spatial import Delaunay
 
+import numpy as np
 from geoh5py import Workspace
 from geoh5py.objects import Points, Surface
-
+from scipy.spatial import Delaunay
 
 from geoapps_utils.modelling.plates import PlateModel, make_plate
 from tests.testing_utils.terrain import gaussian_topo_drape
-
-
-
-
 
 
 plate_model_default = PlateModel(
