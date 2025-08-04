@@ -156,11 +156,14 @@ class Driver(ABC):
         file = self.params.input_file.write_ui_json(path=tempfile.mkdtemp())
         entity.add_file(file)
 
-    def update_monitoring_directory(self, entity: ObjectBase):
+    def update_monitoring_directory(
+        self, entity: ObjectBase, copy_children: bool = False
+    ):
         """
         If monitoring directory is active, copy entity to monitoring directory.
 
         :param entity: Object being added to monitoring directory.
+        :param copy_children: If True, copy all children of the entity to the monitoring directory.
         """
         self.add_ui_json(entity)
         if (
@@ -168,7 +171,9 @@ class Driver(ABC):
             and Path(self.params.monitoring_directory).is_dir()
         ):
             monitored_directory_copy(
-                str(Path(self.params.monitoring_directory).resolve()), entity
+                str(Path(self.params.monitoring_directory).resolve()),
+                entity,
+                copy_children=copy_children,
             )
 
 
