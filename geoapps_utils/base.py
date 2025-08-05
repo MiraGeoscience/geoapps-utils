@@ -157,7 +157,7 @@ class Driver(ABC):
         entity.add_file(file)
 
     def update_monitoring_directory(
-        self, entity: ObjectBase, copy_children: bool = False
+        self, entity: ObjectBase, copy_children: bool = True
     ):
         """
         If monitoring directory is active, copy entity to monitoring directory.
