@@ -9,7 +9,6 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 import numpy as np
-
 from geoh5py import Workspace
 from geoh5py.objects import (
     LargeLoopGroundTEMReceivers,
@@ -17,7 +16,9 @@ from geoh5py.objects import (
 )
 
 from tests.testing_utils.terrain import gaussian_topo_drape
+
 from . import channels, waveform
+
 
 def generate_tdem_survey(
     geoh5: Workspace,
@@ -25,8 +26,6 @@ def generate_tdem_survey(
     n_lines: int,
     flatten: bool = False,
 ):
-
-
     X = vertices[:, 0].reshape((n_lines, -1))
     Y = vertices[:, 1].reshape((n_lines, -1))
     Z = vertices[:, 2].reshape((n_lines, -1))
@@ -72,9 +71,7 @@ def generate_tdem_survey(
             ]
         )
         loop = (loop - np.mean(loop, axis=0)) * 1.5 + np.mean(loop, axis=0)
-        loop = np.c_[
-            loop, gaussian_topo_drape(loop[:, 0], loop[:, 1], flatten=flatten)
-        ]
+        loop = np.c_[loop, gaussian_topo_drape(loop[:, 0], loop[:, 1], flatten=flatten)]
         loops += [loop + np.asarray(center)]
         loop_cells += [np.c_[np.arange(15) + count, np.arange(15) + count + 1]]
         loop_cells += [np.c_[count + 15, count]]

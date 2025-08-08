@@ -13,13 +13,13 @@ from __future__ import annotations
 from uuid import UUID
 
 import numpy as np
-from typing import Callable
 from geoh5py import Workspace
 from geoh5py.data import Data
-from geoh5py.objects import Grid2D, Points, CellObject
+from geoh5py.objects import CellObject, Grid2D, Points
 from geoh5py.objects.grid_object import GridObject
 from scipy.interpolate import LinearNDInterpolator
 from scipy.spatial import Delaunay, cKDTree
+
 
 def gaussian(
     x: np.ndarray, y: np.ndarray, amplitude: float, width: float
@@ -34,6 +34,7 @@ def gaussian(
     """
 
     return amplitude * np.exp(-0.5 * ((x / width) ** 2.0 + (y / width) ** 2.0))
+
 
 def mask_large_connections(cell_object: CellObject, distance_threshold: float):
     """

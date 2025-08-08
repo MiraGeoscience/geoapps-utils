@@ -11,14 +11,13 @@
 import numpy as np
 from geoh5py import Workspace
 from geoh5py.objects import AirborneFEMReceivers, AirborneFEMTransmitters
+
 from geoapps_utils.utils.locations import mask_large_connections
 
 from . import frequency_config
 
-def generate_fdem_survey(
-    geoh5: Workspace,
-    vertices: np.ndarray
-):
+
+def generate_fdem_survey(geoh5: Workspace, vertices: np.ndarray):
     survey = AirborneFEMReceivers.create(geoh5, vertices=vertices, name="Airborne_rx")
 
     survey.metadata["EM Dataset"]["Frequency configurations"] = frequency_config
@@ -53,7 +52,4 @@ def generate_fdem_survey(
     survey.remove_cells(mask_large_connections(survey, 200.0))
     transmitters.remove_cells(mask_large_connections(transmitters, 200.0))
 
-
     return survey
-
-

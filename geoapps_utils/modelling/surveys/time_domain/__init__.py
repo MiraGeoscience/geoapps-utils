@@ -10,6 +10,7 @@
 
 import numpy as np
 
+
 channels = np.r_[3e-04, 6e-04, 1.2e-03] * 1e3
 waveform = np.c_[
     np.r_[
