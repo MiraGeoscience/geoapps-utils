@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 from numpy import random
 
 from geoapps_utils.utils.numerical import (
@@ -143,6 +144,28 @@ def test_weighted_average_return_indices():
     values = [np.array([1, 2, 3])]
     _, ind = weighted_average(xyz_in, xyz_out, values, n=1, return_indices=True)
     assert ind[0][0] == 1
+
+
+def test_weighted_average_errors():
+    expected_results = [
+        np.array([[2, 0, 0], [0, 1, 0], [0, 0, 2]]),
+        np.array([[0, 0, 0]]),
+        [np.array([1])],
+    ]
+
+    for idx in range(len(expected_results)):
+        temp_results = expected_results.copy()
+        temp_results[idx] = "not expected type"
+
+        with pytest.raises(TypeError, match="Inputs 'xyz_in'"):
+            _ = weighted_average(*temp_results)  # type: ignore
+
+    with pytest.raises(ValueError, match="Input 'values'"):
+        _ = weighted_average(
+            np.array([[2, 0, 0], [0, 1, 0], [0, 0, 2]]),
+            np.array([[0, 0, 0]]),
+            [np.array([1]), np.array([2])],
+        )
 
 
 def test_weighted_average_threshold():

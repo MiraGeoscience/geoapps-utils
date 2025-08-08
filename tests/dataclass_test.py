@@ -23,7 +23,7 @@ from geoh5py.ui_json import InputFile
 from geoh5py.workspace import Workspace
 from pydantic import BaseModel, ValidationError
 
-from geoapps_utils import assets_path
+from geoapps_utils import GeoAppsError, assets_path
 from geoapps_utils.base import Options
 from geoapps_utils.utils.importing import DrillholeGroupValue
 
@@ -313,3 +313,36 @@ def test_drillhole_groups(tmp_path):
 
         assert input_file.drillholes.group_value == drillhole_group
         assert input_file.drillholes.value == ["interval_values"]
+
+
+def test_pydantic_error(tmp_path):
+    class TestData(Options):
+        problematic: float = 1
+        problematoc: str = "bidon"
+
+    geoh5_path = tmp_path / "test.geoh5"
+    ui_json_path = tmp_path / "test.ui.json"
+
+    params = TestData(geoh5=Workspace(geoh5_path))
+    params.write_ui_json(ui_json_path)
+
+    # change in the ui.json the value of "problematic" to a string
+    with open(ui_json_path, encoding="utf-8") as file:
+        ui_json = file.read()
+    ui_json = ui_json.replace('"problematic": 1', '"problematic": "not a float"')
+    ui_json = ui_json.replace('"problematoc": "bidon"', '"problematoc": 1')
+    with open(ui_json_path, "w", encoding="utf-8") as file:
+        file.write(ui_json)
+
+    ifile = InputFile.read_ui_json(ui_json_path, validate=False)
+
+    expected_message = (
+        "Invalid input data for TestData:\n"
+        " - problematic: Input should be a valid number, "
+        "unable to parse string as a number for value -> not a float\n"
+        " - problematoc: Input should be a valid string for value -> 1"
+    )
+
+    with pytest.raises(GeoAppsError, match=expected_message):
+        with ifile.geoh5.open(mode="r"):
+            _ = TestData.build(ifile)

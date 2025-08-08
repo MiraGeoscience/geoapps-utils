@@ -13,6 +13,7 @@ from __future__ import annotations
 import logging
 import sys
 import tempfile
+import warnings
 from abc import ABC, abstractmethod
 from copy import copy
 from pathlib import Path
@@ -22,7 +23,7 @@ from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import ObjectBase
 from geoh5py.ui_json import InputFile, monitored_directory_copy
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, ValidationError
 from typing_extensions import Self
 
 from geoapps_utils.driver.params import BaseParams
@@ -155,11 +156,14 @@ class Driver(ABC):
         file = self.params.input_file.write_ui_json(path=tempfile.mkdtemp())
         entity.add_file(file)
 
-    def update_monitoring_directory(self, entity: ObjectBase):
+    def update_monitoring_directory(
+        self, entity: ObjectBase, copy_children: bool = True
+    ):
         """
         If monitoring directory is active, copy entity to monitoring directory.
 
         :param entity: Object being added to monitoring directory.
+        :param copy_children: If True, copy all children of the entity to the monitoring directory.
         """
         self.add_ui_json(entity)
         if (
@@ -167,7 +171,9 @@ class Driver(ABC):
             and Path(self.params.monitoring_directory).is_dir()
         ):
             monitored_directory_copy(
-                str(Path(self.params.monitoring_directory).resolve()), entity
+                str(Path(self.params.monitoring_directory).resolve()),
+                entity,
+                copy_children=copy_children,
             )
 
 
@@ -208,25 +214,29 @@ class Options(BaseModel):
         """
         update = data.copy()
         nested_fields: list[str] = []
-        for field, info in model.model_fields.items():
-            # Already a BaseModel, no need to nest
-            if isinstance(update.get(field, None), BaseModel):
-                continue
 
-            if (
-                isinstance(info.annotation, type)
-                and not isinstance(info.annotation, GenericAlias)
-                and issubclass(info.annotation, BaseModel)
-            ):
-                # Nest and deal with aliases
-                update = Options.collect_input_from_dict(info.annotation, update)
-                nested = info.annotation.model_construct(**update).model_dump(
-                    exclude_unset=True
-                )
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
-                if any(nested):
-                    update[field] = nested
-                    nested_fields += nested
+            for field, info in model.model_fields.items():
+                # Already a BaseModel, no need to nest
+                if isinstance(update.get(field, None), BaseModel):
+                    continue
+
+                if (
+                    isinstance(info.annotation, type)
+                    and not isinstance(info.annotation, GenericAlias)
+                    and issubclass(info.annotation, BaseModel)
+                ):
+                    # Nest and deal with aliases
+                    update = Options.collect_input_from_dict(info.annotation, update)
+                    nested = info.annotation.model_construct(**update).model_dump(
+                        exclude_unset=True
+                    )
+
+                    if any(nested):
+                        update[field] = nested
+                        nested_fields += nested
 
         for field in nested_fields:
             if field in update:
@@ -252,7 +262,19 @@ class Options(BaseModel):
 
         data.update(kwargs)
         options = Options.collect_input_from_dict(cls, data)  # type: ignore
-        out = cls(**options)
+
+        try:
+            out = cls(**options)
+        except ValidationError as errors:
+            summary = "\n - ".join(
+                f"{'.'.join(str(loc) for loc in error['loc'])}: "
+                f"{error['msg']} for value -> {error['input']}"
+                for error in errors.errors()
+            )
+
+            raise GeoAppsError(
+                f"Invalid input data for {cls.__name__}:\n - {summary}"
+            ) from errors
 
         if isinstance(input_data, InputFile):
             out._input_file = input_data
