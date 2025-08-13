@@ -39,6 +39,7 @@ def get_logger(name: str | None = None, timestamp: bool = False) -> logging.Logg
     :param timestamp: Whether to include a timestamp in the log format.
     """
     log = logging.getLogger(name)
+    log.propagate = False
 
     if log.handlers:
         stream_handler = log.handlers[0]
@@ -126,6 +127,7 @@ class Driver(ABC):
         logger.info("Loading input file . . .")
         filepath = Path(filepath).resolve()
         ifile = InputFile.read_ui_json(filepath, validations=cls._validations, **kwargs)
+
         with ifile.geoh5.open(mode=mode):
             try:
                 params = cls._params_class.build(ifile)
