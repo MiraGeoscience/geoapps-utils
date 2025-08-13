@@ -39,7 +39,6 @@ def get_logger(name: str | None = None, timestamp: bool = False) -> logging.Logg
     :param timestamp: Whether to include a timestamp in the log format.
     """
     log = logging.getLogger(name)
-    log.propagate = False
 
     if log.handlers:
         stream_handler = log.handlers[0]
@@ -62,7 +61,8 @@ def get_logger(name: str | None = None, timestamp: bool = False) -> logging.Logg
     return log
 
 
-logger = get_logger(name=__name__)
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+logger = logging.getLogger(__name__)
 
 
 class Driver(ABC):
