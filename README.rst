@@ -38,7 +38,7 @@
 geoapps-utils
 =========================================================================
 The **geoapps-utils** package provides utility functions
-used by `geoapps <https://github.com/MiraGeoscience/geoapps>`_.
+used by Python applications supported by `Mira Geoscience <https://www.mirageoscience.com/mining-industry-software/geoscience-analyst/python-integration/>`_.
 
 .. contents:: Table of Contents
    :local:

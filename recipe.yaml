@@ -1,0 +1,62 @@
+schema_version: 1
+
+context:
+  name: "geoapps-utils"
+  version: "0.5.0"
+  python_min: "3.10"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  path: ../${{ name }}
+
+build:
+  number: 0
+  noarch: python
+  script: ${{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+
+requirements:
+  host:
+    - python 3.10.*
+    - poetry-core >=1.0.0
+    - setuptools
+    - pip
+  run:
+    - python >=${{ python_min }}
+    # Mira packages
+    - geoh5py >=0.11.0a, <0.12.dev
+    # direct dependencies
+    - numpy >=1.26.0, <1.27.dev
+    - pydantic >=2.5.2, <3.0.dev
+    - scipy >=1.14.0, <1.15.dev
+
+tests:
+  - python:
+      imports:
+        - geoapps_utils
+  - script:
+      - pytest --ignore=tests/version_test.py
+    requirements:
+      run:
+        - pytest
+    files:
+      source:
+        - tests/
+
+about:
+  summary: Utility functions to build applications supported by Mira Geoscience.
+  description: |
+    The geoapps-utils package provides utility functions
+    used by Python applications supported by [Mira Geoscience](https://www.mirageoscience.com/mining-industry-software/geoscience-analyst/python-integration/).
+  license: MIT
+  license_file:
+    - LICENSE
+  homepage: https://www.mirageoscience.com/mining-industry-software/python-integration/
+  repository: https://github.com/MiraGeoscience/geoapps-utils
+
+extra:
+  recipe-maintainers:
+    - andrewg-mira
+    - sebhmg

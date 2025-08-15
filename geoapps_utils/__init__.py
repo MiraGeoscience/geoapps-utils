@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 from pathlib import Path
 
@@ -26,6 +26,7 @@ from geoapps_utils.utils import (
     transformations,
     workspace,
 )
+from geoapps_utils.utils.importing import GeoAppsError
 from geoapps_utils.utils.importing import assets_path as assets_path_impl
 
 
