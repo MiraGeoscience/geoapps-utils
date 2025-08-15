@@ -17,7 +17,7 @@ repos:
     -   id: pycln
         args: [--config=pyproject.toml]
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.4
+    rev: v0.12.9
     hooks:
     -   id: ruff
         args:
@@ -26,7 +26,7 @@ repos:
 #        -   --unsafe-fixes
     -   id: ruff-format
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.15.0
+    rev: v1.17.1
     hooks:
     -   id: mypy
         additional_dependencies: [
@@ -66,7 +66,7 @@ repos:
         exclude: (-lock\.ya?ml|\benvironments/.*\.ya?ml|\.ipynb|^THIRD_PARTY_SOFTWARE\.rst)$
         entry: codespell -I .codespellignore
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
     -   id: trailing-whitespace
         exclude: \.mdj$
@@ -94,7 +94,7 @@ repos:
         exclude_types: [jupyter]
         exclude: ^docs/(.*/)?images/
 -   repo: https://github.com/rstcheck/rstcheck
-    rev: v6.2.4
+    rev: v6.2.5
     hooks:
     -   id: rstcheck
         exclude: ^THIRD_PARTY_SOFTWARE.rst$
