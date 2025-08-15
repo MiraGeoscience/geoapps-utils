@@ -18,6 +18,7 @@ maintainers = [{name = "Dominique Fournier", email = "dominiquef@mirageoscience.
 [project.urls]
 homepage = "https://www.mirageoscience.com/mining-industry-software/python-integration/"
 repository = "https://github.com/MiraGeoscience/geoapps-utils"
+#documentation = "https://mirageoscience-geoapps-utils.readthedocs-hosted.com/"
 
 [project.scripts]
 
@@ -26,7 +27,6 @@ repository = "https://github.com/MiraGeoscience/geoapps-utils"
 [tool.poetry]
 requires-poetry = '>=2.0.0,<3.0.0'
 
-#documentation  = "https://mirageoscience-geoapps-utils.readthedocs-hosted.com/"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
