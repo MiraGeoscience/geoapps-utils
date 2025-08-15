@@ -1,3 +1,7 @@
+[build-system]
+requires = ["poetry-core>=1.0.0", "setuptools"]
+build-backend = "poetry.core.masonry.api"
+
 [project]
 name = "geoapps-utils"
 description = "Utility functions to build applications supported by Mira Geoscience"
@@ -164,7 +168,3 @@ fail_under = 75
 [tool.coverage.html]
 skip_empty = true
 skip_covered = true
-
-[build-system]
-requires = ["poetry-core>=1.0.0", "setuptools"]
-build-backend = "poetry.core.masonry.api"
