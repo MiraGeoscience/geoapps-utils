@@ -9,7 +9,7 @@ license = "MIT"
 keywords = ["geology", "geophysics", "data", "interoperability"]
 version = "0.6.0a1"
 dynamic = ["classifiers", "dependencies"]
-readme = "README.rst"
+readme = "package.rst"
 authors = [{name = "Mira Geoscience", email = "support@mirageoscience.com"}]
 maintainers = [{name = "Dominique Fournier", email = "dominiquef@mirageoscience.com"}]
 requires-python = '>=3.10,<4.0'
