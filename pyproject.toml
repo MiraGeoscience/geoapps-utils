@@ -20,10 +20,6 @@ homepage = "https://www.mirageoscience.com/mining-industry-software/python-integ
 repository = "https://github.com/MiraGeoscience/geoapps-utils"
 #documentation = "https://mirageoscience-geoapps-utils.readthedocs-hosted.com/"
 
-[project.scripts]
-
-[project.optional-dependencies]
-
 [tool.poetry]
 requires-poetry = '>=2.0,<3.0'
 
