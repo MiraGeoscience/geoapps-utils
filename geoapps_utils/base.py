@@ -61,7 +61,8 @@ def get_logger(name: str | None = None, timestamp: bool = False) -> logging.Logg
     return log
 
 
-logger = get_logger(name=__name__)
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+logger = logging.getLogger(__name__)
 
 
 class Driver(ABC):
@@ -126,6 +127,7 @@ class Driver(ABC):
         logger.info("Loading input file . . .")
         filepath = Path(filepath).resolve()
         ifile = InputFile.read_ui_json(filepath, validations=cls._validations, **kwargs)
+
         with ifile.geoh5.open(mode=mode):
             try:
                 params = cls._params_class.build(ifile)
