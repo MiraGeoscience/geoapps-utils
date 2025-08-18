@@ -12,15 +12,37 @@ from __future__ import annotations
 
 import numpy as np
 from geoh5py import Workspace
-from geoh5py.objects import Grid2D, Points
+from geoh5py.objects import Curve, Grid2D, Points
 
 from geoapps_utils.utils.locations import (
+    gaussian,
     get_locations,
     get_overlapping_limits,
     map_indices_to_coordinates,
+    mask_large_connections,
     mask_under_horizon,
 )
 from geoapps_utils.utils.transformations import rotate_points, z_rotation_matrix
+
+
+def test_gaussian():
+    x = np.linspace(-10, 10, 100)
+    y = np.linspace(-10, 10, 100)
+    x_grid, y_grid = np.meshgrid(x, y)
+    z_grid = gaussian(x_grid, y_grid, 10, 5)
+    assert np.isclose(z_grid.max(), 10, rtol=1e-3)
+
+
+def test_mask_large_connections(tmp_path):
+    with Workspace(tmp_path / "test.geoh5") as ws:
+        x = np.linspace(0, 100, 11)
+        y = np.linspace(0, 300, 4)
+        x_grid, y_grid = np.meshgrid(x, y)
+        z_grid = np.zeros_like(x_grid)
+        vertices = np.column_stack([x_grid.ravel(), y_grid.ravel(), z_grid.ravel()])
+        crv = Curve.create(ws, name="test_curve", vertices=vertices)
+        mask = mask_large_connections(crv, distance_threshold=50.0)
+        assert len(mask) == 3
 
 
 def test_rotate_points():
