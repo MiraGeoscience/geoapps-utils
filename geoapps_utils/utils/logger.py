@@ -12,12 +12,19 @@ from __future__ import annotations
 import logging
 
 
-def get_logger(name: str | None = None, timestamp: bool = False) -> logging.Logger:
+def get_logger(
+    name: str | None = None,
+    timestamp: bool = False,
+    level_name: bool = True,
+) -> logging.Logger:
     """
     Get a logger with a timestamped stream and specified log level.
 
     :param name: Name of the logger.
     :param timestamp: Whether to include a timestamp in the log format.
+    :param level_name: Whether to include the log level name in the log format.
+
+    :return: Configured logger instance.
     """
     log = logging.getLogger(name)
 
@@ -27,7 +34,9 @@ def get_logger(name: str | None = None, timestamp: bool = False) -> logging.Logg
         stream_handler = logging.StreamHandler()
 
     # Set the format for the logger
-    formatting = "%(levelname)s"
+    formatting = ""
+    if level_name:
+        formatting = "%(levelname)s"
 
     if name:
         formatting += " [%(name)s]"
