@@ -28,6 +28,7 @@ from geoapps_utils.utils import (
 )
 from geoapps_utils.utils.importing import GeoAppsError
 from geoapps_utils.utils.importing import assets_path as assets_path_impl
+from geoapps_utils.utils.logger import get_logger
 
 
 def assets_path() -> Path:
