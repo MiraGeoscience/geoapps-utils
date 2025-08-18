@@ -36,15 +36,15 @@ def get_logger(
     # Set the format for the logger
     formatting = ""
     if level_name:
-        formatting = "%(levelname)s"
+        formatting = "%(levelname)s "
 
     if name:
-        formatting += " [%(name)s]"
+        formatting += "[%(name)s] "
 
     if timestamp:
-        formatting += " %(asctime)s"
+        formatting += "%(asctime)s "
 
-    formatter = logging.Formatter(formatting + " %(message)s")
+    formatter = logging.Formatter(formatting + "%(message)s")
     stream_handler.setFormatter(formatter)
     log.addHandler(stream_handler)
 
