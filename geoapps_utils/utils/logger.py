@@ -16,6 +16,8 @@ def get_logger(
     name: str | None = None,
     timestamp: bool = False,
     level_name: bool = True,
+    propagate: bool = True,
+    add_name: bool = True,
 ) -> logging.Logger:
     """
     Get a logger with a timestamped stream and specified log level.
@@ -23,6 +25,8 @@ def get_logger(
     :param name: Name of the logger.
     :param timestamp: Whether to include a timestamp in the log format.
     :param level_name: Whether to include the log level name in the log format.
+    :param propagate: Whether to propagate log messages to the parent logger.
+    :param add_name: Whether to include the logger name in the log format.
 
     :return: Configured logger instance.
     """
@@ -38,7 +42,7 @@ def get_logger(
     if level_name:
         formatting = "%(levelname)s "
 
-    if name:
+    if name and add_name:
         formatting += "[%(name)s] "
 
     if timestamp:
@@ -47,5 +51,6 @@ def get_logger(
     formatter = logging.Formatter(formatting + "%(message)s")
     stream_handler.setFormatter(formatter)
     log.addHandler(stream_handler)
+    log.propagate = propagate
 
     return log

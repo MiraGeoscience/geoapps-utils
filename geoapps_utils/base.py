@@ -30,7 +30,7 @@ from geoapps_utils.utils.importing import GeoAppsError
 from geoapps_utils.utils.logger import get_logger
 
 
-logger = get_logger(name=__name__)
+logger = get_logger(name=__name__, level_name=False, propagate=False, add_name=False)
 
 
 class Driver(ABC):
