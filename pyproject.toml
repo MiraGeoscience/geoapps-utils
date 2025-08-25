@@ -104,14 +104,14 @@ vcs = "git"
 style = "pep440"
 
 [tool.poetry-dynamic-versioning.substitution]
-files = ["my_app/_version.py", "recipe.yaml"]
+files = ["geoapps_utils/_version.py", "recipe.yaml"]
 patterns = [
     { value = '''(^__version__\s*(?::.*?)?=\s*['"])[^'"]*(['"])''', mode = "str" },
     { value = '''(^\s*version\s*(?::.*?)?:\s*['"])[^'"]*(['"])''', mode = "str" },
     { value = '''(^__version_tuple__\s*(?::.*?)?=\s*\()[^)]*(\))''', mode = "tuple" },
 ]
 
-[tool.poetry-dynamic-versioning.files."my_app/_version.py"]
+[tool.poetry-dynamic-versioning.files."geoapps_utils/_version.py"]
 persistent-substitution = true
 initial-content = """
   # These version placeholders will be replaced later during substitution.
