@@ -1,17 +1,16 @@
 [build-system]
-requires = ["poetry-core>=1.8.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.8.0", "poetry-dynamic-versioning>=1.9.0,<2.0.0"]
+build-backend = "poetry_dynamic_versioning.backend"
 
 [project]
 name = "geoapps-utils"
-version = "0.6.0a1"
 requires-python = '>=3.10,<4.0'
 
 description = "Utility functions to build applications supported by Mira Geoscience"
 license = "MIT"
 keywords = ["geology", "geophysics", "data", "interoperability"]
 readme = "package.rst"
-dynamic = ["dependencies", "classifiers"]
+dynamic = ["version", "dependencies", "classifiers"]
 authors = [{name = "Mira Geoscience", email = "support@mirageoscience.com"}]
 maintainers = [{name = "Dominique Fournier", email = "dominiquef@mirageoscience.com"}]
 
@@ -51,6 +50,8 @@ include = [
 ]
 
 exclude = [] # files to exclude from packaging
+version = "0.0.0.dev0"
+
 
 [tool.poetry.dependencies]
 numpy = "~1.26.0"
@@ -91,6 +92,35 @@ channels = ['conda-forge']
 #---------------------------------------------------------------------------------
 Pillow = ">=10.3.0, <10.4.dev"  # from geoh5py
 h5py = ">=3.2.1, <4.0.dev"  # from geoh5py
+
+[tool.poetry.requires-plugins]
+poetry-dynamic-versioning = { version = ">=1.0.0,<2.0.0", extras = ["plugin"] }
+
+[tool.poetry-dynamic-versioning]
+enable = true
+bump = true
+strict = true
+vcs = "git"
+style = "pep440"
+
+[tool.poetry-dynamic-versioning.substitution]
+files = ["my_app/_version.py", "recipe.yaml"]
+patterns = [
+    { value = '''(^__version__\s*(?::.*?)?=\s*['"])[^'"]*(['"])''', mode = "str" },
+    { value = '''(^\s*version\s*(?::.*?)?:\s*['"])[^'"]*(['"])''', mode = "str" },
+    { value = '''(^__version_tuple__\s*(?::.*?)?=\s*\()[^)]*(\))''', mode = "tuple" },
+]
+
+[tool.poetry-dynamic-versioning.files."my_app/_version.py"]
+persistent-substitution = true
+initial-content = """
+  # These version placeholders will be replaced later during substitution.
+  __version__ = "0.0.0"
+  __version_tuple__ = (0, 0, 0)
+"""
+
+[tool.poetry-dynamic-versioning.files."recipe.yaml"]
+persistent-substitution = true
 
 [tool.ruff]
 target-version = "py310"
