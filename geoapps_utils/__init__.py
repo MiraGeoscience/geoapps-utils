@@ -15,13 +15,12 @@ from pathlib import Path
 
 
 try:
-    from geoapps_utils._version import __version__, __version_tuple__
+    from geoapps_utils._version import __version__
 except ModuleNotFoundError:  # pragma: no cover
     from datetime import datetime
 
     __date_str = datetime.today().strftime("%Y%m%d")
     __version__ = "0.0.0.dev0+" + __date_str
-    __version_tuple__ = (0, 0, 0, "dev0", __date_str)
 
 from geoapps_utils.utils import (
     conversions,
