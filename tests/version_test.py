@@ -44,7 +44,6 @@ def test_version_is_consistent():
 def _can_import_version():
     try:
         importlib.import_module("geoapps_utils._version")
-
         return True
     except ImportError:
         return False
