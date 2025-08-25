@@ -64,7 +64,7 @@ def test_fallback_version_is_zero():
 
 @pytest.mark.skipif(
     not _can_import_version(),
-    reason="geoh5py._version cannot be imported: uses a fallback version",
+    reason="(geoapps_utils._version cannot be imported: uses a fallback version",
 )
 def test_conda_version_is_consistent():
     project_version = Version(geoapps_utils.__version__)
