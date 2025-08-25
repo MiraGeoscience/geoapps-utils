@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 try:
-    from las_geoh5._version import __version__, __version_tuple__
+    from geoapps_utils._version import __version__, __version_tuple__
 except ModuleNotFoundError:  # pragma: no cover
     from datetime import datetime
 
