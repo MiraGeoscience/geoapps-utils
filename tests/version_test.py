@@ -10,10 +10,12 @@
 
 from __future__ import annotations
 
+import importlib
+
 from pathlib import Path
 
 import pytest
-import tomli as toml
+
 import yaml
 from jinja2 import Template
 from packaging.version import InvalidVersion, Version
@@ -43,7 +45,7 @@ def test_version_is_consistent():
 
 def _can_import_version():
     try:
-        import geoapps_utils._version
+        importlib.import_module("geoapps_utils._version")
 
         return True
     except ImportError:
