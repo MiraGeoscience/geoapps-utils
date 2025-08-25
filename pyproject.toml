@@ -97,11 +97,12 @@ h5py = ">=3.2.1, <4.0.dev"  # from geoh5py
 poetry-dynamic-versioning = { version = ">=1.0.0,<2.0.0", extras = ["plugin"] }
 
 [tool.poetry-dynamic-versioning]
-enable = true
 bump = true
+enable = true
+fix-shallow-repository = true
 strict = true
-vcs = "git"
 style = "pep440"
+vcs = "git"
 
 [tool.poetry-dynamic-versioning.substitution]
 files = ["geoapps_utils/_version.py", "recipe.yaml"]
