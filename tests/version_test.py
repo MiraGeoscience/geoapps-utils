@@ -11,11 +11,9 @@
 from __future__ import annotations
 
 import importlib
-
 from pathlib import Path
 
 import pytest
-
 import yaml
 from jinja2 import Template
 from packaging.version import InvalidVersion, Version
