@@ -17,7 +17,7 @@ from geoh5py import Workspace
 from geoh5py.data import Data
 from geoh5py.objects import CellObject, Grid2D, Points
 from geoh5py.objects.grid_object import GridObject
-from scipy.interpolate import LinearNDInterpolator
+from scipy.interpolate import LinearNDInterpolator, NearestNDInterpolator
 from scipy.spatial import Delaunay, cKDTree
 
 
@@ -55,6 +55,42 @@ def mask_large_connections(cell_object: CellObject, distance_threshold: float):
     return np.where(dist > distance_threshold)[0]
 
 
+def topo_drape_elevation(locations, topo, method="linear") -> np.ndarray:
+    """
+    Get draped elevation at locations.
+
+    Values are extrapolated to nearest neighbour if requested outside the
+    convex hull of the input topography points.
+
+    :param locations: n x 3 array of locations
+    :param topo: n x 3 array of topography points
+    :param method: Type of topography interpolation, either 'linear' or 'nearest'
+
+    :return: An array of z elevations for every input locations.
+    """
+    if method == "linear":
+        delaunay_2d = Delaunay(topo[:, :-1])
+        z_interpolate = LinearNDInterpolator(delaunay_2d, topo[:, -1])
+    elif method == "nearest":
+        z_interpolate = NearestNDInterpolator(topo[:, :-1], topo[:, -1])
+    else:
+        raise ValueError("Method must be 'linear', or 'nearest'")
+
+    unique_locs, inds = np.unique(
+        locations[:, :-1].round(), axis=0, return_inverse=True
+    )
+    z_locations = z_interpolate(unique_locs)[inds]
+
+    # Apply nearest neighbour if in extrapolation
+    ind_nan = np.isnan(z_locations)
+    if any(ind_nan):
+        tree = cKDTree(topo)
+        _, ind = tree.query(locations[ind_nan, :])
+        z_locations[ind_nan] = topo[ind, -1]
+
+    return np.c_[locations[:, :-1], z_locations]
+
+
 def mask_under_horizon(locations: np.ndarray, horizon: np.ndarray) -> np.ndarray:
     """
     Mask locations under a horizon.
@@ -68,18 +104,8 @@ def mask_under_horizon(locations: np.ndarray, horizon: np.ndarray) -> np.ndarray
     :returns: A boolean array of shape(*, 1) where True values represent points
         in the locations array that lie below the triangulated horizon.
     """
-
-    delaunay_2d = Delaunay(horizon[:, :-1])
-    z_interpolate = LinearNDInterpolator(delaunay_2d, horizon[:, -1])
-    z_locations = z_interpolate(locations[:, :2])
-
-    outside = np.isnan(z_locations)
-    if any(outside):
-        tree = cKDTree(horizon)
-        _, nearest = tree.query(locations[outside, :])
-        z_locations[outside] = horizon[nearest, -1]
-
-    below_horizon = locations[:, -1] < z_locations
+    drapped_locations = topo_drape_elevation(locations, horizon)
+    below_horizon = locations[:, -1] < drapped_locations[:, -1]
 
     return below_horizon
 
