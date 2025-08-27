@@ -15,8 +15,8 @@
 version: 1
 metadata:
   content_hash:
-    win-64: 3be5dc90bc4469d346d8751dd7165ab4578ec3d9875832f375c849679ad86fb4
-    linux-64: 8f63d813f7cd17106cabff879f4d76ca9277a7dc816a3ceabc9693ab3ff9539b
+    win-64: 5a66caab9a485d3ae99aa43ab101fc1e7c85394f6710c756cb583f710b8c816e
+    linux-64: ee89f12478012b9e080cb4f6ca8edc70350a84e14596bd87665ea2c2f0d33ab2
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -686,7 +686,7 @@ package:
   manager: conda
   platform: linux-64
   dependencies:
-    libopenblas: '>=0.3.30,<1.0a0'
+    libopenblas: '>=0.3.30,<0.3.31.0a0'
   url: https://repo.prefix.dev/conda-forge/linux-64/libblas-3.9.0-34_h59b9bed_openblas.conda
   hash:
     md5: 064c22bac20fecf2a99838f9b979374c
@@ -1661,7 +1661,7 @@ package:
   manager: conda
   platform: linux-64
   dependencies:
-    python: ''
+    python: '>=3.8'
   url: https://repo.prefix.dev/conda-forge/noarch/packaging-25.0-pyh29332c3_1.conda
   hash:
     md5: 58335b26c38bf4a20f399384c33cbcf9
@@ -1673,7 +1673,7 @@ package:
   manager: conda
   platform: win-64
   dependencies:
-    python: ''
+    python: '>=3.8'
   url: https://repo.prefix.dev/conda-forge/noarch/packaging-25.0-pyh29332c3_1.conda
   hash:
     md5: 58335b26c38bf4a20f399384c33cbcf9
@@ -1761,7 +1761,7 @@ package:
   manager: conda
   platform: linux-64
   dependencies:
-    python: ''
+    python: '>=3.10'
   url: https://repo.prefix.dev/conda-forge/noarch/platformdirs-4.4.0-pyhcf101f3_0.conda
   hash:
     md5: cc9d9a3929503785403dbfad9f707145
@@ -1773,7 +1773,7 @@ package:
   manager: conda
   platform: win-64
   dependencies:
-    python: ''
+    python: '>=3.10'
   url: https://repo.prefix.dev/conda-forge/noarch/platformdirs-4.4.0-pyhcf101f3_0.conda
   hash:
     md5: cc9d9a3929503785403dbfad9f707145
@@ -1933,7 +1933,7 @@ package:
     isort: '>=4.2.5,<7,!=5.13.0'
     mccabe: '>=0.6,<0.8'
     platformdirs: '>=2.2.0'
-    python: ''
+    python: '>=3.9'
     tomli: '>=1.1.0'
     tomlkit: '>=0.10.1'
     typing_extensions: '>=3.10.0'
@@ -1954,7 +1954,7 @@ package:
     isort: '>=4.2.5,<7,!=5.13.0'
     mccabe: '>=0.6,<0.8'
     platformdirs: '>=2.2.0'
-    python: ''
+    python: '>=3.9'
     tomli: '>=1.1.0'
     tomlkit: '>=0.10.1'
     typing_extensions: '>=3.10.0'
@@ -2166,7 +2166,7 @@ package:
     libgfortran5: '>=13.3.0'
     liblapack: '>=3.9.0,<4.0a0'
     libstdcxx: '>=13'
-    numpy: '>=1.23.5'
+    numpy: <2.3
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
   url: https://repo.prefix.dev/conda-forge/linux-64/scipy-1.14.1-py312h62794b6_2.conda
@@ -2183,7 +2183,7 @@ package:
     libblas: '>=3.9.0,<4.0a0'
     libcblas: '>=3.9.0,<4.0a0'
     liblapack: '>=3.9.0,<4.0a0'
-    numpy: '>=1.23.5'
+    numpy: <2.3
     python: '>=3.12,<3.13.0a0'
     python_abi: 3.12.*
     ucrt: '>=10.0.20348.0'
@@ -2291,7 +2291,7 @@ package:
   manager: conda
   platform: linux-64
   dependencies:
-    python: ''
+    python: '>=3.9'
   url: https://repo.prefix.dev/conda-forge/noarch/tomli-2.2.1-pyhe01879c_2.conda
   hash:
     md5: 30a0a26c8abccf4b7991d590fe17c699
@@ -2303,7 +2303,7 @@ package:
   manager: conda
   platform: win-64
   dependencies:
-    python: ''
+    python: '>=3.9'
   url: https://repo.prefix.dev/conda-forge/noarch/tomli-2.2.1-pyhe01879c_2.conda
   hash:
     md5: 30a0a26c8abccf4b7991d590fe17c699
@@ -2389,7 +2389,7 @@ package:
   manager: conda
   platform: linux-64
   dependencies:
-    python: ''
+    python: '>=3.10'
   url: https://repo.prefix.dev/conda-forge/noarch/typing_extensions-4.15.0-pyhcf101f3_0.conda
   hash:
     md5: 0caa1af407ecff61170c9437a808404d
@@ -2401,7 +2401,7 @@ package:
   manager: conda
   platform: win-64
   dependencies:
-    python: ''
+    python: '>=3.10'
   url: https://repo.prefix.dev/conda-forge/noarch/typing_extensions-4.15.0-pyhcf101f3_0.conda
   hash:
     md5: 0caa1af407ecff61170c9437a808404d
@@ -2614,7 +2614,7 @@ package:
   category: main
   optional: false
 - name: geoh5py
-  version: 0.12.0a2.dev38+aa7882da
+  version: 0.0.0.dev0
   manager: pip
   platform: linux-64
   dependencies:
@@ -2622,16 +2622,16 @@ package:
     numpy: '>=1.26.0,<1.27.0'
     pillow: '>=10.3.0,<10.4.0'
     pydantic: '>=2.5.2,<3.0.0'
-  url: git+https://github.com/MiraGeoscience/geoh5py.git@aa7882dafaa69183eca18accabefdd21a9d075fe
+  url: git+https://github.com/MiraGeoscience/geoh5py.git@cfb5a38ba08276502ae0fc957514d45ae90d27fa
   hash:
-    sha256: aa7882dafaa69183eca18accabefdd21a9d075fe
+    sha256: cfb5a38ba08276502ae0fc957514d45ae90d27fa
   source:
     type: url
-    url: git+https://github.com/MiraGeoscience/geoh5py.git@aa7882dafaa69183eca18accabefdd21a9d075fe
+    url: git+https://github.com/MiraGeoscience/geoh5py.git@cfb5a38ba08276502ae0fc957514d45ae90d27fa
   category: main
   optional: false
 - name: geoh5py
-  version: 0.12.0a2.dev38+aa7882da
+  version: 0.0.0.dev0
   manager: pip
   platform: win-64
   dependencies:
@@ -2639,12 +2639,12 @@ package:
     numpy: '>=1.26.0,<1.27.0'
     pillow: '>=10.3.0,<10.4.0'
     pydantic: '>=2.5.2,<3.0.0'
-  url: git+https://github.com/MiraGeoscience/geoh5py.git@aa7882dafaa69183eca18accabefdd21a9d075fe
+  url: git+https://github.com/MiraGeoscience/geoh5py.git@cfb5a38ba08276502ae0fc957514d45ae90d27fa
   hash:
-    sha256: aa7882dafaa69183eca18accabefdd21a9d075fe
+    sha256: cfb5a38ba08276502ae0fc957514d45ae90d27fa
   source:
     type: url
-    url: git+https://github.com/MiraGeoscience/geoh5py.git@aa7882dafaa69183eca18accabefdd21a9d075fe
+    url: git+https://github.com/MiraGeoscience/geoh5py.git@cfb5a38ba08276502ae0fc957514d45ae90d27fa
   category: main
   optional: false
 - name: poetry-dynamic-versioning
@@ -2655,7 +2655,7 @@ package:
     dunamai: '>=1.25.0,<2.0.0'
     jinja2: '>=2.11.1,<4'
     tomlkit: '>=0.4'
-  url: https://mirageoscienceltd.jfrog.io/artifactory/api/pypi/geoplus-pypi-dev/packages/packages/f8/2d/cc9830ff816cfc5b98f09bcce22fc63ca469538c0125f88a0cdadb74b3e7/poetry_dynamic_versioning-1.9.1-py3-none-any.whl
+  url: https://files.pythonhosted.org/packages/f8/2d/cc9830ff816cfc5b98f09bcce22fc63ca469538c0125f88a0cdadb74b3e7/poetry_dynamic_versioning-1.9.1-py3-none-any.whl
   hash:
     sha256: 65a0c814e6d30d4807734a3c34edf261fd7cc3b340dbd23b6a33ee41f7d0b547
   category: main
@@ -2668,7 +2668,7 @@ package:
     dunamai: '>=1.25.0,<2.0.0'
     jinja2: '>=2.11.1,<4'
     tomlkit: '>=0.4'
-  url: https://mirageoscienceltd.jfrog.io/artifactory/api/pypi/geoplus-pypi-dev/packages/packages/f8/2d/cc9830ff816cfc5b98f09bcce22fc63ca469538c0125f88a0cdadb74b3e7/poetry_dynamic_versioning-1.9.1-py3-none-any.whl
+  url: https://files.pythonhosted.org/packages/f8/2d/cc9830ff816cfc5b98f09bcce22fc63ca469538c0125f88a0cdadb74b3e7/poetry_dynamic_versioning-1.9.1-py3-none-any.whl
   hash:
     sha256: 65a0c814e6d30d4807734a3c34edf261fd7cc3b340dbd23b6a33ee41f7d0b547
   category: main

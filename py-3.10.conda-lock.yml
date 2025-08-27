@@ -15,8 +15,8 @@
 version: 1
 metadata:
   content_hash:
-    win-64: 9cfba13607825046d895c76fecf22af12b3d76a04ae89937a589ac7f6bd687a2
-    linux-64: 4f357039f56b6e6996d937765b3eb40838c8475decc09f4595cbacc189bb66d0
+    win-64: afbdd0c47416db87923e3b93974b2d7482d7479d80751e1ef736269d026719a1
+    linux-64: b3be3cd5bbdb466fbd572a8fd4a402306cf839af968c734726809a2ba34f177a
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -1675,7 +1675,7 @@ package:
   manager: conda
   platform: win-64
   dependencies:
-    python: ''
+    python: '>=3.8'
   url: https://repo.prefix.dev/conda-forge/noarch/packaging-25.0-pyh29332c3_1.conda
   hash:
     md5: 58335b26c38bf4a20f399384c33cbcf9
@@ -1775,7 +1775,7 @@ package:
   manager: conda
   platform: win-64
   dependencies:
-    python: ''
+    python: '>=3.10'
   url: https://repo.prefix.dev/conda-forge/noarch/platformdirs-4.4.0-pyhcf101f3_0.conda
   hash:
     md5: cc9d9a3929503785403dbfad9f707145
@@ -1956,7 +1956,7 @@ package:
     isort: '>=4.2.5,<7,!=5.13.0'
     mccabe: '>=0.6,<0.8'
     platformdirs: '>=2.2.0'
-    python: ''
+    python: '>=3.9'
     tomli: '>=1.1.0'
     tomlkit: '>=0.10.1'
     typing_extensions: '>=3.10.0'
@@ -2305,7 +2305,7 @@ package:
   manager: conda
   platform: win-64
   dependencies:
-    python: ''
+    python: '>=3.9'
   url: https://repo.prefix.dev/conda-forge/noarch/tomli-2.2.1-pyhe01879c_2.conda
   hash:
     md5: 30a0a26c8abccf4b7991d590fe17c699
@@ -2403,7 +2403,7 @@ package:
   manager: conda
   platform: win-64
   dependencies:
-    python: ''
+    python: '>=3.10'
   url: https://repo.prefix.dev/conda-forge/noarch/typing_extensions-4.15.0-pyhcf101f3_0.conda
   hash:
     md5: 0caa1af407ecff61170c9437a808404d
@@ -2616,7 +2616,7 @@ package:
   category: main
   optional: false
 - name: geoh5py
-  version: 0.12.0a2.dev38+aa7882da
+  version: 0.0.0.dev0
   manager: pip
   platform: linux-64
   dependencies:
@@ -2624,16 +2624,16 @@ package:
     numpy: '>=1.26.0,<1.27.0'
     pillow: '>=10.3.0,<10.4.0'
     pydantic: '>=2.5.2,<3.0.0'
-  url: git+https://github.com/MiraGeoscience/geoh5py.git@aa7882dafaa69183eca18accabefdd21a9d075fe
+  url: git+https://github.com/MiraGeoscience/geoh5py.git@cfb5a38ba08276502ae0fc957514d45ae90d27fa
   hash:
-    sha256: aa7882dafaa69183eca18accabefdd21a9d075fe
+    sha256: cfb5a38ba08276502ae0fc957514d45ae90d27fa
   source:
     type: url
-    url: git+https://github.com/MiraGeoscience/geoh5py.git@aa7882dafaa69183eca18accabefdd21a9d075fe
+    url: git+https://github.com/MiraGeoscience/geoh5py.git@cfb5a38ba08276502ae0fc957514d45ae90d27fa
   category: main
   optional: false
 - name: geoh5py
-  version: 0.12.0a2.dev38+aa7882da
+  version: 0.0.0.dev0
   manager: pip
   platform: win-64
   dependencies:
@@ -2641,12 +2641,12 @@ package:
     numpy: '>=1.26.0,<1.27.0'
     pillow: '>=10.3.0,<10.4.0'
     pydantic: '>=2.5.2,<3.0.0'
-  url: git+https://github.com/MiraGeoscience/geoh5py.git@aa7882dafaa69183eca18accabefdd21a9d075fe
+  url: git+https://github.com/MiraGeoscience/geoh5py.git@cfb5a38ba08276502ae0fc957514d45ae90d27fa
   hash:
-    sha256: aa7882dafaa69183eca18accabefdd21a9d075fe
+    sha256: cfb5a38ba08276502ae0fc957514d45ae90d27fa
   source:
     type: url
-    url: git+https://github.com/MiraGeoscience/geoh5py.git@aa7882dafaa69183eca18accabefdd21a9d075fe
+    url: git+https://github.com/MiraGeoscience/geoh5py.git@cfb5a38ba08276502ae0fc957514d45ae90d27fa
   category: main
   optional: false
 - name: poetry-dynamic-versioning
@@ -2657,7 +2657,7 @@ package:
     dunamai: '>=1.25.0,<2.0.0'
     jinja2: '>=2.11.1,<4'
     tomlkit: '>=0.4'
-  url: https://mirageoscienceltd.jfrog.io/artifactory/api/pypi/geoplus-pypi-dev/packages/packages/f8/2d/cc9830ff816cfc5b98f09bcce22fc63ca469538c0125f88a0cdadb74b3e7/poetry_dynamic_versioning-1.9.1-py3-none-any.whl
+  url: https://files.pythonhosted.org/packages/f8/2d/cc9830ff816cfc5b98f09bcce22fc63ca469538c0125f88a0cdadb74b3e7/poetry_dynamic_versioning-1.9.1-py3-none-any.whl
   hash:
     sha256: 65a0c814e6d30d4807734a3c34edf261fd7cc3b340dbd23b6a33ee41f7d0b547
   category: main
@@ -2670,7 +2670,7 @@ package:
     dunamai: '>=1.25.0,<2.0.0'
     jinja2: '>=2.11.1,<4'
     tomlkit: '>=0.4'
-  url: https://mirageoscienceltd.jfrog.io/artifactory/api/pypi/geoplus-pypi-dev/packages/packages/f8/2d/cc9830ff816cfc5b98f09bcce22fc63ca469538c0125f88a0cdadb74b3e7/poetry_dynamic_versioning-1.9.1-py3-none-any.whl
+  url: https://files.pythonhosted.org/packages/f8/2d/cc9830ff816cfc5b98f09bcce22fc63ca469538c0125f88a0cdadb74b3e7/poetry_dynamic_versioning-1.9.1-py3-none-any.whl
   hash:
     sha256: 65a0c814e6d30d4807734a3c34edf261fd7cc3b340dbd23b6a33ee41f7d0b547
   category: main
