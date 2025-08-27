@@ -57,7 +57,9 @@ def test_rotate_points():
 
 def test_mask_under_horizon():
     points = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1], [10, 10, 0]])
-    horizon = np.array([[-1, -1, 0], [1, -1, 0], [1, 1, 1], [-1, 1, 0], [0, 0, 0]])
+    horizon = np.array(
+        [[-1, -1, 0], [1, -1, 0], [1, 1, 1], [-0.5, 0.5, np.nan], [-1, 1, 0], [0, 0, 0]]
+    )
     mask = mask_under_horizon(points, horizon)
     assert np.all(mask == np.array([True, False, False, True]))
 

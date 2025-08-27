@@ -68,11 +68,12 @@ def topo_drape_elevation(locations, topo, method="linear") -> np.ndarray:
 
     :return: An array of z elevations for every input locations.
     """
+    actives = ~np.any(np.isnan(topo), axis=1)
     if method == "linear":
-        delaunay_2d = Delaunay(topo[:, :-1])
-        z_interpolate = LinearNDInterpolator(delaunay_2d, topo[:, -1])
+        delaunay_2d = Delaunay(topo[actives, :-1])
+        z_interpolate = LinearNDInterpolator(delaunay_2d, topo[actives, -1])
     elif method == "nearest":
-        z_interpolate = NearestNDInterpolator(topo[:, :-1], topo[:, -1])
+        z_interpolate = NearestNDInterpolator(topo[actives, :-1], topo[actives, -1])
     else:
         raise ValueError("Method must be 'linear', or 'nearest'")
 
@@ -84,7 +85,7 @@ def topo_drape_elevation(locations, topo, method="linear") -> np.ndarray:
     # Apply nearest neighbour if in extrapolation
     ind_nan = np.isnan(z_locations)
     if any(ind_nan):
-        tree = cKDTree(topo)
+        tree = cKDTree(topo[actives, :])
         _, ind = tree.query(locations[ind_nan, :])
         z_locations[ind_nan] = topo[ind, -1]
 
