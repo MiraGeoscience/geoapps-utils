@@ -63,6 +63,9 @@ scipy = "~1.14.0"
 #geoh5py = {version = ">=0.12.0a1, <0.13.dev", source = "pypi", allow-prereleases = true}
 geoh5py = {git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop"}
 
+# required for source builds with Poetry and dynamic versioning,
+# (since setting PIP_NO_DEPS prevents pip from auto-installing it)
+poetry_dynamic_versioning = {version = ">=1.9.0,<2.0.0", source = "pypi"}
 
 ## about pip dependencies
 # to be specified to work with conda-lock
@@ -92,6 +95,9 @@ channels = ['conda-forge']
 #---------------------------------------------------------------------------------
 Pillow = ">=10.3.0, <10.4.dev"  # from geoh5py
 h5py = ">=3.2.1, <4.0.dev"  # from geoh5py
+
+# for poetry-dynamic-versioning
+dunamai = ">=1.25.0, <2.dev"
 
 [tool.poetry.requires-plugins]
 poetry-dynamic-versioning = { version = ">=1.0.0,<2.0.0", extras = ["plugin"] }
