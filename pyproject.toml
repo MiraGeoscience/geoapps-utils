@@ -54,10 +54,6 @@ version = "0.0.0.dev0"
 
 
 [tool.poetry.dependencies]
-## required first (!) for source builds with Poetry and dynamic versioning,
-# (since setting PIP_NO_DEPS prevents pip from auto-installing it)
-poetry_dynamic_versioning = {version = ">=1.9.0,<2.0.0", source = "pypi"}
-
 numpy = "~1.26.0"
 pydantic = "^2.5.2"
 scipy = "~1.14.0"
@@ -96,9 +92,6 @@ channels = ['conda-forge']
 #---------------------------------------------------------------------------------
 Pillow = ">=10.3.0, <10.4.dev"  # from geoh5py
 h5py = ">=3.2.1, <4.0.dev"  # from geoh5py
-
-# for poetry-dynamic-versioning
-dunamai = ">=1.25.0, <2.dev"
 
 [tool.poetry.requires-plugins]
 poetry-dynamic-versioning = { version = ">=1.0.0,<2.0.0", extras = ["plugin"] }
