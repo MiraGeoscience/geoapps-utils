@@ -15,8 +15,8 @@
 version: 1
 metadata:
   content_hash:
-    win-64: 620ee497451f6142f28807faa48a989d12151bf29fed4797141d32fe1badf642
-    linux-64: 567fdfaee82725a5c326b0b1cf092b6398a96fc3900c86639a52fedd23e7f1df
+    win-64: a11d50f0f2ccc80642736d72d5cedd0262e46f9d0ce19283394d7bb8861b05e9
+    linux-64: 2467c021e67c6ed79cb5c2602cf372ee016ac4ab319342fc1c2b0d3f606586e9
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -2588,7 +2588,7 @@ package:
   category: main
   optional: false
 - name: geoh5py
-  version: 0.12.0a2.dev40+37626e2f
+  version: 0.12.0a2.dev41+602920ff
   manager: pip
   platform: linux-64
   dependencies:
@@ -2596,16 +2596,16 @@ package:
     numpy: '>=1.26.0,<1.27.0'
     pillow: '>=10.3.0,<10.4.0'
     pydantic: '>=2.5.2,<3.0.0'
-  url: git+https://github.com/MiraGeoscience/geoh5py.git@37626e2fe9b20b472ef041b517be27f7d3172d40
+  url: git+https://github.com/MiraGeoscience/geoh5py.git@602920ff3c3ddfbf99638d97b047fbb31be06da5
   hash:
-    sha256: 37626e2fe9b20b472ef041b517be27f7d3172d40
+    sha256: 602920ff3c3ddfbf99638d97b047fbb31be06da5
   source:
     type: url
-    url: git+https://github.com/MiraGeoscience/geoh5py.git@37626e2fe9b20b472ef041b517be27f7d3172d40
+    url: git+https://github.com/MiraGeoscience/geoh5py.git@602920ff3c3ddfbf99638d97b047fbb31be06da5
   category: main
   optional: false
 - name: geoh5py
-  version: 0.12.0a2.dev40+37626e2f
+  version: 0.12.0a2.dev41+602920ff
   manager: pip
   platform: win-64
   dependencies:
@@ -2613,11 +2613,11 @@ package:
     numpy: '>=1.26.0,<1.27.0'
     pillow: '>=10.3.0,<10.4.0'
     pydantic: '>=2.5.2,<3.0.0'
-  url: git+https://github.com/MiraGeoscience/geoh5py.git@37626e2fe9b20b472ef041b517be27f7d3172d40
+  url: git+https://github.com/MiraGeoscience/geoh5py.git@602920ff3c3ddfbf99638d97b047fbb31be06da5
   hash:
-    sha256: 37626e2fe9b20b472ef041b517be27f7d3172d40
+    sha256: 602920ff3c3ddfbf99638d97b047fbb31be06da5
   source:
     type: url
-    url: git+https://github.com/MiraGeoscience/geoh5py.git@37626e2fe9b20b472ef041b517be27f7d3172d40
+    url: git+https://github.com/MiraGeoscience/geoh5py.git@602920ff3c3ddfbf99638d97b047fbb31be06da5
   category: main
   optional: false
