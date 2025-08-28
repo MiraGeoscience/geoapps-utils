@@ -10,14 +10,66 @@
 from __future__ import annotations
 
 import logging
+from enum import Enum
+
+
+class LoggerLevel(str, Enum):
+    """
+    The different possible log levels.
+    """
+
+    WARNING = "warning"
+    INFO = "info"
+    DEBUG = "debug"
+    ERROR = "error"
+    CRITICAL = "critical"
+
+    @property
+    def level(self) -> int:
+        """
+        Get the current state of the logger.
+        """
+        if self == LoggerLevel.WARNING:
+            return logging.WARNING
+        if self == LoggerLevel.INFO:
+            return logging.INFO
+        if self == LoggerLevel.DEBUG:
+            return logging.DEBUG
+        if self == LoggerLevel.ERROR:
+            return logging.ERROR
+        if self == LoggerLevel.CRITICAL:
+            return logging.CRITICAL
+        return logging.NOTSET
+
+    @classmethod
+    def get_logger(cls, level: str | LoggerLevel) -> int:
+        """
+        Get the logger level from a string or LoggerLevel.
+
+        :param level: The log level as a string or LoggerLevel.
+
+        :return: The corresponding logging level.
+        """
+        if isinstance(level, str):
+            try:
+                level = cls(level.lower())
+            except ValueError as error:
+                raise KeyError(
+                    f"Invalid log level: '{level}'. Choose from {list(cls)}"
+                ) from error
+        if not isinstance(level, cls):
+            raise TypeError(f"Level must be a string or LoggerLevel, got {type(level)}")
+        return level.level
 
 
 def get_logger(
     name: str | None = None,
+    *,
     timestamp: bool = False,
     level_name: bool = True,
     propagate: bool = True,
     add_name: bool = True,
+    level: str | LoggerLevel | None = None,
 ) -> logging.Logger:
     """
     Get a logger with a timestamped stream and specified log level.
@@ -27,6 +79,7 @@ def get_logger(
     :param level_name: Whether to include the log level name in the log format.
     :param propagate: Whether to propagate log messages to the parent logger.
     :param add_name: Whether to include the logger name in the log format.
+    :param level: Logging level to use.
 
     :return: Configured logger instance.
     """
@@ -51,6 +104,10 @@ def get_logger(
     formatter = logging.Formatter(formatting + "%(message)s")
     stream_handler.setFormatter(formatter)
     log.addHandler(stream_handler)
-    log.propagate = propagate
+
+    if level:
+        log.setLevel(LoggerLevel.get_logger(level))
+    elif propagate:
+        log.propagate = propagate
 
     return log
