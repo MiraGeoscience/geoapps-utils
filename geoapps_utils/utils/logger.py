@@ -62,7 +62,7 @@ def get_logger(
     *,
     timestamp: bool = False,
     level_name: bool = True,
-    propagate: bool = True,
+    propagate: bool | None = None,
     add_name: bool = True,
     level: str | LoggerLevel | None = None,
 ) -> logging.Logger:
@@ -102,7 +102,8 @@ def get_logger(
 
     if level:
         log.setLevel(LoggerLevel.get_logger(level))
-    elif propagate:
+        log.propagate = False
+    elif propagate is not None:
         log.propagate = propagate
 
     return log
