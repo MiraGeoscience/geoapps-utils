@@ -51,12 +51,7 @@ class LoggerLevel(str, Enum):
         :return: The corresponding logging level.
         """
         if isinstance(level, str):
-            try:
-                level = cls(level.lower())
-            except ValueError as error:
-                raise KeyError(
-                    f"Invalid log level: '{level}'. Choose from {list(cls)}"
-                ) from error
+            level = cls(level.lower())
         if not isinstance(level, cls):
             raise TypeError(f"Level must be a string or LoggerLevel, got {type(level)}")
         return level.level

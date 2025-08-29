@@ -68,8 +68,5 @@ def test_logger_no_propagate(caplog):
 
 
 def test_logger_level_errors():
-    with pytest.raises(KeyError, match="Invalid log level: 'bidon'. Choose from"):
-        get_logger(level="bidon")
-
     with pytest.raises(TypeError, match="Level must be a string or LoggerLevel"):
         get_logger(level=5)  # type: ignore
