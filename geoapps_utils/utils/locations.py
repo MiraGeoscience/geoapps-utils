@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+from logging import getLogger
 from uuid import UUID
 
 import numpy as np
@@ -19,6 +20,9 @@ from geoh5py.objects import CellObject, Grid2D, Points
 from geoh5py.objects.grid_object import GridObject
 from scipy.interpolate import LinearNDInterpolator, NearestNDInterpolator
 from scipy.spatial import Delaunay, cKDTree
+
+
+_logger = getLogger(__name__)
 
 
 def gaussian(
@@ -55,7 +59,9 @@ def mask_large_connections(cell_object: CellObject, distance_threshold: float):
     return np.where(dist > distance_threshold)[0]
 
 
-def topo_drape_elevation(locations, topo, method="linear") -> np.ndarray:
+def topo_drape_elevation(
+    locations: np.ndarray, topo: np.ndarray, method="linear"
+) -> np.ndarray:
     """
     Get draped elevation at locations.
 
@@ -85,6 +91,10 @@ def topo_drape_elevation(locations, topo, method="linear") -> np.ndarray:
     # Apply nearest neighbour if in extrapolation
     ind_nan = np.isnan(z_locations)
     if any(ind_nan):
+        _logger.warning(
+            "Locations found outside the convex hull of topography.\n"
+            "Elevations will be extrapolated using a nearest neighbour."
+        )
         tree = cKDTree(topo[actives, :])
         _, ind = tree.query(locations[ind_nan, :])
         z_locations[ind_nan] = topo[ind, -1]
@@ -92,7 +102,9 @@ def topo_drape_elevation(locations, topo, method="linear") -> np.ndarray:
     return np.c_[locations[:, :-1], z_locations]
 
 
-def mask_under_horizon(locations: np.ndarray, horizon: np.ndarray) -> np.ndarray:
+def mask_under_horizon(
+    locations: np.ndarray, horizon: np.ndarray, method="linear"
+) -> np.ndarray:
     """
     Mask locations under a horizon.
 
@@ -101,11 +113,12 @@ def mask_under_horizon(locations: np.ndarray, horizon: np.ndarray) -> np.ndarray
     :param horizon: A quasi-2D distribution of x, y, z points data as an
         array of shape(*, 3) that forms a rough plane that intersects the
         provided locations 3D point cloud.
+    :param method: Type of interpolation of horizon, either 'linear' or 'nearest'
 
     :returns: A boolean array of shape(*, 1) where True values represent points
         in the locations array that lie below the triangulated horizon.
     """
-    drapped_locations = topo_drape_elevation(locations, horizon)
+    drapped_locations = topo_drape_elevation(locations, horizon, method=method)
     below_horizon = locations[:, -1] < drapped_locations[:, -1]
 
     return below_horizon
