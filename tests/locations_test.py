@@ -10,7 +10,10 @@
 
 from __future__ import annotations
 
+import logging
+
 import numpy as np
+import pytest
 from geoh5py import Workspace
 from geoh5py.objects import Curve, Grid2D, Points
 
@@ -34,7 +37,7 @@ def test_gaussian():
 
 
 def test_mask_large_connections(tmp_path):
-    with Workspace(tmp_path / "test.geoh5") as ws:
+    with Workspace.create(tmp_path / "test.geoh5") as ws:
         x = np.linspace(0, 100, 11)
         y = np.linspace(0, 300, 4)
         x_grid, y_grid = np.meshgrid(x, y)
@@ -55,10 +58,17 @@ def test_rotate_points():
     assert np.allclose(points, validation)
 
 
-def test_mask_under_horizon():
+@pytest.mark.parametrize("method", ["nearest", "linear"])
+def test_mask_under_horizon(method, caplog):
     points = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1], [10, 10, 0]])
-    horizon = np.array([[-1, -1, 0], [1, -1, 0], [1, 1, 1], [-1, 1, 0], [0, 0, 0]])
-    mask = mask_under_horizon(points, horizon)
+    horizon = np.array(
+        [[-1, -1, 0], [1, -1, 0], [1, 1, 1], [-0.5, 0.5, np.nan], [-1, 1, 0], [0, 0, 0]]
+    )
+    with caplog.at_level(logging.WARNING):
+        mask = mask_under_horizon(points, horizon, method=method)
+
+    if method == "linear":
+        assert "Locations found outside" in caplog.text
     assert np.all(mask == np.array([True, False, False, True]))
 
 
