@@ -147,3 +147,6 @@ pyproject-sha.toml
 /poetry.lock
 #version ignore
 geoapps_utils/_version.py
+# pixi environments
+.pixi/*
+!.pixi/config.toml

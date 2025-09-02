@@ -82,26 +82,6 @@ geoh5py = {git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop
 # - to actually lock on a revision: my_package = { git = "https://github.com/ORGANISATION/REPO.git", rev = "GIT_REV" }
 #   (where rev value is a tag, a branch name or a commit hash). Can also use ``branch`` or ``tag`` instead of ``rev``
 
-[tool.poetry.group.dev.dependencies]
-Pygments = "*"
-pylint = "*"
-pytest = "*"
-pytest-cov = "*"
-pyyaml = '*'
-jinja2 = '*'
-packaging = '*'
-tomli = "*"
-
-[tool.conda-lock]
-platforms = ['win-64', 'linux-64']
-channels = ['conda-forge']
-
-[tool.conda-lock.dependencies]
-## indirect dependencies, forcing them here for installation through Conda not pip
-#---------------------------------------------------------------------------------
-Pillow = ">=10.3.0, <10.4.dev"  # from geoh5py
-h5py = ">=3.2.1, <4.0.dev"  # from geoh5py
-
 [tool.poetry.requires-plugins]
 poetry-dynamic-versioning = { version = ">=1.9.1,<2.0.0", extras = ["plugin"] }
 
@@ -129,6 +109,51 @@ initial-content = """
 
 [tool.poetry-dynamic-versioning.files."recipe.yaml"]
 persistent-substitution = true
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["win-64", "linux-64"]
+
+[tool.pixi.dependencies]
+## direct dependencies, forcing them here for installation through Conda not pip
+#------------------------------------------------------------------------------
+numpy = ">=1.26.0, <1.27.0"
+scipy = "1.14.*"
+pydantic = ">=2.7,<3.0"
+
+## indirect dependencies, forcing them here for installation through Conda not pip
+#---------------------------------------------------------------------------------
+Pillow = ">=10.3.0, <10.4.dev"  # from geoh5py
+h5py = ">=3.2.1, <4.0.dev"      # from geoh5py
+
+[tool.pixi.pypi-options]
+index-url = "https://mirageoscienceltd.jfrog.io/artifactory/pypi/public-pypi-dev/simple"
+extra-index-urls = ["https://pypi.org/simple"]
+
+[tool.pixi.pypi-dependencies]
+# PyPI / git-based dependencies
+geoh5py = { git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop" }
+
+[tool.pixi.environments]
+default = ["test", "build"]
+production = []
+
+[tool.pixi.feature.build]
+pypi-dependencies = { hatch = "*", build = "*", twine = "*" }
+
+[tool.pixi.feature.test.pypi-dependencies]
+Pygments = "*"
+pylint = "*"
+pytest = "*"
+pytest-cov = "*"
+pyyaml = "*"
+jinja2 = "*"
+packaging = "*"
+tomli = "*"
+geoapps-utils = { path = ".", editable = true }
+
+[tool.pixi.feature.test.tasks]
+test = "pytest --cov --cov-report=xml"
 
 [tool.ruff]
 target-version = "py310"
