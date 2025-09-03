@@ -19,17 +19,28 @@ description = "Utility functions to build applications supported by Mira Geoscie
 license = "MIT"
 keywords = ["geology", "geophysics", "data", "interoperability"]
 readme = "package.rst"
-dynamic = ["version", "dependencies", "classifiers"]
+dynamic = ["version","classifiers"]
 authors = [{name = "Mira Geoscience", email = "support@mirageoscience.com"}]
 maintainers = [{name = "Dominique Fournier", email = "dominiquef@mirageoscience.com"}]
 
-[project.urls]
-homepage = "https://www.mirageoscience.com/mining-industry-software/python-integration/"
-repository = "https://github.com/MiraGeoscience/geoapps-utils"
-#documentation = "https://mirageoscience-geoapps-utils.readthedocs-hosted.com/"
+dependencies = [
+  "pydantic>=2.5.2,<3.0",
+]
 
-[tool.poetry]
-requires-poetry = '>=2.0,<3.0'
+## pip dependencies from Git repositories
+#----------------------------------------
+#geoh5py = {version = ">=0.12.0a1, <0.13.dev", source = "pypi", allow-prereleases = true}
+#geoh5py = {git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop"}
+
+
+## about pip dependencies
+# to be specified to work with conda-lock
+# - from PyPI: my_package = { version = "1.2.3", source = "pypi" }
+# - from URL: !!! no actual lock, as tag or branch can move and installation will fetch current !!!
+#   - for a tag:    my_package = { url = "https://github.com/ORGANISATION/REPO/archive/refs/tags/TAG.tar.gz" }
+#   - for a branch: my_package = { url = "https://github.com/ORGANISATION/REPO/archive/refs/heads/BRANCH.tar.gz" }
+# - to actually lock on a revision: my_package = { git = "https://github.com/ORGANISATION/REPO.git", rev = "GIT_REV" }
+#   (where rev value is a tag, a branch name or a commit hash). Can also use ``branch`` or ``tag`` instead of ``rev``
 
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -43,6 +54,15 @@ classifiers = [
     "Operating System :: MacOS",
     "Natural Language :: English",
 ]
+
+[project.urls]
+homepage = "https://www.mirageoscience.com/mining-industry-software/python-integration/"
+repository = "https://github.com/MiraGeoscience/geoapps-utils"
+#documentation = "https://mirageoscience-geoapps-utils.readthedocs-hosted.com/"
+
+
+[tool.poetry]
+requires-poetry = '>=2.0,<3.0'
 
 packages = [
      { include = "geoapps_utils" },
@@ -60,25 +80,6 @@ include = [
 
 exclude = [] # files to exclude from packaging
 version = "0.0.0.dev0"
-
-dependencies = [
-  "pydantic>=2.5.2,<3.0",
-]
-
-## pip dependencies from Git repositories
-#----------------------------------------
-#geoh5py = {version = ">=0.12.0a1, <0.13.dev", source = "pypi", allow-prereleases = true}
-geoh5py = {git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop"}
-
-
-## about pip dependencies
-# to be specified to work with conda-lock
-# - from PyPI: my_package = { version = "1.2.3", source = "pypi" }
-# - from URL: !!! no actual lock, as tag or branch can move and installation will fetch current !!!
-#   - for a tag:    my_package = { url = "https://github.com/ORGANISATION/REPO/archive/refs/tags/TAG.tar.gz" }
-#   - for a branch: my_package = { url = "https://github.com/ORGANISATION/REPO/archive/refs/heads/BRANCH.tar.gz" }
-# - to actually lock on a revision: my_package = { git = "https://github.com/ORGANISATION/REPO.git", rev = "GIT_REV" }
-#   (where rev value is a tag, a branch name or a commit hash). Can also use ``branch`` or ``tag`` instead of ``rev``
 
 [tool.poetry.requires-plugins]
 poetry-dynamic-versioning = { version = ">=1.9.1,<2.0.0", extras = ["plugin"] }
