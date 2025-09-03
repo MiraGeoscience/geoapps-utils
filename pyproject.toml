@@ -131,8 +131,7 @@ index-url = "https://mirageoscienceltd.jfrog.io/artifactory/pypi/public-pypi-dev
 extra-index-urls = ["https://pypi.org/simple"]
 
 [tool.pixi.pypi-dependencies]
-# PyPI / git-based dependencies
-geoh5py = { git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop" }
+geoh5py = "*"
 
 [tool.pixi.environments]
 default = ["test", "build"]
@@ -141,7 +140,7 @@ production = []
 [tool.pixi.feature.build]
 pypi-dependencies = { hatch = "*", build = "*", twine = "*" }
 
-[tool.pixi.feature.test.pypi-dependencies]
+[tool.pixi.feature.test.dependencies]
 Pygments = "*"
 pylint = "*"
 pytest = "*"
@@ -150,7 +149,6 @@ pyyaml = "*"
 jinja2 = "*"
 packaging = "*"
 tomli = "*"
-geoapps-utils = { path = ".", editable = true }
 
 [tool.pixi.feature.test.tasks]
 test = "pytest --cov --cov-report=xml"
