@@ -13,7 +13,7 @@ dependencies:
   - cached-property=1.5.2=hd8ed1ab_1
   - cached_property=1.5.2=pyha770c72_1
   - freetype=2.13.3=h57928b3_1
-  - h5py=3.14.0=nompi_py310h877c39c_100
+  - h5py=3.14.0=nompi_py310hb7e4da9_101
   - hdf5=1.14.6=nompi_he30205f_103
   - krb5=1.21.3=hdf4eb48_0
   - lcms2=2.17=hbcf6048_0
@@ -63,7 +63,7 @@ dependencies:
   - typing-inspection=0.4.1=pyhd8ed1ab_0
   - typing_extensions=4.15.0=pyhcf101f3_0
   - tzdata=2025b=h78e105d_0
-  - ucrt=10.0.22621.0=h57928b3_1
+  - ucrt=10.0.26100.0=h57928b3_0
   - vc=14.3=h41ae7f8_31
   - vc14_runtime=14.44.35208=h818238b_31
   - vcomp14=14.44.35208=h818238b_31
@@ -72,7 +72,7 @@ dependencies:
   - xorg-libxdmcp=1.1.5=h0e40799_0
   - zstd=1.5.7=hbeecb71_2
   - pip:
-    - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@ae6476684d48892a7ce863c1165b8f6f488a3867
+    - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@3a91dd92144a34b3c1ad1e5885029a7102e6337c
 
 variables:
   KMP_WARNINGS: 0
