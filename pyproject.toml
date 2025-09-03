@@ -118,7 +118,6 @@ h5py = ">=3.2.1, <4.0.dev"      # from geoh5py
 [tool.pixi.environments]
 default = ["test", "build", "dev-git"]
 production = ["dev-git"]
-dev-local  = ["test", "build", "dev-local"]
 dev-git    = ["test", "build", "dev-git"]
 
 [tool.pixi.feature.dev-local.pypi-dependencies]
