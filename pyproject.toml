@@ -110,10 +110,14 @@ scipy = "1.14.*"
 
 ## indirect dependencies, forcing them here for installation through Conda not pip
 #---------------------------------------------------------------------------------
+Pillow = ">=10.3.0, <10.4.dev"  # from geoh5py
+h5py = ">=3.2.1, <4.0.dev"      # from geoh5py
+
+
 
 [tool.pixi.environments]
-default    = ["test", "build"]
-production = []
+default = ["test", "build", "dev-git"]
+production = ["dev-git"]
 dev-local  = ["test", "build", "dev-local"]
 dev-git    = ["test", "build", "dev-git"]
 

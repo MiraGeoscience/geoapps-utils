@@ -4,7 +4,6 @@ environments:
     channels:
     - url: https://repo.prefix.dev/conda-forge/
     indexes:
-    - https://mirageoscienceltd.jfrog.io/artifactory/pypi/public-pypi-dev/simple
     - https://pypi.org/simple
     packages:
       linux-64:
@@ -280,7 +279,6 @@ environments:
     channels:
     - url: https://repo.prefix.dev/conda-forge/
     indexes:
-    - https://mirageoscienceltd.jfrog.io/artifactory/pypi/public-pypi-dev/simple
     - https://pypi.org/simple
     packages:
       linux-64:
@@ -556,7 +554,6 @@ environments:
     channels:
     - url: https://repo.prefix.dev/conda-forge/
     indexes:
-    - https://mirageoscienceltd.jfrog.io/artifactory/pypi/public-pypi-dev/simple
     - https://pypi.org/simple
     packages:
       linux-64:
@@ -832,7 +829,6 @@ environments:
     channels:
     - url: https://repo.prefix.dev/conda-forge/
     indexes:
-    - https://mirageoscienceltd.jfrog.io/artifactory/pypi/public-pypi-dev/simple
     - https://pypi.org/simple
     packages:
       linux-64:
