@@ -116,9 +116,11 @@ h5py = ">=3.2.1, <4.0.dev"      # from geoh5py
 
 
 [tool.pixi.environments]
-default = ["test", "build", "dev-git"]
-production = ["dev-git"]
-dev-git    = ["test", "build", "dev-git"]
+#prod = {features = [], solve-group = "prod"}
+#test-prod = {features = ["test], solve-group = "prod"}
+default    = {features = ["test", "dev-git"], solve-group = "default"}
+dev-git    = {features = ["test", "dev-git"], solve-group = "default"}
+dev-local  = {features = ["test", "dev-local"]}
 
 [tool.pixi.feature.dev-local.pypi-dependencies]
 geoh5py = { path = "../geoh5py", editable = true }
@@ -126,9 +128,6 @@ geoh5py = { path = "../geoh5py", editable = true }
 [tool.pixi.feature.dev-git.pypi-dependencies]
 geoh5py = { git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop" }
 
-
-[tool.pixi.feature.build]
-pypi-dependencies = { hatch = "*", build = "*", twine = "*" }
 
 [tool.pixi.feature.test.dependencies]
 Pygments = "*"
