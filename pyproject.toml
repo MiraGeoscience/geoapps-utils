@@ -137,6 +137,14 @@ cmd = "uv pip show {{package}}"
 
 [tool.pixi.feature.test.tasks]
 test = "pytest --cov --cov-report=xml"
+test-local = """
+uv pip install --no-deps -e ../geoh5py --force-reinstall &&
+uv pip show geoh5py &&
+pytest --cov --cov-report=xml
+"""
+
+[tool.pixi.tasks]
+use-local-deps = "uv pip install --no-deps -e ../geoh5py --force-reinstall"
 
 [tool.ruff]
 target-version = "py310"
