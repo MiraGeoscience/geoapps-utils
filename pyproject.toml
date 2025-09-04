@@ -135,16 +135,20 @@ tomli = "*"
 args = [{ arg = "package", "default" = "geoh5py" }]
 cmd = "uv pip show {{package}}"
 
+[tool.pixi.tasks.use-local-deps]
+args = [{ arg = "package", default = "geoh5py" }]
+cmd = "uv pip install --no-deps -e ../{{package}} --force-reinstall"
+
 [tool.pixi.feature.test.tasks]
 test = "pytest --cov --cov-report=xml"
-test-local = """
-uv pip install --no-deps -e ../geoh5py --force-reinstall &&
-uv pip show geoh5py &&
-pytest --cov --cov-report=xml
-"""
 
-[tool.pixi.tasks]
-use-local-deps = "uv pip install --no-deps -e ../geoh5py --force-reinstall"
+[tool.pixi.feature.test.tasks.test-local]
+args = [{ arg = "package", default = "geoh5py" }]
+depends-on = [
+    {task = "use-local-deps", args = [ "{{ package }}" ]},
+    {task = "show-pip-source", args =  [ "{{ package }}" ]},
+    {task = "test"}
+]
 
 [tool.ruff]
 target-version = "py310"
