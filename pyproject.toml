@@ -132,21 +132,24 @@ packaging = "*"
 tomli = "*"
 
 [tool.pixi.tasks.show-pip-source]
-args = [{ arg = "package", "default" = "geoh5py" }]
-cmd = "uv pip show {{package}}"
+args = [{ arg = "packages", "default" = "geoh5py" }]
+cmd = "uv pip show {{packages}}"
 
 [tool.pixi.tasks.use-local-deps]
-args = [{ arg = "package", default = "geoh5py" }]
-cmd = "uv pip install --no-deps -e ../{{package}} --force-reinstall"
+args = [{ arg = "packages", default = "geoh5py" }]
+cmd = """
+uv pip install --no-deps --force-reinstall \
+{% for package in packages | split %} -e ../{{ package | trim }}{% endfor %}
+"""
 
 [tool.pixi.feature.test.tasks]
 test = "pytest --cov --cov-report=xml"
 
 [tool.pixi.feature.test.tasks.test-local]
-args = [{ arg = "package", default = "geoh5py" }]
+args = [{ arg = "packages", default = "geoh5py" }]
 depends-on = [
-    {task = "use-local-deps", args = [ "{{ package }}" ]},
-    {task = "show-pip-source", args =  [ "{{ package }}" ]},
+    {task = "use-local-deps", args = [ "{{ packages }}" ]},
+    {task = "show-pip-source", args =  [ "{{ packages }}" ]},
     {task = "test"}
 ]
 
