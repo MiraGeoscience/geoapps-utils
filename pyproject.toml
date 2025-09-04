@@ -107,13 +107,10 @@ platforms = ["win-64", "linux-64"]
 numpy = ">=1.26.0, <1.27.0"
 scipy = "1.14.*"
 
-
 ## indirect dependencies, forcing them here for installation through Conda not pip
 #---------------------------------------------------------------------------------
 Pillow = ">=10.3.0, <10.4.dev"  # from geoh5py
 h5py = ">=3.2.1, <4.0.dev"      # from geoh5py
-
-
 
 [tool.pixi.environments]
 #prod = {features = [], solve-group = "prod"}
@@ -122,7 +119,6 @@ default    = {features = ["test", "dev-git"], solve-group = "default"}
 
 [tool.pixi.feature.dev-git.pypi-dependencies]
 geoh5py = { git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop" }
-
 
 [tool.pixi.feature.test.dependencies]
 Pygments = "*"
