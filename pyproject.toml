@@ -111,6 +111,7 @@ scipy = "1.14.*"
 #---------------------------------------------------------------------------------
 Pillow = ">=10.3.0, <10.4.dev"  # from geoh5py
 h5py = ">=3.2.1, <4.0.dev"      # from geoh5py
+pydantic = ">=2.5.2,<3.0.dev"   # from geoh5py
 
 [tool.pixi.environments]
 #prod = {features = [], solve-group = "prod"}
