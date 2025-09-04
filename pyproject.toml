@@ -19,7 +19,7 @@ description = "Utility functions to build applications supported by Mira Geoscie
 license = "MIT"
 keywords = ["geology", "geophysics", "data", "interoperability"]
 readme = "package.rst"
-dynamic = ["version","classifiers"]
+dynamic = ["version", "classifiers"]
 authors = [{name = "Mira Geoscience", email = "support@mirageoscience.com"}]
 maintainers = [{name = "Dominique Fournier", email = "dominiquef@mirageoscience.com"}]
 
