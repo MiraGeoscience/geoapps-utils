@@ -131,6 +131,9 @@ jinja2 = "*"
 packaging = "*"
 tomli = "*"
 
+[tool.pixi.feature.test.tasks]
+test = "pytest --cov --cov-report=xml"
+
 [tool.pixi.tasks.show-pip-source]
 args = [{ arg = "packages", "default" = "geoh5py" }]
 cmd = "uv pip show {{packages}}"
@@ -141,9 +144,6 @@ cmd = """
 uv pip install --no-deps --force-reinstall \
 {% for package in packages | split %} -e ../{{ package | trim }}{% endfor %}
 """
-
-[tool.pixi.feature.test.tasks]
-test = "pytest --cov --cov-report=xml"
 
 [tool.pixi.feature.test.tasks.test-local]
 args = [{ arg = "packages", default = "geoh5py" }]
