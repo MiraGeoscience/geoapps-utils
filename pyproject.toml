@@ -120,10 +120,6 @@ h5py = ">=3.2.1, <4.0.dev"      # from geoh5py
 #test-prod = {features = ["test], solve-group = "prod"}
 default    = {features = ["test", "dev-git"], solve-group = "default"}
 dev-git    = {features = ["test", "dev-git"], solve-group = "default"}
-dev-local  = {features = ["test", "dev-local"]}
-
-[tool.pixi.feature.dev-local.pypi-dependencies]
-geoh5py = { path = "../geoh5py", editable = true }
 
 [tool.pixi.feature.dev-git.pypi-dependencies]
 geoh5py = { git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop" }
@@ -139,8 +135,15 @@ jinja2 = "*"
 packaging = "*"
 tomli = "*"
 
+[tool.pixi.tasks.show-pip-source]
+args = [{ arg = "package", "default" = "geoh5py" }]
+cmd = "uv pip show {{package}}"
+
 [tool.pixi.feature.test.tasks]
 test = "pytest --cov --cov-report=xml"
+
+[tool.pixi.feature.dev-git.tasks]
+use-local-deps = "uv pip install --no-deps -e ../geoh5py --force-reinstall && echo 'Using local dependencies'"
 
 [tool.ruff]
 target-version = "py310"
