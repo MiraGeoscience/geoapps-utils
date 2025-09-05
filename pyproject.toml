@@ -102,14 +102,15 @@ channels = ["https://repo.prefix.dev/conda-forge"]
 platforms = ["win-64", "linux-64"]
 
 [tool.pixi.dependencies]
-## direct dependencies, forcing them here for installation through Conda not pip
-#------------------------------------------------------------------------------
+# for pixi to resolve dependencies from conda
+## direct dependencies:
+#----------------------
 numpy = "1.26.*"
 pydantic = ">=2.7, 2.*"
 scipy = "1.14.*"
 
-## indirect dependencies, forcing them here for installation through Conda not pip
-#---------------------------------------------------------------------------------
+## indirect dependencies from remaining pip packages:
+#----------------------------------------------------
 Pillow = "10.3.*"  # from geoh5py
 h5py = ">=3.2.1, 3.*"  # from geoh5py
 
@@ -121,7 +122,7 @@ h5py = ">=3.2.1, 3.*"  # from geoh5py
 #test-prod-py311 = {features = ["py311", "test"], solve-group = "prod-py311"}
 #test-prod-py312 = {features = ["py312", "test"], solve-group = "prod-py312"}
 
-default  = {features = ["py310", "test", "dev-git"], solve-group = "dev-py310"}
+default  = {features = ["py310", "test", "dev", "dev-git"], solve-group = "dev-py310"}
 py310    = {features = ["py310", "test", "dev-git"], solve-group = "dev-py310"}
 py311    = {features = ["py311", "test", "dev-git"], solve-group = "dev-py311"}
 py312    = {features = ["py312", "test", "dev-git"], solve-group = "dev-py312"}
@@ -139,14 +140,14 @@ python = "3.12.*"
 geoh5py = { git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop" }
 
 [tool.pixi.feature.test.dependencies]
-Pygments = "*"
+packaging = "*"
 pylint = "*"
 pytest = "*"
 pytest-cov = "*"
 pyyaml = "*"
-jinja2 = "*"
-packaging = "*"
-tomli = "*"
+
+[tool.pixi.feature.dev.dependencies]
+Pygments = "*"
 
 [tool.pixi.feature.test.tasks]
 test = "pytest --cov --cov-report=xml"
