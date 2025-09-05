@@ -21,6 +21,7 @@ from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import ObjectBase
 from geoh5py.ui_json import InputFile, monitored_directory_copy
+from geoh5py.ui_json.utils import fetch_active_workspace
 from pydantic import BaseModel, ConfigDict, ValidationError
 from typing_extensions import Self
 
@@ -330,3 +331,11 @@ class Options(BaseModel):
         options = ifile.stringify(ifile.demote(ifile.ui_json))
 
         return options
+
+    def update_out_group_options(self):
+        if self.out_group is None:
+            raise ValueError("No output group defined to save options.")
+
+        with fetch_active_workspace(self.geoh5, mode="r+"):
+            self.out_group.options = self.serialize()
+            self.out_group.metadata = None
