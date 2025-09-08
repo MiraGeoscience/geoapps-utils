@@ -33,6 +33,7 @@ def load_ui_json(filepath: str | Path | dict) -> dict:
     Load a ui.json file.
 
     :param filepath: Path to a ui.json file.
+
     :return: Parsed JSON dictionary.
     """
 
@@ -42,10 +43,8 @@ def load_ui_json(filepath: str | Path | dict) -> dict:
     else:
         uijson = filepath
 
-    if not isinstance(uijson, dict) or "run_command" not in uijson:
-        raise ValueError(
-            f"Invalid ui.json file: {filepath}. It must contain a 'run_command' key."
-        )
+    if not isinstance(uijson, dict):
+        raise ValueError(f"Invalid ui.json file: {filepath}.")
 
     return uijson
 
@@ -54,7 +53,9 @@ def fetch_driver_class(json_dict: str | Path | dict) -> type[Driver]:
     """
     Fetch the driver class from the ui.json 'run_command'.
 
-    :param filepath: Path to a ui.json file with a 'run_command' key.
+    :param json_dict: Path to a ui.json file with a 'run_command' key.
+
+    :return: Driver class.
     """
     # TODO Remove after deprecation of geoapps_utils.driver
 
@@ -64,10 +65,10 @@ def fetch_driver_class(json_dict: str | Path | dict) -> type[Driver]:
 
     uijson = load_ui_json(json_dict)
 
-    if not isinstance(uijson["run_command"], str):
-        raise ValueError(
+    if "run_command" not in uijson or not isinstance(uijson["run_command"], str):
+        raise KeyError(
             "'run_command' in ui.json must be a string representing the module path."
-            f" Got {type(uijson['run_command'])}."
+            f" Got {uijson.get('run_command', None)}."
         )
 
     module = import_module(uijson["run_command"])
@@ -99,6 +100,7 @@ def load_uijson_as_group(
     Load a ui.json file as a UIJsonGroup.
 
     :param uijson_path: Path to a ui.json file.
+
     :return: UIJsonGroup with options set from the ui.json file.
     """
     uijson_path = Path(uijson_path)

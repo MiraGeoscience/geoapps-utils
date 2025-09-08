@@ -136,7 +136,7 @@ def test_fetch_driver(tmp_path):
 
     # Repeat with missing run_command
     del dict_params["run_command"]
-    with pytest.raises(ValueError, match="must contain a 'run_command'"):
+    with pytest.raises(KeyError, match="'run_command' in ui.json must be a string"):
         fetch_driver_class(dict_params)
 
     # Repeat with missing driver in module
