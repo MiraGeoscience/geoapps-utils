@@ -312,13 +312,18 @@ class Options(BaseModel):
 
         return ifile
 
-    def write_ui_json(self, path: Path) -> None:
+    def write_ui_json(self, path: Path) -> str:
         """
         Write the ui.json file for the application.
 
         :param path: Path to write the ui.json file.
         """
-        self.input_file.write_ui_json(path.name, str(path.parent))
+        if self._input_file is None:
+            self._input_file = self.input_file
+            self._input_file.name = path.name
+            self._input_file.path = str(path.parent)
+
+        return self.input_file.write_ui_json(path.name, str(path.parent))
 
     def serialize(self):
         """Return a demoted uijson dictionary representation the params data."""
