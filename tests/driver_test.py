@@ -19,8 +19,11 @@ from typing import ClassVar
 import numpy as np
 import pytest
 from geoh5py import Workspace
+from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import Points
+from geoh5py.ui_json import InputFile
 from geoh5py.ui_json.constants import default_ui_json as base_ui_json
+from geoh5py.ui_json.templates import group_parameter, object_parameter
 from pydantic import BaseModel, ConfigDict
 
 from geoapps_utils import assets_path
@@ -77,21 +80,25 @@ class TestParamsDriver(BaseDriver):
         pass
 
 
+TEST_DICT = {
+    "monitoring_directory": None,
+    "workspace_geoh5": None,
+    "geoh5": None,
+    "run_command": None,
+    "title": "test_title",
+    "conda_environment": None,
+    "conda_environment_boolean": False,
+    "generate_sweep": False,
+    "workspace": None,
+    "run_command_boolean": False,
+}
+
+
 def test_base_driver(tmp_path):
     workspace = Workspace.create(tmp_path / f"{__name__}.geoh5")
     # Create params
-    test_params = {
-        "monitoring_directory": None,
-        "workspace_geoh5": None,
-        "geoh5": workspace,
-        "run_command": None,
-        "title": "test_title",
-        "conda_environment": None,
-        "conda_environment_boolean": False,
-        "generate_sweep": False,
-        "workspace": None,
-        "run_command_boolean": False,
-    }
+    test_params = deepcopy(TEST_DICT)
+    test_params["geoh5"] = str(workspace.h5file)
 
     params = TestParams(**test_params)
     params.write_input_file(path=tmp_path, name="test_ifile.ui.json")
@@ -102,6 +109,37 @@ def test_base_driver(tmp_path):
 
     driver = TestParamsDriver(params)
     driver.start(tmp_path / "test_ifile.ui.json")
+
+
+def test_options_out(tmp_path):
+    workspace = Workspace.create(tmp_path / f"{__name__}.geoh5")
+    # Create params
+    pts = Points.create(workspace, vertices=np.random.randn(10, 3))
+    out_group = UIJsonGroup.create(workspace, name="Test Group")
+
+    with pytest.raises(TypeError, match="Input data must be a dictionary"):
+        TestOptions.build("not a dict")  # type: ignore
+
+    # test creation of input file on the fly
+    options = TestOptions.build({"geoh5": workspace, "client": pts})
+    assert options._input_file is None  # pylint: disable=protected-access
+    options.write_ui_json(tmp_path / "test_options.ui.json")
+    assert isinstance(options._input_file, InputFile)  # pylint: disable=protected-access
+
+    ui_json = deepcopy(TEST_DICT)
+    ui_json["out_group"] = group_parameter(value=out_group)
+    ui_json["geoh5"] = workspace
+    ui_json["client"] = object_parameter(value=pts)
+    ui_json["run_command"] = "geoapps_utils.driver.driver"
+
+    ifile = InputFile(ui_json=ui_json)
+    options = TestOptions.build(ifile)
+
+    # Test updating out_group options
+    assert len(out_group.options) == 0
+    options.update_out_group_options()
+    assert len(out_group.options) > 0
+    assert out_group.options["out_group"]["value"] == str(out_group.uid)
 
 
 def test_base_options(tmp_path):

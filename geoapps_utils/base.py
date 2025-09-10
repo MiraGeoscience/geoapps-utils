@@ -317,6 +317,8 @@ class Options(BaseModel):
         Write the ui.json file for the application.
 
         :param path: Path to write the ui.json file.
+
+        :return: Path to the written ui.json file.
         """
         if self._input_file is None:
             self._input_file = self.input_file
@@ -338,6 +340,9 @@ class Options(BaseModel):
         return options
 
     def update_out_group_options(self):
+        """
+        Serialize current state and save to the out_group options.
+        """
         if self.out_group is None:
             raise ValueError("No output group defined to save options.")
 
