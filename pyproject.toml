@@ -114,21 +114,21 @@ scipy = "1.14.*"
 Pillow = "10.3.*"  # from geoh5py
 h5py = ">=3.2.1, 3.*"  # from geoh5py
 
-[tool.pixi.environments]
-#prod-py310 = {features = ["py310", "mirageo", "self"], solve-group = "prod-py310"}
-#prod-py311 = {features = ["py311", "mirageo", "self"], solve-group = "prod-py311"}
-#prod-py312 = {features = ["py312", "mirageo", "self"], solve-group = "prod-py312"}
-#test-prod-py310 = {features = ["py310", "mirageo", "self", "test"], solve-group = "prod-py310"}
-#test-prod-py311 = {features = ["py311", "mirageo", "self", "test"], solve-group = "prod-py311"}
-#test-prod-py312 = {features = ["py312", "mirageo", "self", "test"], solve-group = "prod-py312"}
-
-default  = {features = ["py310", "mirageo-git", "self", "test", "dev"], solve-group = "dev-py310"}
-py310    = {features = ["py310", "mirageo-git", "self", "test"], solve-group = "dev-py310"}
-py311    = {features = ["py311", "mirageo-git", "self", "test"], solve-group = "dev-py311"}
-py312    = {features = ["py312", "mirageo-git", "self", "test"], solve-group = "dev-py312"}
-
-[tool.pixi.feature.self.pypi-dependencies]
+[tool.pixi.pypi-dependencies]
 geoapps-utils = { path = ".", editable = true}
+
+[tool.pixi.environments]
+#prod-py310 = {features = ["py310", "mirageo"], solve-group = "prod-py310"}
+#prod-py311 = {features = ["py311", "mirageo"], solve-group = "prod-py311"}
+#prod-py312 = {features = ["py312", "mirageo"], solve-group = "prod-py312"}
+#test-prod-py310 = {features = ["py310", "mirageo", "test"], solve-group = "prod-py310"}
+#test-prod-py311 = {features = ["py311", "mirageo", "test"], solve-group = "prod-py311"}
+#test-prod-py312 = {features = ["py312", "mirageo", "test"], solve-group = "prod-py312"}
+
+default  = {features = ["py310", "mirageo-git", "test", "dev"], solve-group = "dev-py310"}
+py310    = {features = ["py310", "mirageo-git", "test"], solve-group = "dev-py310"}
+py311    = {features = ["py311", "mirageo-git", "test"], solve-group = "dev-py311"}
+py312    = {features = ["py312", "mirageo-git", "test"], solve-group = "dev-py312"}
 
 [tool.pixi.feature.mirageo-git.pypi-dependencies]
 geoh5py = { git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop" }

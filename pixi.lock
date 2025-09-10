@@ -1071,8 +1071,8 @@ packages:
   timestamp: 1745370242683
 - pypi: ./
   name: geoapps-utils
-  version: 0.6.0a1.dev96+9fa3c66
-  sha256: e3f2c4e5d3a06f16f55ba402d28772f7b53ff8205688971f5630b01023fa6cb4
+  version: 0.6.0a1.dev97+5ce1667
+  sha256: ff155bd982acb1b1f8b0acea5c5c2f32edc969fbfcb99766c3716ebd749cfbc5
   requires_dist:
   - geoh5py>=0.12.0a1,<0.13.dev0
   - numpy==1.26.*
