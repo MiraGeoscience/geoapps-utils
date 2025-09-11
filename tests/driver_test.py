@@ -152,6 +152,10 @@ def test_base_options(tmp_path):
         TestOptions.build("not a dict")  # type: ignore
 
     options = TestOptions.build({"geoh5": workspace, "client": pts})
+
+    with pytest.raises(ValueError, match="No output group"):
+        options.update_out_group_options()
+
     driver = TestOptionsDriver(options)
 
     assert isinstance(driver.params, TestOptions)
