@@ -15,6 +15,7 @@ import logging
 from copy import deepcopy
 from pathlib import Path
 from typing import ClassVar
+from uuid import UUID
 
 import numpy as np
 import pytest
@@ -139,7 +140,7 @@ def test_options_out(tmp_path):
     assert len(out_group.options) == 0
     options.update_out_group_options()
     assert len(out_group.options) > 0
-    assert out_group.options["out_group"]["value"] == str(out_group.uid)
+    assert UUID(out_group.options["out_group"]["value"]) == out_group.uid
 
 
 def test_base_options(tmp_path):
