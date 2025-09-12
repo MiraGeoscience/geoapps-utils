@@ -125,10 +125,12 @@ geoapps-utils = { path = ".", editable = true}
 #test-prod-py311 = {features = ["py311", "mirageo", "test"], solve-group = "prod-py311"}
 #test-prod-py312 = {features = ["py312", "mirageo", "test"], solve-group = "prod-py312"}
 
-default  = {features = ["py310", "mirageo-git", "test", "dev"], solve-group = "dev-py310"}
-py310    = {features = ["py310", "mirageo-git", "test"], solve-group = "dev-py310"}
-py311    = {features = ["py311", "mirageo-git", "test"], solve-group = "dev-py311"}
-py312    = {features = ["py312", "mirageo-git", "test"], solve-group = "dev-py312"}
+py310 = {features = ["py310", "mirageo-git", "test"], solve-group = "default"}
+py311 = {features = ["py311", "mirageo-git", "test"]}
+py312 = {features = ["py312", "mirageo-git", "test"]}
+
+default = {features = ["py310", "mirageo-git", "test", "dev"], solve-group = "default"}
+repl = {features = ["py310", "mirageo-git", "test", "dev", "repl"], solve-group = "default"}
 
 [tool.pixi.feature.mirageo-git.pypi-dependencies]
 geoh5py = { git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop" }
@@ -154,6 +156,12 @@ pyyaml = "*"
 
 [tool.pixi.feature.dev.dependencies]
 Pygments = "*"
+
+[tool.pixi.feature.repl.dependencies]
+ipython = "*"
+
+[tool.pixi.feature.repl.tasks]
+repl = "ipython"
 
 [tool.pixi.feature.test.tasks]
 test = "pytest --cov --cov-report=xml"
