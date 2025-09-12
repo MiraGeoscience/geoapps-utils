@@ -149,3 +149,4 @@ pyproject-sha.toml
 geoapps_utils/_version.py
 # pixi environments
 .pixi/*
+!.pixi/config.toml
