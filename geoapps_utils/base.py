@@ -21,6 +21,7 @@ from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import ObjectBase
 from geoh5py.ui_json import InputFile, monitored_directory_copy
+from geoh5py.ui_json.utils import fetch_active_workspace
 from pydantic import BaseModel, ConfigDict, ValidationError
 from typing_extensions import Self
 
@@ -311,13 +312,20 @@ class Options(BaseModel):
 
         return ifile
 
-    def write_ui_json(self, path: Path) -> None:
+    def write_ui_json(self, path: Path) -> str:
         """
         Write the ui.json file for the application.
 
         :param path: Path to write the ui.json file.
+
+        :return: Path to the written ui.json file.
         """
-        self.input_file.write_ui_json(path.name, str(path.parent))
+        if self._input_file is None:
+            self._input_file = self.input_file
+            self._input_file.name = path.name
+            self._input_file.path = str(path.parent)
+
+        return self.input_file.write_ui_json(path.name, str(path.parent))
 
     def serialize(self):
         """Return a demoted uijson dictionary representation the params data."""
@@ -330,3 +338,14 @@ class Options(BaseModel):
         options = ifile.stringify(ifile.demote(ifile.ui_json))
 
         return options
+
+    def update_out_group_options(self):
+        """
+        Serialize current state and save to the out_group options.
+        """
+        if self.out_group is None:
+            raise ValueError("No output group defined to save options.")
+
+        with fetch_active_workspace(self.geoh5, mode="r+"):
+            self.out_group.options = self.serialize()
+            self.out_group.metadata = None
