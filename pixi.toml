@@ -4,7 +4,7 @@ channels = ["https://repo.prefix.dev/conda-forge"]
 platforms = ["win-64", "linux-64"]
 
 [dependencies]
-# for pixi to resolve dependencies from conda
+# dependencies resolved from conda
 ## direct dependencies:
 #----------------------
 numpy = "1.26.*"
