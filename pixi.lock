@@ -1318,8 +1318,19 @@ packages:
   timestamp: 1757518017222
 - pypi: ./
   name: geoapps-utils
-  version: 0.6.0a1.dev103+2496cc7
-  sha256: 4d4b4708431e48bbd93503e4faf3b556df6793c3070a773562c080e271547491
+  version: 0.6.0a1.dev104+daf5fd4
+  sha256: 63a790ef9ac97ebaa513713d2a537f096a4574f8a1fe5481db9a828f74dd5e86
+  requires_dist:
+  - geoh5py>=0.12.0a1,<0.13.dev0
+  - numpy==1.26.*
+  - pydantic>=2.7,<3.dev0
+  - scipy==1.14.*
+  requires_python: '>=3.10,<4.0'
+  editable: true
+- pypi: ./
+  name: geoapps-utils
+  version: 0.6.0a1.dev104+daf5fd4
+  sha256: 8fa65c064bec2285a0e73e1e95e4c6f6cb7735c8b6bdecac47fbaec4b8c95bdf
   requires_dist:
   - geoh5py>=0.12.0a1,<0.13.dev0
   - numpy==1.26.*

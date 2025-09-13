@@ -111,8 +111,8 @@ scipy = "1.14.*"
 
 ## indirect dependencies from remaining pip packages:
 #----------------------------------------------------
-h5py = "*"
-pillow = "*"
+h5py = ">=3.2.1, 3.*"
+pillow = "10.3.*"
 
 [tool.pixi.pypi-dependencies]
 geoapps-utils = {path = ".", editable = true}
