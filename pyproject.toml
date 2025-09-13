@@ -17,7 +17,7 @@ requires-python = '>=3.10,<4.0'
 
 description = "Utility functions to build applications supported by Mira Geoscience"
 license = "MIT"
-keywords = ["geology", "geophysics", "data", "interoperability"]
+keywords = ["geology", "geophysics", "data", "interoperability", "geoh5"]
 readme = "package.rst"
 dynamic = ["version", "classifiers"]
 authors = [{name = "Mira Geoscience", email = "support@mirageoscience.com"}]
@@ -115,7 +115,7 @@ h5py = "*"
 pillow = "*"
 
 [tool.pixi.pypi-dependencies]
-geoapps-utils = { path = ".", editable = true}
+geoapps-utils = {path = ".", editable = true}
 
 [tool.pixi.environments]
 #prod-py310 = {features = ["py310", "mirageo"], solve-group = "prod-py310"}
