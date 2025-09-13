@@ -95,7 +95,7 @@ environments:
       - conda: https://repo.prefix.dev/conda-forge/linux-64/xorg-libxdmcp-1.1.5-hb9d3cd8_0.conda
       - conda: https://repo.prefix.dev/conda-forge/linux-64/yaml-0.2.5-h280c20c_3.conda
       - conda: https://repo.prefix.dev/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
-      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#a05ed0984fc78d2b324c730ccd4294c0fde0f901
+      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#8f4cb4c0ebfb6ce25b3be6c83746d184f47a5f67
       - pypi: ./
       win-64:
       - conda: https://repo.prefix.dev/conda-forge/win-64/_openmp_mutex-4.5-2_gnu.conda
@@ -180,7 +180,7 @@ environments:
       - conda: https://repo.prefix.dev/conda-forge/win-64/xorg-libxdmcp-1.1.5-h0e40799_0.conda
       - conda: https://repo.prefix.dev/conda-forge/win-64/yaml-0.2.5-h6a83c73_3.conda
       - conda: https://repo.prefix.dev/conda-forge/win-64/zstd-1.5.7-hbeecb71_2.conda
-      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#a05ed0984fc78d2b324c730ccd4294c0fde0f901
+      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#8f4cb4c0ebfb6ce25b3be6c83746d184f47a5f67
       - pypi: ./
   py310:
     channels:
@@ -277,7 +277,7 @@ environments:
       - conda: https://repo.prefix.dev/conda-forge/linux-64/xorg-libxdmcp-1.1.5-hb9d3cd8_0.conda
       - conda: https://repo.prefix.dev/conda-forge/linux-64/yaml-0.2.5-h280c20c_3.conda
       - conda: https://repo.prefix.dev/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
-      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#a05ed0984fc78d2b324c730ccd4294c0fde0f901
+      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#8f4cb4c0ebfb6ce25b3be6c83746d184f47a5f67
       - pypi: ./
       win-64:
       - conda: https://repo.prefix.dev/conda-forge/win-64/_openmp_mutex-4.5-2_gnu.conda
@@ -362,7 +362,7 @@ environments:
       - conda: https://repo.prefix.dev/conda-forge/win-64/xorg-libxdmcp-1.1.5-h0e40799_0.conda
       - conda: https://repo.prefix.dev/conda-forge/win-64/yaml-0.2.5-h6a83c73_3.conda
       - conda: https://repo.prefix.dev/conda-forge/win-64/zstd-1.5.7-hbeecb71_2.conda
-      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#a05ed0984fc78d2b324c730ccd4294c0fde0f901
+      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#8f4cb4c0ebfb6ce25b3be6c83746d184f47a5f67
       - pypi: ./
   py311:
     channels:
@@ -459,7 +459,7 @@ environments:
       - conda: https://repo.prefix.dev/conda-forge/linux-64/xorg-libxdmcp-1.1.5-hb9d3cd8_0.conda
       - conda: https://repo.prefix.dev/conda-forge/linux-64/yaml-0.2.5-h280c20c_3.conda
       - conda: https://repo.prefix.dev/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
-      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#a05ed0984fc78d2b324c730ccd4294c0fde0f901
+      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#8f4cb4c0ebfb6ce25b3be6c83746d184f47a5f67
       - pypi: ./
       win-64:
       - conda: https://repo.prefix.dev/conda-forge/win-64/_openmp_mutex-4.5-2_gnu.conda
@@ -544,7 +544,7 @@ environments:
       - conda: https://repo.prefix.dev/conda-forge/win-64/xorg-libxdmcp-1.1.5-h0e40799_0.conda
       - conda: https://repo.prefix.dev/conda-forge/win-64/yaml-0.2.5-h6a83c73_3.conda
       - conda: https://repo.prefix.dev/conda-forge/win-64/zstd-1.5.7-hbeecb71_2.conda
-      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#a05ed0984fc78d2b324c730ccd4294c0fde0f901
+      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#8f4cb4c0ebfb6ce25b3be6c83746d184f47a5f67
       - pypi: ./
   py312:
     channels:
@@ -641,7 +641,7 @@ environments:
       - conda: https://repo.prefix.dev/conda-forge/linux-64/xorg-libxdmcp-1.1.5-hb9d3cd8_0.conda
       - conda: https://repo.prefix.dev/conda-forge/linux-64/yaml-0.2.5-h280c20c_3.conda
       - conda: https://repo.prefix.dev/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
-      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#a05ed0984fc78d2b324c730ccd4294c0fde0f901
+      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#8f4cb4c0ebfb6ce25b3be6c83746d184f47a5f67
       - pypi: ./
       win-64:
       - conda: https://repo.prefix.dev/conda-forge/win-64/_openmp_mutex-4.5-2_gnu.conda
@@ -726,7 +726,7 @@ environments:
       - conda: https://repo.prefix.dev/conda-forge/win-64/xorg-libxdmcp-1.1.5-h0e40799_0.conda
       - conda: https://repo.prefix.dev/conda-forge/win-64/yaml-0.2.5-h6a83c73_3.conda
       - conda: https://repo.prefix.dev/conda-forge/win-64/zstd-1.5.7-hbeecb71_2.conda
-      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#a05ed0984fc78d2b324c730ccd4294c0fde0f901
+      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#8f4cb4c0ebfb6ce25b3be6c83746d184f47a5f67
       - pypi: ./
   repl:
     channels:
@@ -838,7 +838,7 @@ environments:
       - conda: https://repo.prefix.dev/conda-forge/linux-64/xorg-libxdmcp-1.1.5-hb9d3cd8_0.conda
       - conda: https://repo.prefix.dev/conda-forge/linux-64/yaml-0.2.5-h280c20c_3.conda
       - conda: https://repo.prefix.dev/conda-forge/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
-      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#a05ed0984fc78d2b324c730ccd4294c0fde0f901
+      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#8f4cb4c0ebfb6ce25b3be6c83746d184f47a5f67
       - pypi: ./
       win-64:
       - conda: https://repo.prefix.dev/conda-forge/win-64/_openmp_mutex-4.5-2_gnu.conda
@@ -936,7 +936,7 @@ environments:
       - conda: https://repo.prefix.dev/conda-forge/win-64/xorg-libxdmcp-1.1.5-h0e40799_0.conda
       - conda: https://repo.prefix.dev/conda-forge/win-64/yaml-0.2.5-h6a83c73_3.conda
       - conda: https://repo.prefix.dev/conda-forge/win-64/zstd-1.5.7-hbeecb71_2.conda
-      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#a05ed0984fc78d2b324c730ccd4294c0fde0f901
+      - pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#8f4cb4c0ebfb6ce25b3be6c83746d184f47a5f67
       - pypi: ./
 packages:
 - conda: https://repo.prefix.dev/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
@@ -1318,8 +1318,8 @@ packages:
   timestamp: 1757518017222
 - pypi: ./
   name: geoapps-utils
-  version: 0.6.0a1.dev99+ff501b1
-  sha256: 5aaec0874b33de57b5194a4145d6e3ce0748e428340a7df34df36275bcfc5e52
+  version: 0.6.0a1.dev102+efd7b5b
+  sha256: b16fb4dbb30e10b9db4b91187df044bcc13b9566fe676a26ffc6812689a803d7
   requires_dist:
   - geoh5py>=0.12.0a1,<0.13.dev0
   - numpy==1.26.*
@@ -1327,9 +1327,9 @@ packages:
   - scipy==1.14.*
   requires_python: '>=3.10,<4.0'
   editable: true
-- pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#a05ed0984fc78d2b324c730ccd4294c0fde0f901
+- pypi: git+https://github.com/MiraGeoscience/geoh5py.git?rev=develop#8f4cb4c0ebfb6ce25b3be6c83746d184f47a5f67
   name: geoh5py
-  version: 0.12.0a2.dev71+a05ed098
+  version: 0.12.0a2.dev76+8f4cb4c0
   requires_dist:
   - pillow>=10.3.0,<10.4.0
   - h5py>=3.2.1,<4.0.0
