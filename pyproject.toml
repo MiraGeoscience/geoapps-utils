@@ -17,7 +17,14 @@ requires-python = '>=3.10,<4.0'
 
 description = "Utility functions to build applications supported by Mira Geoscience"
 license = "MIT"
-keywords = ["geology", "geophysics", "data", "interoperability", "geoh5"]
+keywords = [
+    "data",
+    "earth-science",
+    "geoh5",
+    "geology",
+    "geophysics",
+    "interoperability",
+]
 readme = "package.rst"
 dynamic = ["version", "classifiers"]
 authors = [{name = "Mira Geoscience", email = "support@mirageoscience.com"}]
