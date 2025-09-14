@@ -142,11 +142,12 @@ dmypy.json
 # geoh5 locks
 *.geoh5.lock
 
-# tempory generated files
-pyproject-sha.toml
-/poetry.lock
-#version ignore
+# auto-generated version file
 geoapps_utils/_version.py
+
+# not using poetry to lock, but pixi
+poetry.lock
+
 # pixi environments
 .pixi/*
 !.pixi/config.toml
