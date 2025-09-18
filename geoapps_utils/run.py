@@ -11,16 +11,16 @@
 from __future__ import annotations
 
 import inspect
-import json
 import logging
 import sys
+import tempfile
 from importlib import import_module
 from json import load
 from pathlib import Path
 
 from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
-from geoh5py.shared.utils import entity2uuid, stringify
+from geoh5py.ui_json import InputFile
 
 from geoapps_utils.base import Driver
 
@@ -28,9 +28,9 @@ from geoapps_utils.base import Driver
 logger = logging.getLogger()
 
 
-def load_ui_json(filepath: str | Path | dict) -> dict:
+def load_ui_json_as_dict(filepath: str | Path | dict) -> dict:
     """
-    Load a ui.json file.
+    Load a ui.json file as a dictionary
 
     :param filepath: Path to a ui.json file.
 
@@ -58,12 +58,11 @@ def fetch_driver_class(json_dict: str | Path | dict) -> type[Driver]:
     :return: Driver class.
     """
     # TODO Remove after deprecation of geoapps_utils.driver
-
     from geoapps_utils.driver.driver import (  # pylint: disable=import-outside-toplevel, cyclic-import
         BaseDriver,
     )
 
-    uijson = load_ui_json(json_dict)
+    uijson = load_ui_json_as_dict(json_dict)
 
     if "run_command" not in uijson or not isinstance(uijson["run_command"], str):
         raise KeyError(
@@ -93,101 +92,174 @@ def fetch_driver_class(json_dict: str | Path | dict) -> type[Driver]:
     return cls
 
 
-def load_uijson_as_group(
+def run_uijson_file(
     uijson_path: Path | str,
-) -> UIJsonGroup:
+) -> Driver:
     """
-    Load a ui.json file as a UIJsonGroup.
+    Run a ui.json file.
 
     :param uijson_path: Path to a ui.json file.
-
-    :return: UIJsonGroup with options set from the ui.json file.
     """
-    uijson_path = Path(uijson_path)
-    uijson = load_ui_json(uijson_path)
+    driver_class = fetch_driver_class(uijson_path)
+    driver_instance = driver_class.start(uijson_path)
 
-    if "geoh5" not in uijson:
-        raise KeyError(f"ui.json file {uijson_path} must contain a 'geoh5' key.")
-
-    # todo: if outgroup do that
-    with Workspace(uijson["geoh5"]) as workspace:
-        uijson_group = UIJsonGroup.create(
-            workspace, name=uijson.get("title", None), options=uijson
-        )
-
-    # todo: else do "Input File"
-    return uijson_group
+    return driver_instance
 
 
-def run_uijson_group(
-    out_group: UIJsonGroup,
-    path: Path | str,
-    validate: bool = True,
-    name: str | None = None,
-):
+def run_uijson_group(out_group: UIJsonGroup) -> Driver:
     """
-    Run a UIJsonGroup based on its options.
+    Run the function defined in the 'out_group' UIJsonGroup.
 
     :param out_group: A UIJsonGroup with options set.
-    :param path: Path to save the output .geoh5 and .ui.json files.
-    :param validate: Whether to validate the input parameters before running.
-        It depends on the driver implementation.
-    :param name: Name of the output files. If
+
+    :return: Driver instance.
     """
-    # todo: one function for UiJson group and one for InputFile?
-    # ensure the group has a driver
     if not isinstance(out_group, UIJsonGroup):
         raise TypeError(
             f"Input 'out_group' must be a UIJsonGroup. Got {type(out_group)}."
         )
 
-    path = Path(path).resolve()
-
     if not out_group.options:
         raise ValueError("UIJsonGroup must have options set.")
 
-    name = name or out_group.name.replace(" ", "_")
-    json_path = path / f"{name}.ui.json"
-    h5_path = path / f"{name}.geoh5"
+    # create a uijson file from options
+    uijson_file = out_group.add_ui_json()
 
-    if h5_path.exists():
-        raise FileExistsError(
-            f"File {h5_path} already exists."
-            "Please remove it or choose another output path."
-        )
+    # create a temporary uijson file
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        tmpdir = Path(tmpdirname)
+        tmpdir_uijson = uijson_file.save_file(tmpdir, name=f"{out_group.name}.ui.json")
 
-    json_str = json.dumps(stringify(out_group.options, [entity2uuid]), indent=4)
-    json_path.write_text(json_str)
+        # run the temporary file
+        driver_class = fetch_driver_class(tmpdir_uijson)
+        driver_instance = driver_class.start(tmpdir_uijson)
 
-    with Workspace(out_group.options["geoh5"]) as workspace:
-        with Workspace.create(h5_path) as new_workspace:
-            out_group = workspace.get_entity(out_group.uid)[0]
-            out_group.copy(
-                parent=new_workspace, copy_children=True, copy_relatives=True
-            )
-            current_driver = fetch_driver_class(json_path)
-            current_driver.start(json_path, validate=validate)
+    return driver_instance
 
 
-def run_uijson_file(
+def copy_uijson_file(
     uijson_path: Path | str,
-    output_path: Path | str,
-    validate: bool = True,
-    name: str | None = None,
+    destination: Path | str,
+    new_workspace_name: str | None = None,
+    monitoring_directory: Path | str | None = None,
 ):
     """
-    Run a ui.json file.
+    Copy a ui.json file to a new location, optionally changing the geoh5 file name.
 
     :param uijson_path: Path to a ui.json file.
-    :param output_path: Path to save the output .geoh5 and .ui.json files.
-    :param validate: Whether to validate the input parameters before running.
-        It depends on the driver implementation.
-    :param name: Name of the output files.
+    :param destination: Path to copy the ui.json file to.
+    :param new_workspace_name: New geoh5 file name. If None, the original name is kept.
+    :param monitoring_directory: New monitoring directory. If None, the original is kept.
     """
-    uijson_group = load_uijson_as_group(uijson_path)
-    # todo: outgroup vs InputFile
-    run_uijson_group(uijson_group, output_path, validate=validate, name=name)
+    ifile = InputFile.read_ui_json(uijson_path)
 
+    new_workspace_name = new_workspace_name or ifile.name
+    workspace_path = Path(destination) / new_workspace_name
+    workspace_path = workspace_path.with_suffix(".geoh5")
+
+    if workspace_path.is_file():
+        raise FileExistsError(f"File {workspace_path} already exists.")
+
+    with Workspace.create(workspace_path) as new_workspace:
+        ifile.copy_relatives(new_workspace)
+        temp_json = ifile.ui_json
+        temp_json["geoh5"] = workspace_path
+
+        if monitoring_directory is not None:
+            temp_json["monitoring_directory"] = str(monitoring_directory)
+
+        new_input_file = InputFile(ui_json=temp_json)
+        uijson_path_name = new_input_file.write_ui_json(str(destination))
+
+    return uijson_path_name
+
+
+def copy_out_group(
+    out_group: UIJsonGroup,
+    destination: Path | str,
+    new_workspace_name: str | None = None,
+    monitoring_directory: Path | str | None = None,
+):
+    """
+    Copy a UIJsonGroup to a new location, optionally changing the geoh5 file name.
+
+    :param out_group: A UIJsonGroup with options set.
+    :param destination: Path to copy the ui.json file to.
+    :param new_workspace_name: New geoh5 file name. If None, the original name is kept.
+    :param monitoring_directory: New monitoring directory. If None, the original is kept.
+    """
+    if not isinstance(out_group, UIJsonGroup):
+        raise TypeError(
+            f"Input 'out_group' must be a UIJsonGroup. Got {type(out_group)}."
+        )
+
+    new_workspace_name = new_workspace_name or out_group.name
+    workspace_path = Path(destination) / new_workspace_name
+    workspace_path = workspace_path.with_suffix(".geoh5")
+
+    if workspace_path.is_file():
+        raise FileExistsError(f"File {workspace_path} already exists.")
+
+    with Workspace.create(workspace_path) as new_workspace:
+        new_out_group = out_group.copy(
+            new_workspace, copy_children=False, copy_relatives=True
+        )
+
+        if new_out_group is None:  # pragma: no cover
+            raise RuntimeError("Failed to copy the UIJsonGroup.")
+
+        if monitoring_directory is not None:
+            new_out_group.modify_option(
+                "monitoring_directory", str(monitoring_directory)
+            )
+
+    return new_out_group
+
+
+def run_from_outgroup_name(
+    workspace_path: str | Path,
+    out_group_name: str,
+    *,
+    destination: Path | str | None = None,
+    new_workspace_name: str | None = None,
+    monitoring_directory: Path | str | None = None,
+) -> Driver:
+    """
+    Run the function defined in the 'out_group' UIJsonGroup.
+
+    :param workspace_path: Path to a geoh5 file.
+    :param out_group_name: Name or str UUID of a UIJsonGroup with options set.
+    :param destination: Path to copy the ui.json file to. If None, a temporary directory is used.
+    :param new_workspace_name: New geoh5 file name. If None, the original name is kept.
+    :param monitoring_directory: New monitoring directory. If None, the original is kept.
+
+    :return: Driver instance.
+    """
+    if not Path(workspace_path).is_file():
+        raise FileNotFoundError(f"Workspace file '{workspace_path}' does not exist.")
+
+    with Workspace(workspace_path) as workspace:
+        out_group = workspace.get_entity(out_group_name)[0]
+        if not isinstance(out_group, UIJsonGroup):
+            raise TypeError(
+                f"Entity with name or id '{out_group_name}' "
+                f"is not a UIJsonGroup. Got {type(out_group)}."
+            )
+
+        if destination is not None:
+            out_group = copy_out_group(
+                out_group,
+                destination,
+                new_workspace_name=new_workspace_name,
+                monitoring_directory=monitoring_directory,
+            )
+
+        driver_instance = run_uijson_group(out_group)
+
+    return driver_instance
+
+
+# todo: the same for uijsons
 
 if __name__ == "__main__":
     file = sys.argv[1]
