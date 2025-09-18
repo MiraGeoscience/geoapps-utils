@@ -160,16 +160,17 @@ def copy_uijson_file(
     if workspace_path.is_file():
         raise FileExistsError(f"File {workspace_path} already exists.")
 
-    with Workspace.create(workspace_path) as new_workspace:
-        ifile.copy_relatives(new_workspace)
-        temp_json = ifile.ui_json
-        temp_json["geoh5"] = workspace_path
+    with ifile.geoh5.open():
+        with Workspace.create(workspace_path) as new_workspace:
+            ifile.copy_relatives(new_workspace)
+            temp_json = ifile.ui_json.copy()
+            temp_json["geoh5"] = workspace_path
 
-        if monitoring_directory is not None:
-            temp_json["monitoring_directory"] = str(monitoring_directory)
+            if monitoring_directory is not None:
+                temp_json["monitoring_directory"] = str(monitoring_directory)
 
-        new_input_file = InputFile(ui_json=temp_json)
-        uijson_path_name = new_input_file.write_ui_json(str(destination))
+            new_input_file = InputFile(ui_json=temp_json)
+            uijson_path_name = new_input_file.write_ui_json(str(destination))
 
     return uijson_path_name
 
@@ -259,7 +260,35 @@ def run_from_outgroup_name(
     return driver_instance
 
 
-# todo: the same for uijsons
+def run_from_uijson(
+    uijson_path: str | Path,
+    *,
+    destination: Path | str | None = None,
+    new_workspace_name: str | None = None,
+    monitoring_directory: Path | str | None = None,
+) -> Driver:
+    """
+    Run a ui.json file, optionally copying it to a new location and changing the geoh5 file name.
+
+    :param uijson_path: Path to a ui.json file.
+    :param destination: Path to copy the ui.json file to. If None, a temporary directory is used.
+    :param new_workspace_name: New geoh5 file name. If None, the original name is kept.
+    :param monitoring_directory: New monitoring directory. If None, the original is kept.
+
+    :return: Driver instance.
+    """
+    if destination is not None:
+        uijson_path = copy_uijson_file(
+            uijson_path,
+            destination,
+            new_workspace_name=new_workspace_name,
+            monitoring_directory=monitoring_directory,
+        )
+
+    driver_instance = run_uijson_file(uijson_path)
+
+    return driver_instance
+
 
 if __name__ == "__main__":
     file = sys.argv[1]
