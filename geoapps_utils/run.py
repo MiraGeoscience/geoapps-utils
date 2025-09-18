@@ -109,11 +109,13 @@ def load_uijson_as_group(
     if "geoh5" not in uijson:
         raise KeyError(f"ui.json file {uijson_path} must contain a 'geoh5' key.")
 
+    # todo: if outgroup do that
     with Workspace(uijson["geoh5"]) as workspace:
         uijson_group = UIJsonGroup.create(
             workspace, name=uijson.get("title", None), options=uijson
         )
 
+    # todo: else do "Input File"
     return uijson_group
 
 
@@ -132,6 +134,7 @@ def run_uijson_group(
         It depends on the driver implementation.
     :param name: Name of the output files. If
     """
+    # todo: one function for UiJson group and one for InputFile?
     # ensure the group has a driver
     if not isinstance(out_group, UIJsonGroup):
         raise TypeError(
@@ -182,6 +185,7 @@ def run_uijson_file(
     :param name: Name of the output files.
     """
     uijson_group = load_uijson_as_group(uijson_path)
+    # todo: outgroup vs InputFile
     run_uijson_group(uijson_group, output_path, validate=validate, name=name)
 
 
