@@ -139,12 +139,36 @@ def run_uijson_group(out_group: UIJsonGroup) -> Driver:
     return driver_instance
 
 
+def get_new_workspace_name(
+    name: str, destination: str | Path, new_workspace_name: str | None = None
+) -> Path:
+    """
+    Check that a workspace does not already exist at the destination.
+
+    :param name: Original geoh5 file name.
+    :param destination: Path to copy the ui.json file to.
+    :param new_workspace_name: New geoh5 file name. If None, the original name is kept.
+
+    :raises FileExistsError: If the workspace already exists.
+
+    :return: The path to the new workspace.
+    """
+    new_workspace_name = new_workspace_name or name
+    workspace_path = Path(destination) / new_workspace_name
+    workspace_path = workspace_path.with_suffix(".geoh5")
+
+    if workspace_path.is_file():
+        raise FileExistsError(f"File {workspace_path} already exists.")
+
+    return workspace_path
+
+
 def copy_uijson_file(
     uijson_path: Path | str,
     destination: Path | str,
     new_workspace_name: str | None = None,
     monitoring_directory: Path | str | None = None,
-):
+) -> Path:
     """
     Copy a ui.json file to a new location, optionally changing the geoh5 file name.
 
@@ -155,12 +179,7 @@ def copy_uijson_file(
     """
     ifile = InputFile.read_ui_json(uijson_path)
 
-    new_workspace_name = new_workspace_name or ifile.name
-    workspace_path = Path(destination) / new_workspace_name
-    workspace_path = workspace_path.with_suffix(".geoh5")
-
-    if workspace_path.is_file():
-        raise FileExistsError(f"File {workspace_path} already exists.")
+    workspace_path = get_new_workspace_name(ifile.name, destination, new_workspace_name)
 
     with ifile.geoh5.open():
         with Workspace.create(workspace_path) as new_workspace:
@@ -172,7 +191,7 @@ def copy_uijson_file(
                 temp_json["monitoring_directory"] = str(monitoring_directory)
 
             new_input_file = InputFile(ui_json=temp_json)
-            uijson_path_name = new_input_file.write_ui_json(str(destination))
+            uijson_path_name = new_input_file.write_ui_json(path=str(destination))
 
     return uijson_path_name
 
@@ -182,7 +201,7 @@ def copy_out_group(
     destination: Path | str,
     new_workspace_name: str | None = None,
     monitoring_directory: Path | str | None = None,
-):
+) -> tuple[UIJsonGroup, Workspace]:
     """
     Copy a UIJsonGroup to a new location, optionally changing the geoh5 file name.
 
@@ -198,27 +217,22 @@ def copy_out_group(
             f"Input 'out_group' must be a UIJsonGroup. Got {type(out_group)}."
         )
 
-    new_workspace_name = new_workspace_name or out_group.name
-    workspace_path = Path(destination) / new_workspace_name
-    workspace_path = workspace_path.with_suffix(".geoh5")
+    workspace_path = get_new_workspace_name(
+        out_group.name, destination, new_workspace_name
+    )
 
-    if workspace_path.is_file():
-        raise FileExistsError(f"File {workspace_path} already exists.")
+    new_workspace = Workspace.create(workspace_path)
+    new_out_group = out_group.copy(
+        new_workspace, copy_children=False, copy_relatives=True
+    )
 
-    with Workspace.create(workspace_path) as new_workspace:
-        new_out_group = out_group.copy(
-            new_workspace, copy_children=False, copy_relatives=True
-        )
+    if new_out_group is None:  # pragma: no cover
+        raise RuntimeError("Failed to copy the UIJsonGroup.")
 
-        if new_out_group is None:  # pragma: no cover
-            raise RuntimeError("Failed to copy the UIJsonGroup.")
+    if monitoring_directory is not None:
+        new_out_group.modify_option("monitoring_directory", str(monitoring_directory))
 
-        if monitoring_directory is not None:
-            new_out_group.modify_option(
-                "monitoring_directory", str(monitoring_directory)
-            )
-
-    return new_out_group
+    return new_out_group, new_workspace
 
 
 def run_from_outgroup_name(
@@ -251,8 +265,9 @@ def run_from_outgroup_name(
                 f"is not a UIJsonGroup. Got {type(out_group)}."
             )
 
+        new_workspace = None
         if destination is not None:
-            out_group = copy_out_group(
+            out_group, new_workspace = copy_out_group(
                 out_group,
                 destination,
                 new_workspace_name=new_workspace_name,
@@ -260,6 +275,9 @@ def run_from_outgroup_name(
             )
 
         driver_instance = run_uijson_group(out_group)
+
+        if new_workspace is not None:
+            new_workspace.close()
 
     return driver_instance
 

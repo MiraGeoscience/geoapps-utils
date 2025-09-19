@@ -57,7 +57,22 @@ class TestOptionsDriver(BaseDriver):
         super().__init__(params)
 
     def run(self):
-        pass
+        """
+        Add a adata to the point to ensure something happens.
+        """
+
+        new_data = self.params.nested_model.client.vertices
+        new_data = new_data.mean(axis=0)
+
+        self.params.nested_model.client.add_data(
+            {
+                "mean_xyz": {
+                    "value": new_data,
+                }
+            }
+        )
+
+        self.update_monitoring_directory(self.params.nested_model.client)
 
 
 class TestParamsDriver(BaseDriver):
