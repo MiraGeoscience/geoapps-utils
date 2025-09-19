@@ -110,6 +110,8 @@ def run_uijson_group(out_group: UIJsonGroup) -> Driver:
     """
     Run the function defined in the 'out_group' UIJsonGroup.
 
+    This function must be call in the uijson_group context.
+
     :param out_group: A UIJsonGroup with options set.
 
     :return: Driver instance.
@@ -183,6 +185,8 @@ def copy_out_group(
 ):
     """
     Copy a UIJsonGroup to a new location, optionally changing the geoh5 file name.
+
+    This function must be call in the uijson_group context.
 
     :param out_group: A UIJsonGroup with options set.
     :param destination: Path to copy the ui.json file to.
