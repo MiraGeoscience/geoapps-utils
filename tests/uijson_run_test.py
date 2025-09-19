@@ -21,7 +21,7 @@ from geoh5py.ui_json.input_file import InputFile
 
 from geoapps_utils.run import (
     copy_out_group,
-    get_new_workspace_name,
+    get_new_workspace_path,
     load_ui_json_as_dict,
     run_from_outgroup_name,
     run_from_uijson,
@@ -179,41 +179,4 @@ def test_utils_errors(tmp_path):
         load_ui_json_as_dict(123)  # type: ignore
 
     with pytest.raises(FileExistsError, match="File "):
-        get_new_workspace_name("original.geoh5", tmp_path)
-
-
-# def test_load_fetch_uijson_errors(tmp_path):
-#     with pytest.raises(ValueError, match="Invalid ui.json file: "):
-#         load_ui_json_as_dict(123)  # type: ignore
-#
-#     uijson = {
-#         "title": "empty",
-#     }
-#
-#     ui_json_path_1 = tmp_path / "temp1.ui.json"
-#     with open(ui_json_path_1, "w", encoding="utf-8") as file:
-#         json.dump(uijson, file)
-#
-#     with pytest.raises(KeyError, match="'run_command' in ui.json must be a string"):
-#         fetch_driver_class(ui_json_path_1)
-#
-#     uijson["run_command"] = "geoapps_utils.driver"
-#
-#     ui_json_path_2 = tmp_path / "temp2.ui.json"
-#     with open(ui_json_path_2, "w", encoding="utf-8") as file:
-#         json.dump(uijson, file)
-#
-#     with pytest.raises(TypeError, match="Input 'out_group' must be"):
-#         run_uijson_group("bidon", path=tmp_path)  # type: ignore
-#
-#     h5file = tmp_path / "test.geoh5"
-#     workspace = Workspace.create(h5file)
-#     ui_json_group = UIJsonGroup.create(workspace, name="test")
-#
-#     with pytest.raises(ValueError, match="UIJsonGroup must have options"):
-#         run_uijson_group(ui_json_group, path=tmp_path)
-#
-#     ui_json_group.options = uijson
-#
-#     with pytest.raises(FileExistsError, match="File "):
-#         run_uijson_group(ui_json_group, path=tmp_path)
+        get_new_workspace_path("original.geoh5", tmp_path)

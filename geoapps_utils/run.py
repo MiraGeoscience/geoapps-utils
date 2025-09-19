@@ -139,7 +139,7 @@ def run_uijson_group(out_group: UIJsonGroup) -> Driver:
     return driver_instance
 
 
-def get_new_workspace_name(
+def get_new_workspace_path(
     name: str, destination: str | Path, new_workspace_name: str | None = None
 ) -> Path:
     """
@@ -179,7 +179,7 @@ def copy_uijson_file(
     """
     ifile = InputFile.read_ui_json(uijson_path)
 
-    workspace_path = get_new_workspace_name(ifile.name, destination, new_workspace_name)
+    workspace_path = get_new_workspace_path(ifile.name, destination, new_workspace_name)
 
     with ifile.geoh5.open():
         with Workspace.create(workspace_path) as new_workspace:
@@ -217,7 +217,7 @@ def copy_out_group(
             f"Input 'out_group' must be a UIJsonGroup. Got {type(out_group)}."
         )
 
-    workspace_path = get_new_workspace_name(
+    workspace_path = get_new_workspace_path(
         out_group.name, destination, new_workspace_name
     )
 
@@ -237,7 +237,7 @@ def copy_out_group(
 
 def run_from_outgroup_name(
     workspace_path: str | Path,
-    out_group_name: str,
+    name: str,
     *,
     destination: Path | str | None = None,
     new_workspace_name: str | None = None,
@@ -247,7 +247,7 @@ def run_from_outgroup_name(
     Run the function defined in the 'out_group' UIJsonGroup.
 
     :param workspace_path: Path to a geoh5 file.
-    :param out_group_name: Name or str UUID of a UIJsonGroup with options set.
+    :param name: Name or str UUID of a UIJsonGroup with options set.
     :param destination: Path to copy the ui.json file to. If None, a temporary directory is used.
     :param new_workspace_name: New geoh5 file name. If None, the original name is kept.
     :param monitoring_directory: New monitoring directory. If None, the original is kept.
@@ -258,10 +258,10 @@ def run_from_outgroup_name(
         raise FileNotFoundError(f"Workspace file '{workspace_path}' does not exist.")
 
     with Workspace(workspace_path) as workspace:
-        out_group = workspace.get_entity(out_group_name)[0]
+        out_group = workspace.get_entity(name)[0]
         if not isinstance(out_group, UIJsonGroup):
             raise TypeError(
-                f"Entity with name or id '{out_group_name}' "
+                f"Entity with name or id '{name}' "
                 f"is not a UIJsonGroup. Got {type(out_group)}."
             )
 
