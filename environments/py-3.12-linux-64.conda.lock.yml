@@ -53,7 +53,7 @@ dependencies:
   - libssh2=1.11.1=hcf80075_0
   - libstdcxx=15.1.0=h8f9b012_5
   - libstdcxx-ng=15.1.0=h4852527_5
-  - libtiff=4.7.0=h8261f1e_6
+  - libtiff=4.7.1=h8261f1e_0
   - libuuid=2.41.1=he9a06e4_0
   - libwebp-base=1.6.0=hd42ef1d_0
   - libxcb=1.17.0=h8a09558_0
@@ -88,7 +88,7 @@ dependencies:
   - xorg-libxdmcp=1.1.5=hb9d3cd8_0
   - zstd=1.5.7=hb8e6e7a_2
   - pip:
-    - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@2c39fbbaceb60a1d3e5a519826f3a59a908ec822
+    - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@0e6cacf4d90e18bc18b4247c839761b54a392ac6
 
 variables:
   KMP_WARNINGS: 0
