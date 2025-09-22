@@ -20,8 +20,9 @@ from typing import Any, ClassVar, GenericAlias  # type: ignore
 from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import ObjectBase
+from geoh5py.shared.utils import stringify
 from geoh5py.ui_json import InputFile, monitored_directory_copy
-from geoh5py.ui_json.utils import demote, fetch_active_workspace
+from geoh5py.ui_json.utils import fetch_active_workspace
 from pydantic import BaseModel, ConfigDict, ValidationError
 from typing_extensions import Self
 
@@ -335,7 +336,7 @@ class Options(BaseModel):
         ifile = self.input_file
         ifile.update_ui_values(recursive_flatten(dump))
         assert ifile.ui_json is not None
-        options = demote(ifile.ui_json)
+        options = stringify(ifile.ui_json)
 
         return options
 

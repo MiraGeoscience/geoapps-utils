@@ -15,7 +15,12 @@ from typing import Any
 from uuid import UUID
 
 from geoh5py.shared import Entity
-from geoh5py.shared.utils import fetch_active_workspace, str2uuid, uuid2entity
+from geoh5py.shared.utils import (
+    fetch_active_workspace,
+    str2uuid,
+    stringify,
+    uuid2entity,
+)
 from geoh5py.ui_json import InputFile, InputValidation, utils
 from geoh5py.workspace import Workspace
 
@@ -243,9 +248,7 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
             return {}
 
         if ui_json_format:
-            return self.input_file.stringify(
-                self.input_file.demote(self.input_file.ui_json)
-            )
+            return stringify(self.input_file.ui_json)
 
         return {k: getattr(self, k) for k in self.param_names if hasattr(self, k)}
 
