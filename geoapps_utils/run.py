@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import inspect
 import logging
+import shutil
 import sys
 import tempfile
 from importlib import import_module
@@ -92,20 +93,6 @@ def fetch_driver_class(json_dict: str | Path | dict) -> type[Driver]:
     return cls
 
 
-def run_uijson_file(
-    uijson_path: Path | str,
-) -> Driver:
-    """
-    Run a ui.json file.
-
-    :param uijson_path: Path to a ui.json file.
-    """
-    driver_class = fetch_driver_class(uijson_path)
-    driver_instance = driver_class.start(uijson_path)
-
-    return driver_instance
-
-
 def run_uijson_group(out_group: UIJsonGroup) -> Driver:
     """
     Run the function defined in the 'out_group' UIJsonGroup.
@@ -116,11 +103,6 @@ def run_uijson_group(out_group: UIJsonGroup) -> Driver:
 
     :return: Driver instance.
     """
-    if not isinstance(out_group, UIJsonGroup):
-        raise TypeError(
-            f"Input 'out_group' must be a UIJsonGroup. Got {type(out_group)}."
-        )
-
     if not out_group.options:
         raise ValueError("UIJsonGroup must have options set.")
 
@@ -163,7 +145,7 @@ def get_new_workspace_path(
     return workspace_path
 
 
-def copy_uijson_file(
+def copy_uijson_relatives_only(
     uijson_path: Path | str,
     destination: Path | str,
     new_workspace_name: str | None = None,
@@ -186,53 +168,48 @@ def copy_uijson_file(
             ifile.copy_relatives(new_workspace)
             temp_json = ifile.ui_json.copy()
             temp_json["geoh5"] = workspace_path
-
             if monitoring_directory is not None:
                 temp_json["monitoring_directory"] = str(monitoring_directory)
-
             new_input_file = InputFile(ui_json=temp_json)
+
             uijson_path_name = new_input_file.write_ui_json(path=str(destination))
 
     return uijson_path_name
 
 
-def copy_out_group(
-    out_group: UIJsonGroup,
+def copy_uijson_and_workspace(
+    uijson_path: Path | str,
     destination: Path | str,
     new_workspace_name: str | None = None,
     monitoring_directory: Path | str | None = None,
-) -> tuple[UIJsonGroup, Workspace]:
+):
     """
-    Copy a UIJsonGroup to a new location, optionally changing the geoh5 file name.
+    Copy a ui.json file and its geoh5 file to a new location.
 
-    This function must be call in the uijson_group context.
+    Optionally changing the geoh5 file name.
+    Warning: This function copies the entire geoh5 file, which may be large.
 
-    :param out_group: A UIJsonGroup with options set.
+    :param uijson_path: Path to a ui.json file.
     :param destination: Path to copy the ui.json file to.
     :param new_workspace_name: New geoh5 file name. If None, the original name is kept.
     :param monitoring_directory: New monitoring directory. If None, the original is kept.
+
+    :return: Path to the new ui.json file.
     """
-    if not isinstance(out_group, UIJsonGroup):
-        raise TypeError(
-            f"Input 'out_group' must be a UIJsonGroup. Got {type(out_group)}."
-        )
+    ifile = InputFile.read_ui_json(uijson_path)
+    workspace_path = get_new_workspace_path(ifile.name, destination, new_workspace_name)
+    shutil.copy(ifile.geoh5.h5file, workspace_path)
 
-    workspace_path = get_new_workspace_path(
-        out_group.name, destination, new_workspace_name
-    )
+    with Workspace(workspace_path):
+        temp_json = ifile.ui_json.copy()
+        temp_json["geoh5"] = workspace_path
+        if monitoring_directory is not None:
+            temp_json["monitoring_directory"] = str(monitoring_directory)
+        new_input_file = InputFile(ui_json=temp_json)
 
-    new_workspace = Workspace.create(workspace_path)
-    new_out_group = out_group.copy(
-        new_workspace, copy_children=False, copy_relatives=True
-    )
+        uijson_path_name = new_input_file.write_ui_json(path=str(destination))
 
-    if new_out_group is None:  # pragma: no cover
-        raise RuntimeError("Failed to copy the UIJsonGroup.")
-
-    if monitoring_directory is not None:
-        new_out_group.modify_option("monitoring_directory", str(monitoring_directory))
-
-    return new_out_group, new_workspace
+    return uijson_path_name
 
 
 def run_from_outgroup_name(
@@ -259,27 +236,33 @@ def run_from_outgroup_name(
 
     with Workspace(workspace_path) as workspace:
         out_group = workspace.get_entity(name)[0]
+
         if not isinstance(out_group, UIJsonGroup):
             raise TypeError(
                 f"Entity with name or id '{name}' "
                 f"is not a UIJsonGroup. Got {type(out_group)}."
             )
 
-        new_workspace = None
         if destination is not None:
-            out_group, new_workspace = copy_out_group(
-                out_group,
-                destination,
-                new_workspace_name=new_workspace_name,
-                monitoring_directory=monitoring_directory,
+            workspace_path = get_new_workspace_path(
+                out_group.name, destination, new_workspace_name
             )
+            with Workspace.create(workspace_path) as new_workspace:
+                copy_out_group = out_group.copy(
+                    new_workspace, copy_children=False, copy_relatives=True
+                )
 
-        driver_instance = run_uijson_group(out_group)
+                if copy_out_group is None:  # pragma: no cover
+                    raise RuntimeError("Failed to copy the UIJsonGroup.")
 
-        if new_workspace is not None:
-            new_workspace.close()
+                if monitoring_directory is not None:
+                    copy_out_group.modify_option(
+                        "monitoring_directory", str(monitoring_directory)
+                    )
 
-    return driver_instance
+                return run_uijson_group(copy_out_group)
+
+        return run_uijson_group(out_group)
 
 
 def run_from_uijson(
@@ -288,6 +271,7 @@ def run_from_uijson(
     destination: Path | str | None = None,
     new_workspace_name: str | None = None,
     monitoring_directory: Path | str | None = None,
+    relatives_only: bool = True,
 ) -> Driver:
     """
     Run a ui.json file, optionally copying it to a new location and changing the geoh5 file name.
@@ -296,18 +280,29 @@ def run_from_uijson(
     :param destination: Path to copy the ui.json file to. If None, a temporary directory is used.
     :param new_workspace_name: New geoh5 file name. If None, the original name is kept.
     :param monitoring_directory: New monitoring directory. If None, the original is kept.
+    :param relatives_only: If True, only copy the entities referenced in the ui.json file.
+                           If False, copy the entire geoh5 file. Default is True.
 
     :return: Driver instance.
     """
     if destination is not None:
-        uijson_path = copy_uijson_file(
-            uijson_path,
-            destination,
-            new_workspace_name=new_workspace_name,
-            monitoring_directory=monitoring_directory,
-        )
+        if relatives_only:
+            uijson_path = copy_uijson_relatives_only(
+                uijson_path,
+                destination,
+                new_workspace_name=new_workspace_name,
+                monitoring_directory=monitoring_directory,
+            )
+        else:
+            uijson_path = copy_uijson_and_workspace(
+                uijson_path,
+                destination,
+                new_workspace_name=new_workspace_name,
+                monitoring_directory=monitoring_directory,
+            )
 
-    driver_instance = run_uijson_file(uijson_path)
+    driver_class = fetch_driver_class(uijson_path)
+    driver_instance = driver_class.start(uijson_path)
 
     return driver_instance
 
