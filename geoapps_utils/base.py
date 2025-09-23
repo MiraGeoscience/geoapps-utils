@@ -87,16 +87,36 @@ class Driver(ABC):
         """Run the application."""
 
     @classmethod
-    def start(cls, filepath: str | Path, mode="r+", **kwargs) -> Driver:
+    def read_ui_json(cls, filepath: str | Path, **kwargs) -> InputFile:
+        """
+        Read a ui.json file and return an InputFile object.
+
+        :param filepath: Path to valid ui.json file for the application driver.
+        :param kwargs: Additional keyword arguments for InputFile read_ui_json.
+
+        :return: InputFile object.
+        """
+        logger.info("Loading input file . . .")
+        filepath = Path(filepath).resolve()
+        return InputFile.read_ui_json(filepath, validations=cls._validations, **kwargs)
+
+    @classmethod
+    def start(cls, filepath: str | Path | InputFile, mode="r+", **kwargs) -> Driver:
         """
         Run application specified by 'filepath' ui.json file.
 
         :param filepath: Path to valid ui.json file for the application driver.
         :param kwargs: Additional keyword arguments for InputFile read_ui_json.
         """
-        logger.info("Loading input file . . .")
-        filepath = Path(filepath).resolve()
-        ifile = InputFile.read_ui_json(filepath, validations=cls._validations, **kwargs)
+
+        ifile = (
+            cls.read_ui_json(filepath, **kwargs)
+            if isinstance(filepath, str | Path)
+            else filepath
+        )
+
+        if not isinstance(ifile, InputFile):
+            raise TypeError("Input file must be a string path or an InputFile object.")
 
         with ifile.geoh5.open(mode=mode):
             try:
