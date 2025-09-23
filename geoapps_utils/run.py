@@ -155,7 +155,9 @@ def copy_uijson_relatives_only(
     """
     ifile = InputFile.read_ui_json(uijson_path)
 
-    workspace_path = get_new_workspace_path(ifile.name, destination, new_workspace_name)
+    workspace_path = get_new_workspace_path(
+        ifile.geoh5.h5file.name, destination, new_workspace_name
+    )
 
     with ifile.geoh5.open():
         with Workspace.create(workspace_path) as new_workspace:
@@ -167,7 +169,7 @@ def copy_uijson_relatives_only(
             new_input_file = InputFile(ui_json=temp_json)
 
             uijson_path_name = new_input_file.write_ui_json(
-                path=str(destination), name=ifile.name
+                path=str(destination), name=new_workspace_name or ifile.name
             )
 
     return uijson_path_name
@@ -208,7 +210,7 @@ def copy_uijson_and_workspace(
         new_input_file = InputFile(ui_json=uijson_dict)
 
         uijson_path_name = new_input_file.write_ui_json(
-            path=str(destination), name=uijson_path.name
+            path=str(destination), name=new_workspace_name or uijson_path.name
         )
 
     return uijson_path_name
