@@ -247,7 +247,7 @@ def run_from_outgroup_name(
 
     :param workspace_path: Path to a geoh5 file.
     :param name: Name or str UUID of a UIJsonGroup with options set.
-    :param destination: Path to copy the ui.json file to.
+    :param destination: Path to create a new workspace to copy the ui.json group to.
         If None, the output_group is run in the current geoh5.
     :param new_workspace_name: New geoh5 file name. If None, the original name is kept.
     :param monitoring_directory: New monitoring directory. If None, the original is kept.
