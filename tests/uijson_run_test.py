@@ -101,15 +101,15 @@ def test_run_from_uijson(tmp_path):
     )
 
     # test destination
-    with Workspace(destination / "test_run_from_uijson0.ui.geoh5") as workspace:
+    with Workspace(destination / "original.geoh5") as workspace:
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
 
-    ui_json_file = destination / "test_title.ui.json"
+    ui_json_file = destination / "test_run_from_uijson0.ui.json"
     with open(ui_json_file, encoding="utf-8") as file:
         ui_json_file = file.read()
         ui_json = json.loads(ui_json_file)
 
-    assert ui_json["geoh5"].endswith("test_run_from_uijson0.ui.geoh5")
+    assert ui_json["geoh5"].endswith("original.geoh5")
     assert ui_json["monitoring_directory"].endswith(str(monitoring_directory))
 
     # test monitoring directory
@@ -135,15 +135,15 @@ def test_run_from_uijson_shutil(tmp_path):
     )
 
     # test destination
-    with Workspace(destination / "test_title.geoh5") as workspace:
+    with Workspace(destination / "original.geoh5") as workspace:
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
 
-    ui_json_file = destination / "test_title.ui.json"
+    ui_json_file = destination / "test_run_from_uijson_shutil0.ui.json"
     with open(ui_json_file, encoding="utf-8") as file:
         ui_json_file = file.read()
         ui_json = json.loads(ui_json_file)
 
-    assert ui_json["geoh5"].endswith("test_title.geoh5")
+    assert ui_json["geoh5"].endswith("original.geoh5")
     assert ui_json["monitoring_directory"].endswith(str(monitoring_directory))
 
     # test monitoring directory

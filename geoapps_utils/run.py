@@ -155,7 +155,9 @@ def copy_uijson_relatives_only(
     """
     ifile = InputFile.read_ui_json(uijson_path)
 
-    workspace_path = get_new_workspace_path(ifile.name, destination, new_workspace_name)
+    workspace_path = get_new_workspace_path(
+        ifile.geoh5.h5file.name, destination, new_workspace_name
+    )
 
     with ifile.geoh5.open():
         with Workspace.create(workspace_path) as new_workspace:
@@ -166,7 +168,9 @@ def copy_uijson_relatives_only(
                 temp_json["monitoring_directory"] = str(monitoring_directory)
             new_input_file = InputFile(ui_json=temp_json)
 
-            uijson_path_name = new_input_file.write_ui_json(path=str(destination))
+            uijson_path_name = new_input_file.write_ui_json(
+                path=str(destination), name=new_workspace_name or ifile.name
+            )
 
     return uijson_path_name
 
@@ -190,11 +194,14 @@ def copy_uijson_and_workspace(
 
     :return: Path to the new ui.json file.
     """
+    uijson_path = Path(uijson_path)
     uijson_dict = load_ui_json_as_dict(uijson_path)
+
+    orig_geoh5 = Path(str(uijson_dict.get("geoh5")))
     workspace_path = get_new_workspace_path(
-        uijson_dict.get("title", "unknown"), destination, new_workspace_name
+        orig_geoh5.name, destination, new_workspace_name
     )
-    copy(Path(str(uijson_dict.get("geoh5"))), Path(str(workspace_path)))
+    copy(orig_geoh5, Path(str(workspace_path)))
 
     with Workspace(workspace_path):
         uijson_dict["geoh5"] = workspace_path
@@ -202,7 +209,9 @@ def copy_uijson_and_workspace(
             uijson_dict["monitoring_directory"] = str(monitoring_directory)
         new_input_file = InputFile(ui_json=uijson_dict)
 
-        uijson_path_name = new_input_file.write_ui_json(path=str(destination))
+        uijson_path_name = new_input_file.write_ui_json(
+            path=str(destination), name=new_workspace_name or uijson_path.name
+        )
 
     return uijson_path_name
 
