@@ -13,7 +13,6 @@ from __future__ import annotations
 import inspect
 import logging
 import sys
-import tempfile
 from importlib import import_module
 from json import load
 from pathlib import Path
@@ -93,28 +92,8 @@ def fetch_driver_class(json_dict: str | Path | dict) -> type[Driver]:
     return cls
 
 
-def save_fetch_run_out_group(out_group, tmp_dir: Path) -> Driver:
-    """
-    Save the UIJsonGroup to a directory, fetch the driver class and run it.
-
-    :param out_group: A UIJsonGroup with options set.
-    :param tmp_dir: Path to a directory to save the ui.json file.
-
-    :return: the ran Driver instance.
-    """
-    uijson_file = out_group.add_ui_json()
-    tmpdir_uijson = uijson_file.save_file(
-        Path(tmp_dir), name=f"{out_group.name}.ui.json"
-    )
-    driver_class = fetch_driver_class(tmpdir_uijson)
-    driver_instance = driver_class.start(tmpdir_uijson)
-
-    return driver_instance
-
-
 def run_uijson_group(
     out_group: UIJsonGroup,
-    tmp_dir: str | Path | None = None,
 ) -> Driver:
     """
     Run the function defined in the 'out_group' UIJsonGroup.
@@ -130,15 +109,10 @@ def run_uijson_group(
     if not out_group.options:
         raise ValueError("UIJsonGroup must have options set.")
 
-    # accept a temporary directory to save the uijson file
-    if tmp_dir is not None:
-        tmp_dir = Path(tmp_dir)
-        tmp_dir.mkdir(parents=True, exist_ok=True)
-        return save_fetch_run_out_group(out_group, tmp_dir)
+    driver_class = fetch_driver_class(out_group.options)
+    driver_instance = driver_class.start(InputFile(ui_json=out_group.options))
 
-    # create a temporary uijson file
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        return save_fetch_run_out_group(out_group, Path(tmpdirname))
+    return driver_instance
 
 
 def get_new_workspace_path(
@@ -240,7 +214,6 @@ def run_from_outgroup_name(
     destination: Path | str | None = None,
     new_workspace_name: str | None = None,
     monitoring_directory: Path | str | None = None,
-    temporary_directory: Path | str | None = None,
 ) -> Driver:
     """
     Run the function defined in the 'out_group' UIJsonGroup.
@@ -251,8 +224,6 @@ def run_from_outgroup_name(
         If None, the output_group is run in the current geoh5.
     :param new_workspace_name: New geoh5 file name. If None, the original name is kept.
     :param monitoring_directory: New monitoring directory. If None, the original is kept.
-    :param temporary_directory: Optional path to a directory to save the ui.json created.
-        If None, a temporary directory is used.
 
     :return: Driver instance.
     """
@@ -285,9 +256,9 @@ def run_from_outgroup_name(
                         "monitoring_directory", str(monitoring_directory)
                     )
 
-                return run_uijson_group(copy_out_group, temporary_directory)
+                return run_uijson_group(copy_out_group)
 
-        return run_uijson_group(out_group, temporary_directory)
+        return run_uijson_group(out_group)
 
 
 def run_from_uijson(

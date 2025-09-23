@@ -67,6 +67,9 @@ def test_base_driver(tmp_path):
     driver = TestParamsDriver(params)
     driver.start(tmp_path / "test_ifile.ui.json")
 
+    with pytest.raises(TypeError, match="Input file must be "):
+        driver.start(123)  # type: ignore
+
 
 def test_options_out(tmp_path):
     workspace = Workspace.create(tmp_path / f"{__name__}.geoh5")

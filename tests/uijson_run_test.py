@@ -182,24 +182,11 @@ def test_run_from_out_group(tmp_path):
 def test_run_from_out_group_no_destination(tmp_path):
     create_uijson(tmp_path)
 
-    run_from_outgroup_name(
-        tmp_path / "original.geoh5",
-        "uijson_test",
-        temporary_directory=tmp_path / "temp",
-    )
+    run_from_outgroup_name(tmp_path / "original.geoh5", "uijson_test")
 
     # test destination
     with Workspace(tmp_path / "original.geoh5") as workspace:
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
-
-    # RELOAD THE CREATED UIJSON
-    ui_json_file = tmp_path / "temp/uijson_test.ui.json"
-
-    # load the uijson:
-    with open(ui_json_file, encoding="utf-8") as file:
-        uijson_dict = json.loads(file.read())
-
-    assert uijson_dict["geoh5"].endswith("original.geoh5")
 
 
 def test_out_group_errors(tmp_path):
