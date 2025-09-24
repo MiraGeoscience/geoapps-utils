@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import inspect
+import json
 import logging
 import sys
 from importlib import import_module
@@ -163,7 +164,7 @@ def copy_uijson_relatives_only(
         with Workspace.create(workspace_path) as new_workspace:
             ifile.copy_relatives(new_workspace)
             temp_json = ifile.ui_json.copy()
-            temp_json["geoh5"] = workspace_path
+            temp_json["geoh5"] = new_workspace
             if monitoring_directory is not None:
                 temp_json["monitoring_directory"] = str(monitoring_directory)
             new_input_file = InputFile(ui_json=temp_json)
@@ -194,7 +195,8 @@ def copy_uijson_and_workspace(
 
     :return: Path to the new ui.json file.
     """
-    uijson_path = Path(uijson_path)
+    uijson_path = Path(uijson_path).resolve()
+    destination = Path(destination).resolve()
     uijson_dict = load_ui_json_as_dict(uijson_path)
 
     orig_geoh5 = Path(str(uijson_dict.get("geoh5")))
@@ -203,17 +205,16 @@ def copy_uijson_and_workspace(
     )
     copy(orig_geoh5, Path(str(workspace_path)))
 
-    with Workspace(workspace_path):
-        uijson_dict["geoh5"] = workspace_path
-        if monitoring_directory is not None:
-            uijson_dict["monitoring_directory"] = str(monitoring_directory)
-        new_input_file = InputFile(ui_json=uijson_dict)
+    uijson_dict["geoh5"] = str(workspace_path)
+    if monitoring_directory is not None:
+        uijson_dict["monitoring_directory"] = str(monitoring_directory)
 
-        uijson_path_name = new_input_file.write_ui_json(
-            path=str(destination), name=new_workspace_name or uijson_path.name
-        )
+    output_uijson = destination / (new_workspace_name or uijson_path.name)
 
-    return uijson_path_name
+    with open(output_uijson, "w", encoding="utf8") as out_file:
+        json.dump(uijson_dict, out_file, indent=4)
+
+    return output_uijson
 
 
 def run_from_outgroup_name(
