@@ -253,7 +253,7 @@ class Options(BaseModel):
             raise TypeError("Input data must be a dictionary or InputFile.")
 
         data.update(kwargs)
-        options = Options.collect_input_from_dict(cls, data)  # type: ignore
+        options = cls.collect_input_from_dict(cls, data)  # type: ignore
 
         try:
             out = cls(**options)
