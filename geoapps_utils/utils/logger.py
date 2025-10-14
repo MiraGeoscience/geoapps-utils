@@ -18,7 +18,7 @@ def get_logger(
     level_name: bool = True,
     propagate: bool = True,
     add_name: bool = True,
-    level: int | None = None,
+    level: int = logging.INFO,
 ) -> logging.Logger:
     """
     Get a logger with a timestamped stream and specified log level.
@@ -55,10 +55,8 @@ def get_logger(
 
     formatter = logging.Formatter(formatting + "%(message)s")
     stream_handler.setFormatter(formatter)
-
     log.addHandler(stream_handler)
 
-    if level is not None:
-        log.setLevel(level)
+    log.setLevel(level)
 
     return log
