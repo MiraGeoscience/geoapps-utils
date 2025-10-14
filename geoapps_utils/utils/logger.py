@@ -14,6 +14,7 @@ import logging
 
 def get_logger(
     name: str | None = None,
+    *,
     timestamp: bool = False,
     level_name: bool = True,
     propagate: bool = True,
