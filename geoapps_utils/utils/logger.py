@@ -14,10 +14,12 @@ import logging
 
 def get_logger(
     name: str | None = None,
+    *,
     timestamp: bool = False,
     level_name: bool = True,
     propagate: bool = True,
     add_name: bool = True,
+    level: int = logging.INFO,
 ) -> logging.Logger:
     """
     Get a logger with a timestamped stream and specified log level.
@@ -27,15 +29,19 @@ def get_logger(
     :param level_name: Whether to include the log level name in the log format.
     :param propagate: Whether to propagate log messages to the parent logger.
     :param add_name: Whether to include the logger name in the log format.
+    :param level: Logging level (e.g., logging.DEBUG, logging.INFO).
 
     :return: Configured logger instance.
     """
     log = logging.getLogger(name)
 
+    log.propagate = propagate
+    stream_handler: logging.Handler = logging.StreamHandler()
     if log.handlers:
-        stream_handler = log.handlers[0]
-    else:
-        stream_handler = logging.StreamHandler()
+        if not propagate:
+            log.handlers.clear()
+        else:
+            stream_handler = log.handlers[0]
 
     # Set the format for the logger
     formatting = ""
@@ -51,6 +57,7 @@ def get_logger(
     formatter = logging.Formatter(formatting + "%(message)s")
     stream_handler.setFormatter(formatter)
     log.addHandler(stream_handler)
-    log.propagate = propagate
+
+    log.setLevel(level)
 
     return log
