@@ -17,6 +17,10 @@ requires-python = '>=3.10,<4.0'
 
 description = "Utility functions to build applications supported by Mira Geoscience"
 license = "MIT"
+license-files = [
+    "LICENSE",
+    "THIRD_PARTY_SOFTWARE.rst",
+]
 keywords = ["geology", "geophysics", "data", "interoperability"]
 readme = "package.rst"
 dynamic = ["version", "dependencies", "classifiers"]
@@ -50,12 +54,7 @@ packages = [
 ]
 
 include = [
-    { path = "COPYING" },
-    { path = "COPYING.LESSER" },
-    { path = "LICENSE" },
-    { path = "README.rst" },
-    { path = "THIRD_PARTY_SOFTWARE.rst" },
-    { path = "docs/**/THIRD_PARTY_SOFTWARE.rst" },
+    { path = "geoapps_utils/_version.py", format = ["sdist", "wheel"] },
 ]
 
 exclude = [] # files to exclude from packaging
@@ -69,8 +68,8 @@ scipy = "~1.14.0"
 
 ## pip dependencies from Git repositories
 #----------------------------------------
-#geoh5py = {version = ">=0.12.0a1, <0.13.dev", source = "pypi", allow-prereleases = true}
-geoh5py = {git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop"}
+geoh5py = {version = ">=0.12.0b1, <0.13.dev", source = "pypi", allow-prereleases = true}
+#geoh5py = {git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop"}
 
 
 ## about pip dependencies
