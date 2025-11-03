@@ -88,9 +88,7 @@ pylint = "*"
 pytest = "*"
 pytest-cov = "*"
 pyyaml = '*'
-jinja2 = '*'
 packaging = '*'
-tomli = "*"
 
 [tool.conda-lock]
 platforms = ['win-64', 'linux-64']
