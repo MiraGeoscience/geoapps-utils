@@ -15,8 +15,8 @@
 version: 1
 metadata:
   content_hash:
-    win-64: 57b1abb18061d2d4081c7104489d7beaef81d2aa72bd7855b4ecfe36a0185d14
-    linux-64: 232e72b7e66679450345d2757c215e93eab358b6db9b1b14628495a77273fbd3
+    win-64: 4146971e51aa163c72c5c7ac8e1d8d94bf32774ce51f75cf06ca659ebdbdeb59
+    linux-64: 98d30c429ffa8e965d8e7309331b0f75ce26018aa0218a97904689fe9ec5ee4d
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -2582,7 +2582,7 @@ package:
   category: main
   optional: false
 - name: geoh5py
-  version: 0.12.0b3
+  version: 0.12.0b4.dev8+a9f57210
   manager: pip
   platform: linux-64
   dependencies:
@@ -2590,13 +2590,16 @@ package:
     numpy: '>=1.26.0,<1.27.0'
     pillow: '>=10.3.0,<10.4.0'
     pydantic: '>=2.5.2,<3.0.0'
-  url: https://mirageoscienceltd.jfrog.io/artifactory/api/pypi/geoplus-pypi-dev/geoh5py/0.12.0b3/geoh5py-0.12.0b3-py3-none-any.whl
+  url: git+https://github.com/MiraGeoscience/geoh5py.git@a9f5721079c097b1fa484ff8424146c6cd1a8c0c
   hash:
-    sha256: 59932ee0ba044509c4389b547d50e381f62e32eea8c5e22d69526880a37489b5
+    sha256: a9f5721079c097b1fa484ff8424146c6cd1a8c0c
+  source:
+    type: url
+    url: git+https://github.com/MiraGeoscience/geoh5py.git@a9f5721079c097b1fa484ff8424146c6cd1a8c0c
   category: main
   optional: false
 - name: geoh5py
-  version: 0.12.0b3
+  version: 0.12.0b4.dev8+a9f57210
   manager: pip
   platform: win-64
   dependencies:
@@ -2604,8 +2607,11 @@ package:
     numpy: '>=1.26.0,<1.27.0'
     pillow: '>=10.3.0,<10.4.0'
     pydantic: '>=2.5.2,<3.0.0'
-  url: https://mirageoscienceltd.jfrog.io/artifactory/api/pypi/geoplus-pypi-dev/geoh5py/0.12.0b3/geoh5py-0.12.0b3-py3-none-any.whl
+  url: git+https://github.com/MiraGeoscience/geoh5py.git@a9f5721079c097b1fa484ff8424146c6cd1a8c0c
   hash:
-    sha256: 59932ee0ba044509c4389b547d50e381f62e32eea8c5e22d69526880a37489b5
+    sha256: a9f5721079c097b1fa484ff8424146c6cd1a8c0c
+  source:
+    type: url
+    url: git+https://github.com/MiraGeoscience/geoh5py.git@a9f5721079c097b1fa484ff8424146c6cd1a8c0c
   category: main
   optional: false
