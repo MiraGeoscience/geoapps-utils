@@ -15,8 +15,8 @@
 version: 1
 metadata:
   content_hash:
-    win-64: 6edc8c2f6d302b4271667ea90878bf83a9f922e21ecfb73c480998517a49dec7
-    linux-64: 74368e25e3bc7f296b5e75d62111e2e2fe76bb281b8ce76523ee238f01e372c7
+    win-64: 11bd7a316b2db9ce51c53a95c8c1b1059fd19fa8c274d81e850fb842a3115d6f
+    linux-64: d5d664277c158311e886351e8bc2c395673c8d474109bf131ed783441dbcccd0
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -514,32 +514,6 @@ package:
   hash:
     md5: 55a61979242077b2cc377c74326ea9f0
     sha256: 13b0005877f553eb2e5c50447c9d0047e7257124ec2d1569d7dad35697790237
-  category: dev
-  optional: true
-- name: jinja2
-  version: 3.1.6
-  manager: conda
-  platform: linux-64
-  dependencies:
-    markupsafe: '>=2.0'
-    python: '>=3.9'
-  url: https://repo.prefix.dev/conda-forge/noarch/jinja2-3.1.6-pyhd8ed1ab_0.conda
-  hash:
-    md5: 446bd6c8cb26050d528881df495ce646
-    sha256: f1ac18b11637ddadc05642e8185a851c7fab5998c6f5470d716812fae943b2af
-  category: dev
-  optional: true
-- name: jinja2
-  version: 3.1.6
-  manager: conda
-  platform: win-64
-  dependencies:
-    markupsafe: '>=2.0'
-    python: '>=3.9'
-  url: https://repo.prefix.dev/conda-forge/noarch/jinja2-3.1.6-pyhd8ed1ab_0.conda
-  hash:
-    md5: 446bd6c8cb26050d528881df495ce646
-    sha256: f1ac18b11637ddadc05642e8185a851c7fab5998c6f5470d716812fae943b2af
   category: dev
   optional: true
 - name: keyutils
@@ -1501,37 +1475,6 @@ package:
     sha256: 397d1874330592e57c6378a83dff194c6d1875cab44a41f9fdee8c3fe20bbe6b
   category: main
   optional: false
-- name: markupsafe
-  version: 3.0.3
-  manager: conda
-  platform: linux-64
-  dependencies:
-    __glibc: '>=2.17,<3.0.a0'
-    libgcc: '>=14'
-    python: '>=3.10,<3.11.0a0'
-    python_abi: 3.10.*
-  url: https://repo.prefix.dev/conda-forge/linux-64/markupsafe-3.0.3-py310h3406613_0.conda
-  hash:
-    md5: 8854df4fb4e37cc3ea0a024e48c9c180
-    sha256: b3894b37cab530d1adab5b9ce39a1b9f28040403cc0042b77e04a2f227a447de
-  category: dev
-  optional: true
-- name: markupsafe
-  version: 3.0.3
-  manager: conda
-  platform: win-64
-  dependencies:
-    python: '>=3.10,<3.11.0a0'
-    python_abi: 3.10.*
-    ucrt: '>=10.0.20348.0'
-    vc: '>=14.3,<15'
-    vc14_runtime: '>=14.44.35208'
-  url: https://repo.prefix.dev/conda-forge/win-64/markupsafe-3.0.3-py310hdb0e946_0.conda
-  hash:
-    md5: 1fdd2255424eaf0d5e707c205ace2c30
-    sha256: 87203ea8bbe265ebabb16673c9442d2097e1b405dc70df49d6920730e7be6e74
-  category: dev
-  optional: true
 - name: mccabe
   version: 0.7.0
   manager: conda
@@ -2641,7 +2584,7 @@ package:
   category: main
   optional: false
 - name: geoh5py
-  version: 0.12.0b4.dev8+a9f57210
+  version: 0.12.0b3
   manager: pip
   platform: linux-64
   dependencies:
@@ -2649,16 +2592,13 @@ package:
     numpy: '>=1.26.0,<1.27.0'
     pillow: '>=10.3.0,<10.4.0'
     pydantic: '>=2.5.2,<3.0.0'
-  url: git+https://github.com/MiraGeoscience/geoh5py.git@a9f5721079c097b1fa484ff8424146c6cd1a8c0c
+  url: https://mirageoscienceltd.jfrog.io/artifactory/api/pypi/geoplus-pypi-dev/geoh5py/0.12.0b3/geoh5py-0.12.0b3-py3-none-any.whl
   hash:
-    sha256: a9f5721079c097b1fa484ff8424146c6cd1a8c0c
-  source:
-    type: url
-    url: git+https://github.com/MiraGeoscience/geoh5py.git@a9f5721079c097b1fa484ff8424146c6cd1a8c0c
+    sha256: 59932ee0ba044509c4389b547d50e381f62e32eea8c5e22d69526880a37489b5
   category: main
   optional: false
 - name: geoh5py
-  version: 0.12.0b4.dev8+a9f57210
+  version: 0.12.0b3
   manager: pip
   platform: win-64
   dependencies:
@@ -2666,11 +2606,8 @@ package:
     numpy: '>=1.26.0,<1.27.0'
     pillow: '>=10.3.0,<10.4.0'
     pydantic: '>=2.5.2,<3.0.0'
-  url: git+https://github.com/MiraGeoscience/geoh5py.git@a9f5721079c097b1fa484ff8424146c6cd1a8c0c
+  url: https://mirageoscienceltd.jfrog.io/artifactory/api/pypi/geoplus-pypi-dev/geoh5py/0.12.0b3/geoh5py-0.12.0b3-py3-none-any.whl
   hash:
-    sha256: a9f5721079c097b1fa484ff8424146c6cd1a8c0c
-  source:
-    type: url
-    url: git+https://github.com/MiraGeoscience/geoh5py.git@a9f5721079c097b1fa484ff8424146c6cd1a8c0c
+    sha256: 59932ee0ba044509c4389b547d50e381f62e32eea8c5e22d69526880a37489b5
   category: main
   optional: false
