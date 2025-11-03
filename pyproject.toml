@@ -54,6 +54,7 @@ packages = [
 ]
 
 include = [
+    { path = "geoapps_utils/_version.py", format = ["sdist", "wheel"] },
 ]
 
 exclude = [] # files to exclude from packaging
