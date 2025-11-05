@@ -101,7 +101,7 @@ class Driver(ABC):
         return InputFile.read_ui_json(filepath, validations=cls._validations, **kwargs)
 
     @classmethod
-    def start(cls, filepath: str | Path | InputFile, mode="r+", **kwargs) -> Driver:
+    def start(cls, filepath: str | Path | InputFile, mode="r+", **kwargs) -> Self:
         """
         Run application specified by 'filepath' ui.json file.
 
