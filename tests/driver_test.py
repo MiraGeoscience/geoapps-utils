@@ -65,6 +65,9 @@ def test_base_driver(tmp_path):
         TestParamsDriver("not a params object")  # type: ignore
 
     driver = TestParamsDriver(params)
+
+    assert TestParamsDriver.get_default_ui_json() is None
+
     driver.start(tmp_path / "test_ifile.ui.json")
 
     with pytest.raises(TypeError, match="Input file must be "):
@@ -116,6 +119,8 @@ def test_base_options(tmp_path):
         options.update_out_group_options()
 
     driver = TestOptionsDriver(options)
+
+    assert TestOptionsDriver.get_default_ui_json().exists()  # type: ignore
 
     assert isinstance(driver.params, TestOptions)
     assert driver.params_class == TestOptions
