@@ -18,6 +18,7 @@ from geoh5py import Workspace
 from geoh5py.data import Data
 from geoh5py.objects import CellObject, Grid2D, Points
 from geoh5py.objects.grid_object import GridObject
+from matplotlib.tri import LinearTriInterpolator, Triangulation
 from scipy.interpolate import LinearNDInterpolator, NearestNDInterpolator
 from scipy.spatial import Delaunay, cKDTree
 
@@ -60,7 +61,10 @@ def mask_large_connections(cell_object: CellObject, distance_threshold: float):
 
 
 def topo_drape_elevation(
-    locations: np.ndarray, topo: np.ndarray, method="linear"
+    locations: np.ndarray,
+    topo: np.ndarray,
+    method="linear",
+    triangulation: np.ndarray | None = None,
 ) -> np.ndarray:
     """
     Get draped elevation at locations.
@@ -75,18 +79,25 @@ def topo_drape_elevation(
     :return: An array of z elevations for every input locations.
     """
     actives = ~np.any(np.isnan(topo), axis=1)
-    if method == "linear":
-        delaunay_2d = Delaunay(topo[actives, :-1])
-        z_interpolate = LinearNDInterpolator(delaunay_2d, topo[actives, -1])
-    elif method == "nearest":
-        z_interpolate = NearestNDInterpolator(topo[actives, :-1], topo[actives, -1])
-    else:
-        raise ValueError("Method must be 'linear', or 'nearest'")
-
     unique_locs, inds = np.unique(
         locations[:, :-1].round(), axis=0, return_inverse=True
     )
-    z_locations = z_interpolate(unique_locs)[inds]
+
+    if triangulation is not None:
+        tr = Triangulation(topo[:, 0], topo[:, 1], triangles=triangulation)
+        z_interpolate = LinearTriInterpolator(tr, topo[:, 2])
+        z_locations = z_interpolate(unique_locs[:, 0], unique_locs[:, 1]).data[inds]
+    else:
+        if method == "linear":
+            delaunay_2d = Delaunay(topo[actives, :-1])
+            z_interpolate = LinearNDInterpolator(delaunay_2d, topo[actives, -1])
+        elif method == "nearest":
+            z_interpolate = NearestNDInterpolator(topo[actives, :-1], topo[actives, -1])
+
+        else:
+            raise ValueError("Method must be 'linear', or 'nearest'")
+
+        z_locations = z_interpolate(unique_locs)[inds]
 
     # Apply nearest neighbour if in extrapolation
     ind_nan = np.isnan(z_locations)
@@ -103,7 +114,10 @@ def topo_drape_elevation(
 
 
 def mask_under_horizon(
-    locations: np.ndarray, horizon: np.ndarray, method="linear"
+    locations: np.ndarray,
+    horizon: np.ndarray,
+    method="linear",
+    triangulation: np.ndarray | None = None,
 ) -> np.ndarray:
     """
     Mask locations under a horizon.
@@ -114,11 +128,15 @@ def mask_under_horizon(
         array of shape(*, 3) that forms a rough plane that intersects the
         provided locations 3D point cloud.
     :param method: Type of interpolation of horizon, either 'linear' or 'nearest'
+    :param triangulation: Array of indices defining the triangulation.
+        Avoids computing a Delaunay triangulation if provided.
 
     :returns: A boolean array of shape(*, 1) where True values represent points
         in the locations array that lie below the triangulated horizon.
     """
-    drapped_locations = topo_drape_elevation(locations, horizon, method=method)
+    drapped_locations = topo_drape_elevation(
+        locations, horizon, method=method, triangulation=triangulation
+    )
     below_horizon = locations[:, -1] < drapped_locations[:, -1]
 
     return below_horizon
