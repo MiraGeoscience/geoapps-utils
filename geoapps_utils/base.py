@@ -168,6 +168,17 @@ class Driver(ABC):
                 copy_children=copy_children,
             )
 
+    @classmethod
+    def get_default_ui_json(cls) -> Path | None:
+        """
+        Get the default ui.json file path for the application.
+
+        :return: Path to default ui.json file.
+        """
+        if issubclass(cls._params_class, Options):
+            return cls._params_class.default_ui_json
+        return None
+
 
 class Options(BaseModel):
     """

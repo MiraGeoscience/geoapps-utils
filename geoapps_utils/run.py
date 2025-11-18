@@ -50,11 +50,11 @@ def load_ui_json_as_dict(filepath: str | Path | dict) -> dict:
     return uijson
 
 
-def fetch_driver_class(json_dict: str | Path | dict) -> type[Driver]:
+def fetch_driver_class_from_string(module_path: str) -> type[Driver]:
     """
-    Fetch the driver class from the ui.json 'run_command'.
+    Fetch the driver class from a module path string.
 
-    :param json_dict: Path to a ui.json file with a 'run_command' key.
+    :param module_path: Module path string.
 
     :return: Driver class.
     """
@@ -63,15 +63,7 @@ def fetch_driver_class(json_dict: str | Path | dict) -> type[Driver]:
         BaseDriver,
     )
 
-    uijson = load_ui_json_as_dict(json_dict)
-
-    if "run_command" not in uijson or not isinstance(uijson["run_command"], str):
-        raise KeyError(
-            "'run_command' in ui.json must be a string representing the module path."
-            f" Got {uijson.get('run_command', None)}."
-        )
-
-    module = import_module(uijson["run_command"])
+    module = import_module(module_path)
     cls = None
     for _, cls in inspect.getmembers(module):
         try:
@@ -86,9 +78,30 @@ def fetch_driver_class(json_dict: str | Path | dict) -> type[Driver]:
     else:
         logger.warning(
             "\n\nApplicationError: No valid driver class found in module %s\n\n",
-            uijson["run_command"],
+            module_path,
         )
         sys.exit(1)
+
+    return cls
+
+
+def fetch_driver_class(json_dict: str | Path | dict) -> type[Driver]:
+    """
+    Fetch the driver class from the ui.json 'run_command'.
+
+    :param json_dict: Path to a ui.json file with a 'run_command' key.
+
+    :return: Driver class.
+    """
+    uijson = load_ui_json_as_dict(json_dict)
+
+    if "run_command" not in uijson or not isinstance(uijson["run_command"], str):
+        raise KeyError(
+            "'run_command' in ui.json must be a string representing the module path."
+            f" Got {uijson.get('run_command', None)}."
+        )
+
+    cls = fetch_driver_class_from_string(uijson["run_command"])
 
     return cls
 
