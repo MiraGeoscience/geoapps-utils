@@ -75,6 +75,7 @@ def topo_drape_elevation(
     :param locations: n x 3 array of locations
     :param topo: n x 3 array of topography points
     :param method: Type of topography interpolation, either 'linear' or 'nearest'
+    :param triangulation: Optional array describing triangulation
 
     :return: An array of z elevations for every input locations.
     """
