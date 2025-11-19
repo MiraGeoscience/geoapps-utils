@@ -11,11 +11,13 @@
 from __future__ import annotations
 
 import logging
+from time import time
 
 import numpy as np
 import pytest
 from geoh5py import Workspace
 from geoh5py.objects import Curve, Grid2D, Points
+from scipy.spatial import Delaunay
 
 from geoapps_utils.utils.locations import (
     gaussian,
@@ -24,6 +26,7 @@ from geoapps_utils.utils.locations import (
     map_indices_to_coordinates,
     mask_large_connections,
     mask_under_horizon,
+    topo_drape_elevation,
 )
 from geoapps_utils.utils.transformations import rotate_points, z_rotation_matrix
 
@@ -70,6 +73,29 @@ def test_mask_under_horizon(method, caplog):
     if method == "linear":
         assert "Locations found outside" in caplog.text
     assert np.all(mask == np.array([True, False, False, True]))
+
+
+def test_topo_drape_elevation():
+    x = np.linspace(-10, 10, 100)
+    y = np.linspace(-10, 10, 100)
+    x_grid, y_grid = np.meshgrid(x, y)
+    z_grid = gaussian(x_grid, y_grid, 10, 5)
+    locations = np.c_[x_grid.ravel(), y_grid.ravel(), z_grid.ravel()]
+    test_pts = np.random.randn(2000, 3)
+
+    start_time = time()
+    z_scipy = topo_drape_elevation(test_pts, locations)
+    no_tri = time() - start_time
+
+    tri = Delaunay(locations[:, :2])
+    start_time = time()
+    z_matplotlib = topo_drape_elevation(
+        test_pts, locations, triangulation=tri.simplices
+    )
+    with_tri = time() - start_time
+
+    assert with_tri < no_tri
+    np.testing.assert_allclose(z_scipy, z_matplotlib, atol=1e-2)
 
 
 def test_get_locations_centroids():
