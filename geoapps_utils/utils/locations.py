@@ -19,8 +19,8 @@ from geoh5py.data import Data
 from geoh5py.objects import CellObject, Grid2D, Points
 from geoh5py.objects.grid_object import GridObject
 from matplotlib.tri import LinearTriInterpolator, Triangulation
-from scipy.interpolate import LinearNDInterpolator, NearestNDInterpolator
-from scipy.spatial import Delaunay, cKDTree
+from scipy.interpolate import NearestNDInterpolator
+from scipy.spatial import cKDTree
 
 
 _logger = getLogger(__name__)
@@ -83,21 +83,15 @@ def topo_drape_elevation(
         locations[:, :-1].round(), axis=0, return_inverse=True
     )
 
-    if triangulation is not None:
+    if method == "linear":
         tr = Triangulation(topo[:, 0], topo[:, 1], triangles=triangulation)
         z_interpolate = LinearTriInterpolator(tr, topo[:, 2])
         z_locations = z_interpolate(unique_locs[:, 0], unique_locs[:, 1]).data[inds]
-    else:
-        if method == "linear":
-            delaunay_2d = Delaunay(topo[actives, :-1])
-            z_interpolate = LinearNDInterpolator(delaunay_2d, topo[actives, -1])
-        elif method == "nearest":
-            z_interpolate = NearestNDInterpolator(topo[actives, :-1], topo[actives, -1])
-
-        else:
-            raise ValueError("Method must be 'linear', or 'nearest'")
-
+    elif method == "nearest":
+        z_interpolate = NearestNDInterpolator(topo[actives, :-1], topo[actives, -1])
         z_locations = z_interpolate(unique_locs)[inds]
+    else:
+        raise ValueError("Method must be 'linear', or 'nearest'")
 
     # Apply nearest neighbour if in extrapolation
     ind_nan = np.isnan(z_locations)
