@@ -83,16 +83,16 @@ def test_topo_drape_elevation():
     locations = np.c_[x_grid.ravel(), y_grid.ravel(), z_grid.ravel()]
     test_pts = np.random.randn(2000, 3)
 
-    ct = time()
+    start_time = time()
     z_scipy = topo_drape_elevation(test_pts, locations)
-    no_tri = time() - ct
+    no_tri = time() - start_time
 
     tri = Delaunay(locations[:, :2])
-    ct = time()
+    start_time = time()
     z_matplotlib = topo_drape_elevation(
         test_pts, locations, triangulation=tri.simplices
     )
-    with_tri = time() - ct
+    with_tri = time() - start_time
 
     assert with_tri < no_tri
     np.testing.assert_allclose(z_scipy, z_matplotlib, atol=1e-2)
