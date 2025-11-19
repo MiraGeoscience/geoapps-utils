@@ -38,8 +38,8 @@ requirements:
 tests:
   - python:
       imports:
-        - geoapps_utils
-        - geoapps_utils._version
+        - ${{ module_name }}
+        - ${{ module_name }}._version
   - script:
       - pytest --ignore=tests/version_test.py
     requirements:
