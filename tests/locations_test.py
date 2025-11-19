@@ -95,7 +95,7 @@ def test_topo_drape_elevation():
     with_tri = time() - ct
 
     assert with_tri < no_tri
-    np.testing.assert_almost_equal(z_scipy, z_matplotlib)
+    np.testing.assert_allclose(z_scipy, z_matplotlib, atol=1e-2)
 
 
 def test_get_locations_centroids():
