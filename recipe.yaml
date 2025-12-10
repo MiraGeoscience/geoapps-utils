@@ -28,7 +28,7 @@ requirements:
   run:
     - python >=${{ python_min }}
     # Mira packages
-    - geoh5py >=0.12.0rc1, 0.12.*
+    - geoh5py >=0.12.0rc2, 0.12.*
     # direct dependencies
     - numpy 1.26*
     - pydantic 2.11.*
