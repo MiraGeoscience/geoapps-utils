@@ -10,23 +10,92 @@
 
 from __future__ import annotations
 
+import logging
+from time import time
+
 import numpy as np
+import pytest
 from geoh5py import Workspace
-from geoh5py.objects import Grid2D, Points
+from geoh5py.objects import Curve, Grid2D, Points
+from scipy.spatial import Delaunay
 
 from geoapps_utils.utils.locations import (
+    gaussian,
     get_locations,
     get_overlapping_limits,
     map_indices_to_coordinates,
+    mask_large_connections,
     mask_under_horizon,
+    topo_drape_elevation,
 )
+from geoapps_utils.utils.transformations import rotate_points, z_rotation_matrix
 
 
-def test_mask_under_horizon():
+def test_gaussian():
+    x = np.linspace(-10, 10, 100)
+    y = np.linspace(-10, 10, 100)
+    x_grid, y_grid = np.meshgrid(x, y)
+    z_grid = gaussian(x_grid, y_grid, 10, 5)
+    assert np.isclose(z_grid.max(), 10, rtol=1e-3)
+
+
+def test_mask_large_connections(tmp_path):
+    with Workspace.create(tmp_path / "test.geoh5") as ws:
+        x = np.linspace(0, 100, 11)
+        y = np.linspace(0, 300, 4)
+        x_grid, y_grid = np.meshgrid(x, y)
+        z_grid = np.zeros_like(x_grid)
+        vertices = np.column_stack([x_grid.ravel(), y_grid.ravel(), z_grid.ravel()])
+        crv = Curve.create(ws, name="test_curve", vertices=vertices)
+        mask = mask_large_connections(crv, distance_threshold=50.0)
+        assert len(mask) == 3
+
+
+def test_rotate_points():
+    points = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1], [2, 3, 4]])
+    validation = rotate_points(
+        points,
+        (0.0, 0.0, 0.0),
+        [z_rotation_matrix(90), z_rotation_matrix(np.array([-90] * 4))],
+    )
+    assert np.allclose(points, validation)
+
+
+@pytest.mark.parametrize("method", ["nearest", "linear"])
+def test_mask_under_horizon(method, caplog):
     points = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1], [10, 10, 0]])
-    horizon = np.array([[-1, -1, 0], [1, -1, 0], [1, 1, 1], [-1, 1, 0], [0, 0, 0]])
-    mask = mask_under_horizon(points, horizon)
+    horizon = np.array(
+        [[-1, -1, 0], [1, -1, 0], [1, 1, 1], [-0.5, 0.5, np.nan], [-1, 1, 0], [0, 0, 0]]
+    )
+    with caplog.at_level(logging.WARNING):
+        mask = mask_under_horizon(points, horizon, method=method)
+
+    if method == "linear":
+        assert "Locations found outside" in caplog.text
     assert np.all(mask == np.array([True, False, False, True]))
+
+
+def test_topo_drape_elevation():
+    x = np.linspace(-10, 10, 100)
+    y = np.linspace(-10, 10, 100)
+    x_grid, y_grid = np.meshgrid(x, y)
+    z_grid = gaussian(x_grid, y_grid, 10, 5)
+    locations = np.c_[x_grid.ravel(), y_grid.ravel(), z_grid.ravel()]
+    test_pts = np.random.randn(2000, 3)
+
+    start_time = time()
+    z_scipy = topo_drape_elevation(test_pts, locations)
+    no_tri = time() - start_time
+
+    tri = Delaunay(locations[:, :2])
+    start_time = time()
+    z_matplotlib = topo_drape_elevation(
+        test_pts, locations, triangulation=tri.simplices
+    )
+    with_tri = time() - start_time
+
+    assert with_tri < no_tri
+    np.testing.assert_allclose(z_scipy, z_matplotlib, atol=1e-2)
 
 
 def test_get_locations_centroids():

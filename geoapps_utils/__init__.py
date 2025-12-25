@@ -10,10 +10,16 @@
 
 from __future__ import annotations
 
-
-__version__ = "0.5.0"
-
 from pathlib import Path
+
+
+try:
+    from ._version import __version__
+except ModuleNotFoundError:  # pragma: no cover
+    from datetime import datetime
+
+    __date_str = datetime.today().strftime("%Y%m%d")
+    __version__ = "0.0.0.dev0+" + __date_str
 
 from geoapps_utils.utils import (
     conversions,
@@ -28,6 +34,7 @@ from geoapps_utils.utils import (
 )
 from geoapps_utils.utils.importing import GeoAppsError
 from geoapps_utils.utils.importing import assets_path as assets_path_impl
+from geoapps_utils.utils.logger import get_logger
 
 
 def assets_path() -> Path:

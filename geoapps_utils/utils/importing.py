@@ -12,11 +12,15 @@ from __future__ import annotations
 
 import warnings
 from contextlib import contextmanager
+from logging import getLogger
 from pathlib import Path
 from typing import Annotated
 
 from geoh5py.groups import DrillholeGroup
 from pydantic import BaseModel, BeforeValidator, ConfigDict
+
+
+logger = getLogger(__name__)
 
 
 class DrillholeGroupValue(BaseModel):
