@@ -1,5 +1,5 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#  Copyright (c) 2023-2026 Mira Geoscience Ltd.                                     '
 #                                                                                   '
 #  This file is part of geoapps-utils package.                                      '
 #                                                                                   '
@@ -292,3 +292,27 @@ def azimuth_to_unit_vector(azimuth: float) -> np.ndarray:
         np.c_[0.0, 0.0, 1.0],
     ]
     return np.array([0.0, 1.0, 0.0]).dot(mat_z)
+
+
+def xyz_to_polar(locations: np.ndarray) -> np.ndarray:
+    """
+    Convert Cartesian coordinates (x, y, z) to polar coordinates defined as
+    (distance, azimuth, height).
+
+    Distances are relative to the origin, azimuth angles are
+    defined clockwise from North in degree and heights are the z-coordinates.
+
+    :param locations: Cartesian coordinates.
+
+    :return: Array of polar coordinates (distance, azimuth, height).
+    """
+    distances = np.linalg.norm(locations[:, :2], axis=1)
+    azimuths = 90 - np.rad2deg(np.arctan2(locations[:, 0], locations[:, 1]))
+
+    # Deal with points close to the origin with nearest neighbor azimuth
+    if np.any(distances < 1e-8):
+        indices = np.where(distances >= 1e-8)[0]
+        nearest = indices[np.argsort(distances[indices])]
+        azimuths[distances < 1e-8] = azimuths[nearest[0]]
+
+    return np.c_[distances, azimuths, locations[:, 2]]

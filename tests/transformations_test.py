@@ -1,5 +1,5 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#  Copyright (c) 2023-2026 Mira Geoscience Ltd.                                     '
 #                                                                                   '
 #  This file is part of geoapps-utils package.                                      '
 #                                                                                   '
@@ -24,6 +24,7 @@ from geoapps_utils.utils.transformations import (
     rotate_xyz,
     spherical_normal_to_direction_and_dip,
     x_rotation_matrix,
+    xyz_to_polar,
     z_rotation_matrix,
 )
 
@@ -187,3 +188,39 @@ def test_azimuth_to_unit_vector():
     assert np.allclose(azimuth_to_unit_vector(180.0), np.array([0.0, -1.0, 0.0]))
     assert np.allclose(azimuth_to_unit_vector(270.0), np.array([-1.0, 0.0, 0.0]))
     assert np.allclose(azimuth_to_unit_vector(360.0), np.array([0.0, 1.0, 0.0]))
+
+
+def test_xyz_to_polar():
+    """
+    Test the xyz_to_polar utility function.
+    """
+
+    rad = np.arange(0, 100, 10)
+    azm = np.pi / 3.0
+
+    # Create x, y, z coordinates
+    x = rad * np.cos(azm)
+    y = rad * np.sin(azm)
+    z = np.random.randn(x.shape[0])  # Random z values
+    locations = np.c_[x, y, z]
+
+    # Start reference
+    polar = xyz_to_polar(locations)
+    np.testing.assert_almost_equal(polar[0, 0], 0.0)  # First point at zero distance
+    np.testing.assert_allclose(
+        polar[:, 1], np.rad2deg(azm)
+    )  # All other distances positive
+
+    # Mean reference locations
+    polar = xyz_to_polar(locations - np.mean(locations, axis=0))
+    np.testing.assert_almost_equal(
+        polar[4::-1, 0], polar[5:, 0]
+    )  # Opposite side of center
+    np.testing.assert_almost_equal(polar[:5, 1] % 180, polar[5:, 1])  # Polar opposite
+    np.testing.assert_allclose(z - np.mean(z), polar[:, 2])  # Preserves z
+
+    # End reference
+    polar = xyz_to_polar(locations - locations[-1, :])
+    np.testing.assert_allclose(
+        polar[:, 1], np.rad2deg(azm) + 180
+    )  # All other distances positive

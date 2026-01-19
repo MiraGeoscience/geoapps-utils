@@ -1,5 +1,5 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#  Copyright (c) 2023-2026 Mira Geoscience Ltd.                                     '
 #                                                                                   '
 #  This file is part of geoapps-utils package.                                      '
 #                                                                                   '
@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import numpy as np
+from scipy.sparse import csr_matrix, diags
 from scipy.spatial import cKDTree
 
 
@@ -202,3 +203,33 @@ def fit_circle(x_val: np.ndarray, y_val) -> tuple[float, float, float]:
     radius = (coef[0] ** 2.0 + coef[1] ** 2.0 + coef[2]) ** 0.5
 
     return radius, coef[0], coef[1]
+
+
+def inverse_weighted_operator(
+    values: np.ndarray,
+    col_indices: np.ndarray,
+    shape: tuple,
+    power: float,
+    threshold: float,
+) -> csr_matrix:
+    """
+    Create an inverse distance weighted sparse matrix.
+
+    :param values: Distance values.
+    :param col_indices: Column indices for the sparse matrix.
+    :param shape: Shape of the sparse matrix.
+    :param power: Power for the inverse distance weighting.
+    :param threshold: Threshold to avoid singularities.
+
+    :return: Inverse distance weighted sparse matrix.
+    """
+    weights = (values**power + threshold) ** -1
+    n_vals_row = weights.shape[0] // shape[0]
+    row_ids = np.repeat(np.arange(shape[0]), n_vals_row)
+    inv_dist_op = csr_matrix(
+        (weights, (row_ids, col_indices)),
+        shape=shape,
+    )
+    # Normalize the rows
+    row_sum = np.asarray(inv_dist_op.sum(axis=1)).flatten() ** -1.0
+    return diags(row_sum) @ inv_dist_op
