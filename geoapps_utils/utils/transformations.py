@@ -90,7 +90,7 @@ def cartesian_to_polar(
 
     :return: Array of polar coordinates (distance, azimuth, height).
     """
-    if not isinstance(origin, Sequence) or len(origin) != 3:
+    if not isinstance(origin, Sequence | np.ndarray) or len(origin) != 3:
         raise ValueError("Origin must be an iterable of length 3.")
 
     local_xyz = locations - np.asarray(origin)
