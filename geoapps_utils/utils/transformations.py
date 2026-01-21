@@ -22,6 +22,8 @@ def apply_rotation(operator: np.ndarray, points: np.ndarray) -> np.ndarray:
     :param operator: Rotation matrix of shape (3, 3) or (n, 3, 3) where n is the number of
         points.
     :param points: Array of shape (n, 3) representing the x, y, z coordinates to be rotated.
+
+    :returns: Rotated coordinates of same shape as input.
     """
 
     if operator.shape[0] == points.shape[1]:
@@ -126,7 +128,13 @@ def cartesian_to_spherical(points: np.ndarray) -> np.ndarray:
 
 
 def ccw_east_to_cw_north(azimuth: np.ndarray) -> np.ndarray:
-    """Convert counterclockwise azimuth from east to clockwise from north."""
+    """
+    Convert counterclockwise azimuth from east to clockwise from north.
+
+    :param azimuth: Array of azimuth angles in radians counterclockwise from east.
+
+    :returns: Array of azimuth angles in radians clockwise from north.
+    """
     return (((5 * np.pi) / 2) - azimuth) % (2 * np.pi)
 
 
@@ -152,7 +160,13 @@ def compute_normals(surface: Surface) -> np.ndarray:
 
 
 def inclination_to_dip(inclination: np.ndarray) -> np.ndarray:
-    """Convert inclination from positive z-axis to dip from horizon."""
+    """
+    Convert inclination from positive z-axis to dip from horizon.
+
+    :param inclination: Array of inclination angles in radians from positive z-axis.
+
+    :returns: Array of dip angles in radians from horizon.
+    """
     return inclination - (np.pi / 2)
 
 
@@ -169,6 +183,8 @@ def rotate_points(
     :param rotations: List of rotation matrices to apply to the points.  These must
         be in the form of scipy sparse matrices (csr_matrix) produced by the
         x_rotation_matrix(), y_rotation_matrix(), and z_rotation_matrix() functions.
+
+    :returns: Rotated coordinates of same shape as input.
     """
 
     out = points.copy() - origin
@@ -177,7 +193,9 @@ def rotate_points(
     return out + origin
 
 
-def rotate_xyz(xyz: np.ndarray, center: list, theta: float, phi: float = 0.0):
+def rotate_xyz(
+    xyz: np.ndarray, center: list, theta: float, phi: float = 0.0
+) -> np.ndarray:
     """
     Rotate points counterclockwise around the x then z axes, about a center point.
 
@@ -187,6 +205,8 @@ def rotate_xyz(xyz: np.ndarray, center: list, theta: float, phi: float = 0.0):
         as viewed from above.
     :param phi: Angle of rotation in couterclockwise degrees around x-axis
         as viewed from the east.
+
+    :returns: Rotated coordinates of same shape as input.
     """
     return2d = False
     locs = xyz.copy()
@@ -246,6 +266,8 @@ def x_rotation_matrix(angle: np.ndarray | float) -> ssp.csr_matrix:
 
     :param angle: Array of angles in radians for counterclockwise rotation
         about the x-axis.
+
+    :returns: Rotation matrix as a scipy sparse matrix.
     """
 
     if isinstance(angle, np.ndarray):
@@ -276,6 +298,8 @@ def y_rotation_matrix(angle: np.ndarray | float) -> ssp.csr_matrix:
 
     :param angle: Array of angles in radians for counterclockwise rotation
         about the y-axis.
+
+    :returns: Rotation matrix as a scipy sparse matrix.
     """
 
     if isinstance(angle, np.ndarray):
@@ -306,6 +330,8 @@ def z_rotation_matrix(angle: np.ndarray | float) -> ssp.csr_matrix:
 
     :param angle: Array of angles in radians for counterclockwise rotation
         about the z-axis.
+
+    :returns: Rotation matrix as a scipy sparse matrix.
     """
 
     if isinstance(angle, np.ndarray):
