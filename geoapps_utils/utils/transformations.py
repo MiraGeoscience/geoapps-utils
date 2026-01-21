@@ -1,5 +1,5 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#  Copyright (c) 2022-2026 Mira Geoscience Ltd.                                     '
 #                                                                                   '
 #  This file is part of geoapps-utils package.                                      '
 #                                                                                   '
@@ -8,39 +8,253 @@
 #                                                                                   '
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
+from collections.abc import Sequence
+
 import numpy as np
 import scipy.sparse as ssp
 from geoh5py.objects import Surface
 
 
-def z_rotation_matrix(angle: np.ndarray | float) -> ssp.csr_matrix:
+def apply_rotation(operator: np.ndarray, points: np.ndarray) -> np.ndarray:
     """
-    Sparse matrix for heterogeneous vector rotation about the z axis.
+    Apply heterogeneous or homogeneous rotation matrix to point set.
 
-    To be used in a matrix-vector product with an array of shape (n, 3)
-    where n is the number of 3-component vectors.
+    :param operator: Rotation matrix of shape (3, 3) or (n, 3, 3) where n is the number of
+        points.
+    :param points: Array of shape (n, 3) representing the x, y, z coordinates to be rotated.
 
-    :param angle: Array of angles in radians for counterclockwise rotation
-        about the z-axis.
+    :returns: Rotated coordinates of same shape as input.
     """
 
-    if isinstance(angle, np.ndarray):
-        n = len(angle)
-        rza = np.c_[np.cos(angle), np.cos(angle), np.ones(n)].T
-        rza = rza.flatten(order="F")
-        rzb = np.c_[np.sin(angle), np.zeros(n), np.zeros(n)].T
-        rzb = rzb.flatten(order="F")
-        rzc = np.c_[-np.sin(angle), np.zeros(n), np.zeros(n)].T
-        rzc = rzc.flatten(order="F")
-        rot_z = ssp.diags([rzb[:-1], rza, rzc[:-1]], [-1, 0, 1])
-    else:
-        rot_z = np.r_[
-            np.c_[np.cos(angle), -np.sin(angle), 0],
-            np.c_[np.sin(angle), np.cos(angle), 0],
-            np.c_[0, 0, 1],
-        ]
+    if operator.shape[0] == points.shape[1]:
+        return operator.dot(points.T).T
 
-    return rot_z
+    if operator.shape[0] == np.prod(points.shape):
+        vec = points.copy()
+        vec = vec.flatten()
+        vec = operator.dot(vec.T).T
+        vec = vec.reshape(-1, 3)
+        return vec
+
+    raise ValueError(
+        f"Shape mismatch between operator ({operator.shape}) and points "
+        f"({points.shape}). For n points, the rotation operator should be size n "
+        "if homogeneous, or 3n if heterogeneous."
+    )
+
+
+def azimuth_to_unit_vector(azimuth: float) -> np.ndarray:
+    """
+    Convert an azimuth to a unit vector.
+
+    :param azimuth: Azimuth in degrees from north (0 to 360).
+    :return: Unit vector in the direction of the azimuth.
+    """
+    theta = np.deg2rad(azimuth)
+    mat_z = np.r_[
+        np.c_[np.cos(theta), -np.sin(theta), 0.0],
+        np.c_[np.sin(theta), np.cos(theta), 0.0],
+        np.c_[0.0, 0.0, 1.0],
+    ]
+    return np.array([0.0, 1.0, 0.0]).dot(mat_z)
+
+
+def cartesian_normal_to_direction_and_dip(normals: np.ndarray) -> np.ndarray:
+    """
+    Convert 3D normal vectors to dip and direction.
+
+    :param normals: Array of shape (n, 3) representing the x, y, z components of a
+        normal vector in 3D space.
+
+    :returns: Array of shape (n, 2) representing azimuth from 0 to 2pi radians
+        clockwise from north as viewed from above and dip from -pi to pi in positive
+        radians below the horizon and negative above.
+    """
+
+    spherical_normals = cartesian_to_spherical(normals)
+    direction_and_dip = spherical_normal_to_direction_and_dip(spherical_normals[:, 1:])
+
+    return direction_and_dip
+
+
+def cartesian_to_polar(
+    locations: np.ndarray, origin: Sequence = (0, 0, 0)
+) -> np.ndarray:
+    """
+    Convert Cartesian coordinates (x, y, z) to polar coordinates defined as
+    (distance, azimuth, height).
+
+    Distances are relative to the origin, azimuth angles are
+    defined clockwise from North in degree and heights are the z-coordinates.
+
+    :param locations: Cartesian coordinates.
+    :param origin: Origin for distance and azimuth calculations.
+
+    :return: Array of polar coordinates (distance, azimuth, height).
+    """
+    if not isinstance(origin, Sequence | np.ndarray) or len(origin) != 3:
+        raise ValueError("Origin must be an iterable of length 3.")
+
+    local_xyz = locations - np.asarray(origin)
+    distances = np.linalg.norm(local_xyz[:, :2], axis=1)
+    azimuths = 90 - np.rad2deg(np.arctan2(local_xyz[:, 0], local_xyz[:, 1]))
+
+    # Deal with points close to the origin with nearest neighbor azimuth
+    if np.any(distances < 1e-8):
+        indices = np.where(distances >= 1e-8)[0]
+        nearest = indices[np.argsort(distances[indices])]
+        azimuths[distances < 1e-8] = azimuths[nearest[0]]
+
+    return np.c_[distances, azimuths, locations[:, 2]]
+
+
+def cartesian_to_spherical(points: np.ndarray) -> np.ndarray:
+    """
+    Convert cartesian to spherical coordinate system.
+
+    :param points: Array of shape (n, 3) representing x, y, z coordinates of a point
+        in 3D space.
+
+    :returns: Array of shape (n, 3) representing the magnitude, azimuth and inclination
+        in spherical coordinates. The azimuth angle is measured in radians
+        counterclockwise from east in the range of 0 to 2pi as viewed from above, and
+        inclination angle is measured in radians from the positive z-axis.
+    """
+
+    magnitude = np.linalg.norm(points, axis=1)
+    inclination = np.arccos(points[:, 2] / magnitude)
+    azimuth = np.arctan2(points[:, 1], points[:, 0])
+    return np.column_stack((magnitude, azimuth, inclination))
+
+
+def ccw_east_to_cw_north(azimuth: np.ndarray) -> np.ndarray:
+    """
+    Convert counterclockwise azimuth from east to clockwise from north.
+
+    :param azimuth: Array of azimuth angles in radians counterclockwise from east.
+
+    :returns: Array of azimuth angles in radians clockwise from north.
+    """
+    return (((5 * np.pi) / 2) - azimuth) % (2 * np.pi)
+
+
+def compute_normals(surface: Surface) -> np.ndarray:
+    """
+    Compute normals for each triangle in a surface.
+
+    :param surface: Surface object containing vertices and cells.
+
+    :returns: Array of shape (n, 3) representing the normals for
+        each cell in the mesh.
+    """
+
+    vertices = surface.vertices
+    cells = surface.cells
+
+    v1 = vertices[cells[:, 1]] - vertices[cells[:, 0]]
+    v2 = vertices[cells[:, 2]] - vertices[cells[:, 0]]
+    normals = np.cross(v1, v2)
+    normals = normals / np.linalg.norm(normals, axis=1)[:, np.newaxis]
+
+    return normals
+
+
+def inclination_to_dip(inclination: np.ndarray) -> np.ndarray:
+    """
+    Convert inclination from positive z-axis to dip from horizon.
+
+    :param inclination: Array of inclination angles in radians from positive z-axis.
+
+    :returns: Array of dip angles in radians from horizon.
+    """
+    return inclination - (np.pi / 2)
+
+
+def rotate_points(
+    points: np.ndarray,
+    origin: tuple[float, float, float],
+    rotations: list[ssp.csr_matrix],
+) -> np.ndarray:
+    """
+    Rotate points through a series of rotations about the provided origin.
+
+    :param points: Array of shape (n, 3) representing the x, y, z coordinates.
+    :param origin: Origin point of the rotation in the form [x, y, z].
+    :param rotations: List of rotation matrices to apply to the points.  These must
+        be in the form of scipy sparse matrices (csr_matrix) produced by the
+        x_rotation_matrix(), y_rotation_matrix(), and z_rotation_matrix() functions.
+
+    :returns: Rotated coordinates of same shape as input.
+    """
+
+    out = points.copy() - origin
+    for rotation in rotations:
+        out = apply_rotation(rotation, out)
+    return out + origin
+
+
+def rotate_xyz(
+    xyz: np.ndarray, center: list, theta: float, phi: float = 0.0
+) -> np.ndarray:
+    """
+    Rotate points counterclockwise around the x then z axes, about a center point.
+
+    :param xyz: shape(*, 2) or shape(*, 3) Input coordinates.
+    :param center: len(2) or len(3) Coordinates for the center of rotation.
+    :param theta: Angle of rotation in counterclockwise degree about the z-axis
+        as viewed from above.
+    :param phi: Angle of rotation in couterclockwise degrees around x-axis
+        as viewed from the east.
+
+    :returns: Rotated coordinates of same shape as input.
+    """
+    return2d = False
+    locs = xyz.copy()
+
+    # If the input is 2-dimensional, add zeros in the z column.
+    if len(center) == 2:
+        center.append(0)
+    if locs.shape[1] == 2:
+        locs = np.concatenate((locs, np.zeros((locs.shape[0], 1))), axis=1)
+        return2d = True
+
+    phi = np.deg2rad(phi)
+    theta = np.deg2rad(theta)
+    xyz_out = rotate_points(
+        locs,
+        tuple(center),
+        rotations=[x_rotation_matrix(phi), z_rotation_matrix(theta)],
+    )
+
+    if return2d:
+        # Return 2-dimensional data if the input xyz was 2-dimensional.
+        return xyz_out[:, :2]
+    return xyz_out
+
+
+def spherical_normal_to_direction_and_dip(angles: np.ndarray) -> np.ndarray:
+    """
+    Convert normals in spherical coordinates to dip and direction of the tangent plane.
+
+    :param angles: Array of shape (n, 2) representing the azimuth and inclination angles
+        of a normal vector in spherical coordinates. The azimuth angle is measured in
+        radians counterclockwise from east in the range of 0 to 2pi as viewed from above,
+        and inclination angle is measured in radians from the positive z-axis.
+
+    :returns: Array of shape (n, 2) representing direction from 0 to 2pi radians
+        clockwise from north as viewed from above and dip from -pi to pi in positive
+        radians below the horizon and negative above.
+    """
+
+    rot_z = z_rotation_matrix(angles[:, 0])
+    rot_y = y_rotation_matrix(angles[:, 1])
+    tangents = np.tile([1, 0, 0], len(angles))
+    tangents = np.reshape(rot_z * rot_y * tangents, (-1, 3))
+    angles = cartesian_to_spherical(tangents)
+
+    return np.column_stack(
+        (ccw_east_to_cw_north(angles[:, 1]), inclination_to_dip(angles[:, 2]))
+    )
 
 
 def x_rotation_matrix(angle: np.ndarray | float) -> ssp.csr_matrix:
@@ -52,6 +266,8 @@ def x_rotation_matrix(angle: np.ndarray | float) -> ssp.csr_matrix:
 
     :param angle: Array of angles in radians for counterclockwise rotation
         about the x-axis.
+
+    :returns: Rotation matrix as a scipy sparse matrix.
     """
 
     if isinstance(angle, np.ndarray):
@@ -82,6 +298,8 @@ def y_rotation_matrix(angle: np.ndarray | float) -> ssp.csr_matrix:
 
     :param angle: Array of angles in radians for counterclockwise rotation
         about the y-axis.
+
+    :returns: Rotation matrix as a scipy sparse matrix.
     """
 
     if isinstance(angle, np.ndarray):
@@ -103,192 +321,33 @@ def y_rotation_matrix(angle: np.ndarray | float) -> ssp.csr_matrix:
     return rot_y
 
 
-def apply_rotation(operator: np.ndarray, points: np.ndarray) -> np.ndarray:
+def z_rotation_matrix(angle: np.ndarray | float) -> ssp.csr_matrix:
     """
-    Apply heterogeneous or homogeneous rotation matrix to point set.
+    Sparse matrix for heterogeneous vector rotation about the z axis.
 
-    :param operator: Rotation matrix of shape (3, 3) or (n, 3, 3) where n is the number of
-        points.
-    :param points: Array of shape (n, 3) representing the x, y, z coordinates to be rotated.
-    """
+    To be used in a matrix-vector product with an array of shape (n, 3)
+    where n is the number of 3-component vectors.
 
-    if operator.shape[0] == points.shape[1]:
-        return operator.dot(points.T).T
+    :param angle: Array of angles in radians for counterclockwise rotation
+        about the z-axis.
 
-    if operator.shape[0] == np.prod(points.shape):
-        vec = points.copy()
-        vec = vec.flatten()
-        vec = operator.dot(vec.T).T
-        vec = vec.reshape(-1, 3)
-        return vec
-
-    raise ValueError(
-        f"Shape mismatch between operator ({operator.shape}) and points "
-        f"({points.shape}). For n points, the rotation operator should be size n "
-        "if homogeneous, or 3n if heterogeneous."
-    )
-
-
-def rotate_points(
-    points: np.ndarray,
-    origin: tuple[float, float, float],
-    rotations: list[ssp.csr_matrix],
-) -> np.ndarray:
-    """
-    Rotate points through a series of rotations about the provided origin.
-
-    :param points: Array of shape (n, 3) representing the x, y, z coordinates.
-    :param origin: Origin point of the rotation in the form [x, y, z].
-    :param rotations: List of rotation matrices to apply to the points.  These must
-        be in the form of scipy sparse matrices (csr_matrix) produced by the
-        x_rotation_matrix(), y_rotation_matrix(), and z_rotation_matrix() functions.
+    :returns: Rotation matrix as a scipy sparse matrix.
     """
 
-    out = points.copy() - origin
-    for rotation in rotations:
-        out = apply_rotation(rotation, out)
-    return out + origin
+    if isinstance(angle, np.ndarray):
+        n = len(angle)
+        rza = np.c_[np.cos(angle), np.cos(angle), np.ones(n)].T
+        rza = rza.flatten(order="F")
+        rzb = np.c_[np.sin(angle), np.zeros(n), np.zeros(n)].T
+        rzb = rzb.flatten(order="F")
+        rzc = np.c_[-np.sin(angle), np.zeros(n), np.zeros(n)].T
+        rzc = rzc.flatten(order="F")
+        rot_z = ssp.diags([rzb[:-1], rza, rzc[:-1]], [-1, 0, 1])
+    else:
+        rot_z = np.r_[
+            np.c_[np.cos(angle), -np.sin(angle), 0],
+            np.c_[np.sin(angle), np.cos(angle), 0],
+            np.c_[0, 0, 1],
+        ]
 
-
-def rotate_xyz(xyz: np.ndarray, center: list, theta: float, phi: float = 0.0):
-    """
-    Rotate points counterclockwise around the x then z axes, about a center point.
-
-    :param xyz: shape(*, 2) or shape(*, 3) Input coordinates.
-    :param center: len(2) or len(3) Coordinates for the center of rotation.
-    :param theta: Angle of rotation in counterclockwise degree about the z-axis
-        as viewed from above.
-    :param phi: Angle of rotation in couterclockwise degrees around x-axis
-        as viewed from the east.
-    """
-    return2d = False
-    locs = xyz.copy()
-
-    # If the input is 2-dimensional, add zeros in the z column.
-    if len(center) == 2:
-        center.append(0)
-    if locs.shape[1] == 2:
-        locs = np.concatenate((locs, np.zeros((locs.shape[0], 1))), axis=1)
-        return2d = True
-
-    phi = np.deg2rad(phi)
-    theta = np.deg2rad(theta)
-    xyz_out = rotate_points(
-        locs,
-        tuple(center),
-        rotations=[x_rotation_matrix(phi), z_rotation_matrix(theta)],
-    )
-
-    if return2d:
-        # Return 2-dimensional data if the input xyz was 2-dimensional.
-        return xyz_out[:, :2]
-    return xyz_out
-
-
-def ccw_east_to_cw_north(azimuth: np.ndarray) -> np.ndarray:
-    """Convert counterclockwise azimuth from east to clockwise from north."""
-    return (((5 * np.pi) / 2) - azimuth) % (2 * np.pi)
-
-
-def inclination_to_dip(inclination: np.ndarray) -> np.ndarray:
-    """Convert inclination from positive z-axis to dip from horizon."""
-    return inclination - (np.pi / 2)
-
-
-def cartesian_to_spherical(points: np.ndarray) -> np.ndarray:
-    """
-    Convert cartesian to spherical coordinate system.
-
-    :param points: Array of shape (n, 3) representing x, y, z coordinates of a point
-        in 3D space.
-
-    :returns: Array of shape (n, 3) representing the magnitude, azimuth and inclination
-        in spherical coordinates. The azimuth angle is measured in radians
-        counterclockwise from east in the range of 0 to 2pi as viewed from above, and
-        inclination angle is measured in radians from the positive z-axis.
-    """
-
-    magnitude = np.linalg.norm(points, axis=1)
-    inclination = np.arccos(points[:, 2] / magnitude)
-    azimuth = np.arctan2(points[:, 1], points[:, 0])
-    return np.column_stack((magnitude, azimuth, inclination))
-
-
-def spherical_normal_to_direction_and_dip(angles: np.ndarray) -> np.ndarray:
-    """
-    Convert normals in spherical coordinates to dip and direction of the tangent plane.
-
-    :param angles: Array of shape (n, 2) representing the azimuth and inclination angles
-        of a normal vector in spherical coordinates. The azimuth angle is measured in
-        radians counterclockwise from east in the range of 0 to 2pi as viewed from above,
-        and inclination angle is measured in radians from the positive z-axis.
-
-    :returns: Array of shape (n, 2) representing direction from 0 to 2pi radians
-        clockwise from north as viewed from above and dip from -pi to pi in positive
-        radians below the horizon and negative above.
-    """
-
-    rot_z = z_rotation_matrix(angles[:, 0])
-    rot_y = y_rotation_matrix(angles[:, 1])
-    tangents = np.tile([1, 0, 0], len(angles))
-    tangents = np.reshape(rot_z * rot_y * tangents, (-1, 3))
-    angles = cartesian_to_spherical(tangents)
-
-    return np.column_stack(
-        (ccw_east_to_cw_north(angles[:, 1]), inclination_to_dip(angles[:, 2]))
-    )
-
-
-def cartesian_normal_to_direction_and_dip(normals: np.ndarray) -> np.ndarray:
-    """
-    Convert 3D normal vectors to dip and direction.
-
-    :param normals: Array of shape (n, 3) representing the x, y, z components of a
-        normal vector in 3D space.
-
-    :returns: Array of shape (n, 2) representing azimuth from 0 to 2pi radians
-        clockwise from north as viewed from above and dip from -pi to pi in positive
-        radians below the horizon and negative above.
-    """
-
-    spherical_normals = cartesian_to_spherical(normals)
-    direction_and_dip = spherical_normal_to_direction_and_dip(spherical_normals[:, 1:])
-
-    return direction_and_dip
-
-
-def compute_normals(surface: Surface) -> np.ndarray:
-    """
-    Compute normals for each triangle in a surface.
-
-    :param surface: Surface object containing vertices and cells.
-
-    :returns: Array of shape (n, 3) representing the normals for
-        each cell in the mesh.
-    """
-
-    vertices = surface.vertices
-    cells = surface.cells
-
-    v1 = vertices[cells[:, 1]] - vertices[cells[:, 0]]
-    v2 = vertices[cells[:, 2]] - vertices[cells[:, 0]]
-    normals = np.cross(v1, v2)
-    normals = normals / np.linalg.norm(normals, axis=1)[:, np.newaxis]
-
-    return normals
-
-
-def azimuth_to_unit_vector(azimuth: float) -> np.ndarray:
-    """
-    Convert an azimuth to a unit vector.
-
-    :param azimuth: Azimuth in degrees from north (0 to 360).
-    :return: Unit vector in the direction of the azimuth.
-    """
-    theta = np.deg2rad(azimuth)
-    mat_z = np.r_[
-        np.c_[np.cos(theta), -np.sin(theta), 0.0],
-        np.c_[np.sin(theta), np.cos(theta), 0.0],
-        np.c_[0.0, 0.0, 1.0],
-    ]
-    return np.array([0.0, 1.0, 0.0]).dot(mat_z)
+    return rot_z
