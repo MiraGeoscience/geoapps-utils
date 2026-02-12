@@ -62,10 +62,8 @@ version = "0.0.0.dev0"
 
 
 [tool.poetry.dependencies]
-matplotlib = "~3.8.4"  # also in simpeg
-numpy = "~2.0.0"
+matplotlib = "~3.10.0"  # also in simpeg
 pydantic = "^2.12.0"
-scipy = "~1.17.0"
 
 ## pip dependencies from Git repositories
 #----------------------------------------
@@ -98,7 +96,10 @@ channels = ['conda-forge']
 ## indirect dependencies, forcing them here for installation through Conda not pip
 #---------------------------------------------------------------------------------
 Pillow = ">=12.1.0, <13.0.dev"  # from geoh5py
-h5py = ">=3.15.0, <4.0.dev"  # from geoh5py
+h5py = ">=3.15.1, <4.0.dev"  # from geoh5py
+python_abi = ">=3.*"
+numpy = ">=2.0.0"
+scipy = ">=1.17.0"
 
 [tool.poetry.requires-plugins]
 poetry-dynamic-versioning = { version = ">=1.9.1,<2.0.0", extras = ["plugin"] }
@@ -129,7 +130,7 @@ initial-content = """
 persistent-substitution = true
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py312"
 
 [tool.ruff.lint]
 ignore = [

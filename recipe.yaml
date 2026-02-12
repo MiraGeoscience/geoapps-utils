@@ -20,7 +20,7 @@ build:
 
 requirements:
   host:
-    - python 3.10.*
+    - python 3.12.*
     - poetry-core >=1.8.0
     - poetry-dynamic-versioning >=1.9, 1.*
     - setuptools
@@ -30,10 +30,10 @@ requirements:
     # Mira packages
     - geoh5py >=0.13.0a, 0.13.*
     # direct dependencies
-    - numpy 1.26*
+    - numpy 2.0*
     - pydantic >=2.12.0, 2.*
-    - scipy 1.14.*
-    - matplotlib-base >=3.8.4, 3.8.*
+    - scipy 1.17.*
+    - matplotlib-base >=3.10.0, 3.10.*
 
 tests:
   - python:
