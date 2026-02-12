@@ -15,7 +15,7 @@ import warnings
 from abc import ABC, abstractmethod
 from copy import copy
 from pathlib import Path
-from typing import Any, ClassVar, GenericAlias  # type: ignore
+from typing import Any, ClassVar, GenericAlias, Self  # type: ignore
 
 from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
@@ -24,7 +24,6 @@ from geoh5py.shared.utils import stringify
 from geoh5py.ui_json import InputFile, monitored_directory_copy
 from geoh5py.ui_json.utils import fetch_active_workspace
 from pydantic import BaseModel, ConfigDict, ValidationError
-from typing_extensions import Self
 
 from geoapps_utils.driver.params import BaseParams
 from geoapps_utils.utils.formatters import recursive_flatten
