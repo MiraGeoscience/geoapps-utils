@@ -15,8 +15,8 @@
 version: 1
 metadata:
   content_hash:
-    win-64: 3702a582e20e1742215f455b3808f7ba5fcc4cd9b83bb933bb7be9961fb9d813
-    linux-64: 2b61b007dd74d39e5adba8e03f6fa3be905711cf661af210eb72c5bf136e238f
+    win-64: 4d6cc63e1603830ab83f737dca7a9b1f141e5113c8c7541e0b8b5442c48f8583
+    linux-64: f2485c31a6de093ae3375359e75cbbed48443b1049363fe139077f9ce0effabe
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -29,28 +29,17 @@ metadata:
   - pyproject.toml
   - environments/env-python-3.14.yml
 package:
-- name: _libgcc_mutex
-  version: '0.1'
-  manager: conda
-  platform: linux-64
-  dependencies: {}
-  url: https://repo.prefix.dev/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
-  hash:
-    md5: d7c89558ba9fa0495403155b64376d81
-    sha256: fe51de6107f9edc7aa4f786a70f4a883943bc9d39b3bb7307c04c41410990726
-  category: main
-  optional: false
 - name: _openmp_mutex
   version: '4.5'
   manager: conda
   platform: linux-64
   dependencies:
-    _libgcc_mutex: '0.1'
+    __glibc: '>=2.17,<3.0.a0'
     libgomp: '>=7.5.0'
-  url: https://repo.prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-2_gnu.tar.bz2
+  url: https://repo.prefix.dev/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   hash:
-    md5: 73aaf86a425cc6e73fcf236a5a46396d
-    sha256: fbe2c5e56a653bebb982eda4876a9178aedfc2b545f25d0ce9c4c0b508253d22
+    md5: a9f577daf3de00bca7c3c76c0ecbd1de
+    sha256: 1dd3fffd892081df9726d7eb7e0dea6198962ba775bd88842135a4ddb4deb3c9
   category: main
   optional: false
 - name: _openmp_mutex
@@ -59,11 +48,11 @@ package:
   platform: win-64
   dependencies:
     libgomp: '>=7.5.0'
-    libwinpthread: '>=12.0.0.r2.ggc561118da'
-  url: https://repo.prefix.dev/conda-forge/win-64/_openmp_mutex-4.5-2_gnu.conda
+    libwinpthread: '>=12.0.0.r4.gg4f2fc60ca'
+  url: https://repo.prefix.dev/conda-forge/win-64/_openmp_mutex-4.5-20_gnu.conda
   hash:
-    md5: 37e16618af5c4851a3f3d66dd0e11141
-    sha256: 1a62cd1f215fe0902e7004089693a78347a30ad687781dfda2289cab000e652d
+    md5: 1626967b574d1784b578b52eaeb071e7
+    sha256: 8a1cee28bd0ee7451ada1cd50b64720e57e17ff994fc62dd8329bef570d382e4
   category: main
   optional: false
 - name: annotated-types
@@ -2113,27 +2102,27 @@ package:
   category: main
   optional: false
 - name: platformdirs
-  version: 4.5.1
+  version: 4.8.0
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://repo.prefix.dev/conda-forge/noarch/platformdirs-4.5.1-pyhcf101f3_0.conda
+  url: https://repo.prefix.dev/conda-forge/noarch/platformdirs-4.8.0-pyhcf101f3_0.conda
   hash:
-    md5: 1bd2e65c8c7ef24f4639ae6e850dacc2
-    sha256: 04c64fb78c520e5c396b6e07bc9082735a5cc28175dbe23138201d0a9441800b
+    md5: 8afb83f9f16ace9092cb025ed30711ce
+    sha256: b07015c9105be63f48762986978d88e10a65847a3d3dd2a996918178297a79d9
   category: dev
   optional: true
 - name: platformdirs
-  version: 4.5.1
+  version: 4.8.0
   manager: conda
   platform: win-64
   dependencies:
     python: '>=3.10'
-  url: https://repo.prefix.dev/conda-forge/noarch/platformdirs-4.5.1-pyhcf101f3_0.conda
+  url: https://repo.prefix.dev/conda-forge/noarch/platformdirs-4.8.0-pyhcf101f3_0.conda
   hash:
-    md5: 1bd2e65c8c7ef24f4639ae6e850dacc2
-    sha256: 04c64fb78c520e5c396b6e07bc9082735a5cc28175dbe23138201d0a9441800b
+    md5: 8afb83f9f16ace9092cb025ed30711ce
+    sha256: b07015c9105be63f48762986978d88e10a65847a3d3dd2a996918178297a79d9
   category: dev
   optional: true
 - name: pluggy
@@ -3084,36 +3073,36 @@ package:
   category: main
   optional: false
 - name: geoh5py
-  version: 0.13.0a2.dev137+84e4d20a
+  version: 0.13.0a2.dev138+ba9c28e7
   manager: pip
   platform: linux-64
   dependencies:
     h5py: '>=3.15.0,<4.0.0'
-    numpy: '>=2.0.0,<2.1.0'
+    numpy: '>=2.4.0,<2.5.0'
     pillow: '>=12.1.0,<12.2.0'
     pydantic: '>=2.12.0,<3.0.0'
-  url: git+https://github.com/MiraGeoscience/geoh5py.git@84e4d20a541ac82d5579f42aea28bb2bd233fed2
+  url: git+https://github.com/MiraGeoscience/geoh5py.git@ba9c28e73432a0511d3c596c32a566763a8e50af
   hash:
-    sha256: 84e4d20a541ac82d5579f42aea28bb2bd233fed2
+    sha256: ba9c28e73432a0511d3c596c32a566763a8e50af
   source:
     type: url
-    url: git+https://github.com/MiraGeoscience/geoh5py.git@84e4d20a541ac82d5579f42aea28bb2bd233fed2
+    url: git+https://github.com/MiraGeoscience/geoh5py.git@ba9c28e73432a0511d3c596c32a566763a8e50af
   category: main
   optional: false
 - name: geoh5py
-  version: 0.13.0a2.dev137+84e4d20a
+  version: 0.13.0a2.dev138+ba9c28e7
   manager: pip
   platform: win-64
   dependencies:
     h5py: '>=3.15.0,<4.0.0'
-    numpy: '>=2.0.0,<2.1.0'
+    numpy: '>=2.4.0,<2.5.0'
     pillow: '>=12.1.0,<12.2.0'
     pydantic: '>=2.12.0,<3.0.0'
-  url: git+https://github.com/MiraGeoscience/geoh5py.git@84e4d20a541ac82d5579f42aea28bb2bd233fed2
+  url: git+https://github.com/MiraGeoscience/geoh5py.git@ba9c28e73432a0511d3c596c32a566763a8e50af
   hash:
-    sha256: 84e4d20a541ac82d5579f42aea28bb2bd233fed2
+    sha256: ba9c28e73432a0511d3c596c32a566763a8e50af
   source:
     type: url
-    url: git+https://github.com/MiraGeoscience/geoh5py.git@84e4d20a541ac82d5579f42aea28bb2bd233fed2
+    url: git+https://github.com/MiraGeoscience/geoh5py.git@ba9c28e73432a0511d3c596c32a566763a8e50af
   category: main
   optional: false
