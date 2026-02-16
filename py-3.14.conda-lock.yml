@@ -15,8 +15,8 @@
 version: 1
 metadata:
   content_hash:
-    win-64: 4d6cc63e1603830ab83f737dca7a9b1f141e5113c8c7541e0b8b5442c48f8583
-    linux-64: f2485c31a6de093ae3375359e75cbbed48443b1049363fe139077f9ce0effabe
+    win-64: ca5e9f88711a98a5b3d97d76d9d41c6e2d52ccd86603731c45c254bab3ab20f2
+    linux-64: d8c345ef3f17fdf1ff182209c4e4f5eff97ae2a064746f6341133d360b43890d
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -2102,27 +2102,27 @@ package:
   category: main
   optional: false
 - name: platformdirs
-  version: 4.8.0
+  version: 4.9.2
   manager: conda
   platform: linux-64
   dependencies:
     python: '>=3.10'
-  url: https://repo.prefix.dev/conda-forge/noarch/platformdirs-4.8.0-pyhcf101f3_0.conda
+  url: https://repo.prefix.dev/conda-forge/noarch/platformdirs-4.9.2-pyhcf101f3_0.conda
   hash:
-    md5: 8afb83f9f16ace9092cb025ed30711ce
-    sha256: b07015c9105be63f48762986978d88e10a65847a3d3dd2a996918178297a79d9
+    md5: 4fefefb892ce9cc1539405bec2f1a6cd
+    sha256: 7f263219cecf0ba6d74c751efa60c4676ce823157ca90aa43ebba5ac615ca0fa
   category: dev
   optional: true
 - name: platformdirs
-  version: 4.8.0
+  version: 4.9.2
   manager: conda
   platform: win-64
   dependencies:
     python: '>=3.10'
-  url: https://repo.prefix.dev/conda-forge/noarch/platformdirs-4.8.0-pyhcf101f3_0.conda
+  url: https://repo.prefix.dev/conda-forge/noarch/platformdirs-4.9.2-pyhcf101f3_0.conda
   hash:
-    md5: 8afb83f9f16ace9092cb025ed30711ce
-    sha256: b07015c9105be63f48762986978d88e10a65847a3d3dd2a996918178297a79d9
+    md5: 4fefefb892ce9cc1539405bec2f1a6cd
+    sha256: 7f263219cecf0ba6d74c751efa60c4676ce823157ca90aa43ebba5ac615ca0fa
   category: dev
   optional: true
 - name: pluggy
