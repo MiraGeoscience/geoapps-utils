@@ -3,7 +3,7 @@ schema_version: 1
 context:
   name: "geoapps-utils"
   version: "0.0.0.dev0"  # This will be replaced by the actual version in the build process
-  python_min: "3.10"
+  python_min: "3.12"
   module_name: ${{ name|lower|replace("-", "_") }}
 
 package:
@@ -20,7 +20,7 @@ build:
 
 requirements:
   host:
-    - python 3.10.*
+    - python ${{ python_min }}.*
     - poetry-core >=1.8.0
     - poetry-dynamic-versioning >=1.9, 1.*
     - setuptools
@@ -28,12 +28,12 @@ requirements:
   run:
     - python >=${{ python_min }}
     # Mira packages
-    - geoh5py >=0.13.0a, 0.13.*
+    - geoh5py >=0.13.0a2, 0.13.*
     # direct dependencies
-    - numpy 1.26*
-    - pydantic >=2.12.0, 2.*
-    - scipy 1.14.*
-    - matplotlib-base >=3.8.4, 3.8.*
+    - numpy >=2.4.2, 2.4.*
+    - pydantic 2.12.*
+    - scipy 1.17.*
+    - matplotlib-base 3.10.*
 
 tests:
   - python:
@@ -67,4 +67,5 @@ about:
 extra:
   recipe-maintainers:
     - andrewg-mira
+    - domfournier
     - sebhmg
