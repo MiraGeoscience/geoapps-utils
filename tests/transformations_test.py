@@ -211,7 +211,7 @@ def test_cartesian_to_polar():
         polar[:, 1], np.rad2deg(azm)
     )  # All other distances positive
 
-    with pytest.raises(ValueError, match="Origin must be an iterable of length 3."):
+    with pytest.raises(ValueError, match=r"Origin must be an iterable of length 3\."):
         _ = cartesian_to_polar(locations, origin=(5.0, "abc"))
 
     # Mean reference locations
