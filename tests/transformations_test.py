@@ -89,9 +89,9 @@ def test_spherical_to_direction_and_dip_upwards(theta, phi, polarity, expected):
 
 
 def test_spherical_values(tmp_path):  # pylint: disable=too-many-locals
-    theta, phi = np.meshgrid(np.arange(0, 360, 10), np.arange(-90, 90, 10))
-    theta = theta.flatten()
-    phi = phi.flatten()
+    theta_multi, phi_multi = np.meshgrid(np.arange(0, 360, 10), np.arange(-90, 90, 10))
+    theta = theta_multi.flatten()
+    phi = phi_multi.flatten()
 
     rad = 100.0
     x = rad * np.cos(np.radians(theta)) * np.cos(np.radians(phi))
