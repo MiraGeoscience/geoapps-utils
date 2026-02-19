@@ -89,9 +89,9 @@ def test_spherical_to_direction_and_dip_upwards(theta, phi, polarity, expected):
 
 
 def test_spherical_values(tmp_path):  # pylint: disable=too-many-locals
-    theta, phi = np.meshgrid(np.arange(0, 360, 10), np.arange(-90, 90, 10))
-    theta = theta.flatten()
-    phi = phi.flatten()
+    theta_multi, phi_multi = np.meshgrid(np.arange(0, 360, 10), np.arange(-90, 90, 10))
+    theta = theta_multi.flatten()
+    phi = phi_multi.flatten()
 
     rad = 100.0
     x = rad * np.cos(np.radians(theta)) * np.cos(np.radians(phi))
@@ -211,7 +211,7 @@ def test_cartesian_to_polar():
         polar[:, 1], np.rad2deg(azm)
     )  # All other distances positive
 
-    with pytest.raises(ValueError, match="Origin must be an iterable of length 3."):
+    with pytest.raises(ValueError, match=r"Origin must be an iterable of length 3\."):
         _ = cartesian_to_polar(locations, origin=(5.0, "abc"))
 
     # Mean reference locations

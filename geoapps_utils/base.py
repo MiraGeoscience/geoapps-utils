@@ -43,7 +43,7 @@ class Driver(ABC):
     :param params: Application parameters.
     """
 
-    _params_class: type[Options | BaseParams]
+    _params_class: type[Options] | type[BaseParams]
     _validations: dict | None = None
 
     def __init__(self, params: Options | BaseParams):
@@ -56,7 +56,7 @@ class Driver(ABC):
         return self._params
 
     @params.setter
-    def params(self, val: Options):
+    def params(self, val: Options | BaseParams):
         if not isinstance(val, self._params_class):
             raise TypeError(
                 f"Parameters must be of type {self._params_class}.\n"
