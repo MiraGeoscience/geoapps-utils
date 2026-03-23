@@ -21,7 +21,7 @@ from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import ObjectBase
 from geoh5py.shared.utils import stringify
-from geoh5py.ui_json import InputFile, monitored_directory_copy
+from geoh5py.ui_json import InputFile, monitored_directory_copy, UIJson
 from geoh5py.ui_json.utils import fetch_active_workspace
 from pydantic import BaseModel, ConfigDict, ValidationError
 
@@ -32,6 +32,25 @@ from geoapps_utils.utils.logger import get_logger
 
 
 logger = get_logger(name=__name__, level_name=False, propagate=False, add_name=False)
+
+
+def input_file_deprecation_warning(input_file: InputFile) -> Path:
+    """
+    Warn the user of future deprecation and get a file path to an existing file.
+    """
+
+    warnings.warn(
+        "The use of InputFile will be deprecated in future versions."
+        "Please start using UIJson class instead.",
+        DeprecationWarning, stacklevel=2
+    )
+
+    path = Path(input_file.path_name).resolve()
+    if not path.exists():
+        path = tempfile.mkdtemp() / input_file.name
+        input_file.write_ui_json(path=path.parent, name=path.name)
+
+    return path
 
 
 class Driver(ABC):
@@ -49,6 +68,7 @@ class Driver(ABC):
     def __init__(self, params: Options | BaseParams):
         self._out_group: UIJsonGroup | None = None
         self.params = params
+
 
     @property
     def params(self):
@@ -86,40 +106,43 @@ class Driver(ABC):
         """Run the application."""
 
     @classmethod
-    def read_ui_json(cls, filepath: str | Path, **kwargs) -> InputFile:
+    def read_ui_json(cls, filepath: str | Path, **kwargs) -> UIJson:
         """
-        Read a ui.json file and return an InputFile object.
+        Read a ui.json file and return an UIJson object.
 
         :param filepath: Path to valid ui.json file for the application driver.
-        :param kwargs: Additional keyword arguments for InputFile read_ui_json.
+        :param kwargs: Additional keyword arguments for UIJson read_ui_json.
 
-        :return: InputFile object.
+        :return: UIJson object.
         """
         logger.info("Loading input file . . .")
         filepath = Path(filepath).resolve()
-        return InputFile.read_ui_json(filepath, validations=cls._validations, **kwargs)
+        return UIJson.read(filepath)
 
     @classmethod
-    def start(cls, filepath: str | Path | InputFile, mode="r+", **kwargs) -> Self:
+    def start(cls, filepath: str | Path | InputFile | UIJson, mode="r+", **kwargs) -> Self:
         """
         Run application specified by 'filepath' ui.json file.
 
         :param filepath: Path to valid ui.json file for the application driver.
-        :param kwargs: Additional keyword arguments for InputFile read_ui_json.
+        :param kwargs: Additional keyword arguments for Options class.
         """
 
+        if not isinstance(filepath, InputFile):
+            filepath = input_file_deprecation_warning(filepath)
+
         ifile = (
-            cls.read_ui_json(filepath, **kwargs)
+            cls.read_ui_json(filepath)
             if isinstance(filepath, str | Path)
             else filepath
         )
 
-        if not isinstance(ifile, InputFile):
+        if not isinstance(ifile, UIJson):
             raise TypeError("Input file must be a string path or an InputFile object.")
 
         with ifile.geoh5.open(mode=mode):
             try:
-                params = cls._params_class.build(ifile)
+                params = cls._params_class.build(ifile, **kwargs)
                 logger.info("Initializing application . . .")
                 driver = cls(params)
                 logger.info("Running application . . .")
@@ -247,7 +270,7 @@ class Options(BaseModel):
         return update
 
     @classmethod
-    def build(cls, input_data: InputFile | dict | None = None, **kwargs) -> Self:
+    def build(cls, input_data: InputFile | dict | None | UIJson = None, **kwargs) -> Self:
         """
         Build a dataclass from a dictionary or InputFile.
 
@@ -257,7 +280,11 @@ class Options(BaseModel):
         """
         data = input_data or {}
         if isinstance(input_data, InputFile) and input_data.data is not None:
-            data = input_data.data.copy()
+            file_path = input_file_deprecation_warning(input_data)
+            input_data = UIJson.read(file_path)
+
+        if isinstance(input_data, UIJson):
+            data = input_data.to_params()
 
         if not isinstance(data, dict):
             raise TypeError("Input data must be a dictionary or InputFile.")
@@ -278,8 +305,8 @@ class Options(BaseModel):
                 f"Invalid input data for {cls.__name__}:\n - {summary}"
             ) from errors
 
-        if isinstance(input_data, InputFile):
-            out._input_file = input_data
+        if isinstance(input_data, UIJson):
+            out._ui_json = input_data
 
         return out
 
@@ -311,30 +338,25 @@ class Options(BaseModel):
     def input_file(self) -> InputFile:
         """Create an InputFile with data matching current parameter state."""
 
-        if self._input_file is None:
-            ifile = self._create_input_file_from_attributes()
-        else:
-            ifile = copy(self._input_file)
-            ifile.validate = False
+        warnings.warn(
+            "InputFile property is deprecated and will be removed in future versions. "
+            "Use `ui_json` instead.",
+            DeprecationWarning, stacklevel=2,
+        )
+        return self.ui_json
 
-        return ifile
-
-    def _create_input_file_from_attributes(self) -> InputFile:
+    def _create_input_file_from_attributes(self) -> UIJson:
         """
         Create an InputFile with data matching current parameter state.
         """
-        # ensure default uijson (PAth )exists or raise an error
+        # ensure default uijson (Path) exists or raise an error
         if self.default_ui_json is None or not self.default_ui_json.exists():
             ifile = InputFile(
                 ui_json=recursive_flatten(self.model_dump()), validate=False
             )
         else:
-            ifile = InputFile.read_ui_json(self.default_ui_json, validate=False)
+            ifile = UIJson.read(self.default_ui_json)
 
-        if ifile.data is None:
-            raise ValueError(
-                f"Input file {self.default_ui_json} does not contain any data."
-            )
 
         attributes = self.flatten()
         ifile.update_ui_values(
@@ -380,3 +402,14 @@ class Options(BaseModel):
         with fetch_active_workspace(self.geoh5, mode="r+"):
             self.out_group.options = self.serialize()
             self.out_group.metadata = None
+
+    @property
+    def ui_json(self) -> UIJson:
+        """
+        The parent UIJson object.
+        """
+        if self._ui_json is None:
+            raise AttributeError("No ui_json associated with this instance.")
+
+        ifile = copy(self._input_file)
+        ifile.validate = False
