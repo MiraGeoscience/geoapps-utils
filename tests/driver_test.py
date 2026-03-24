@@ -20,7 +20,7 @@ import pytest
 from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import Points
-from geoh5py.ui_json import InputFile
+from geoh5py.ui_json import InputFile, BaseUIJson
 from geoh5py.ui_json.templates import group_parameter, object_parameter
 
 from geoapps_utils.base import Options, get_logger
@@ -139,6 +139,16 @@ def test_base_options(tmp_path):
 
     json_dict = json.loads(file_data.file_bytes.decode())
     assert json_dict.get("client", None) == "{" + str(pts.uid) + "}"
+
+
+def test_get_empty_ui_json():
+    # Driver with BaseParams has no default ui.json path
+    with pytest.raises(ValueError, match="does not have a default ui.json"):
+        TestParamsDriver.get_empty_ui_json()
+
+    # Driver with Options subclass that has a default_ui_json returns a BaseUIJson
+    ui_json = TestOptionsDriver.get_empty_ui_json()
+    assert isinstance(ui_json, BaseUIJson)
 
 
 def test_params_errors():
