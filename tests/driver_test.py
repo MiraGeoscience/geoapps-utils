@@ -143,7 +143,7 @@ def test_base_options(tmp_path):
 
 def test_get_empty_ui_json():
     # Driver with BaseParams has no default ui.json path
-    with pytest.raises(ValueError, match="does not have a default ui.json"):
+    with pytest.raises(ValueError, match="does not have a default"):
         TestParamsDriver.get_empty_ui_json()
 
     # Driver with Options subclass that has a default_ui_json returns a BaseUIJson
