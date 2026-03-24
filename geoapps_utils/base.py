@@ -21,7 +21,7 @@ from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import ObjectBase
 from geoh5py.shared.utils import stringify
-from geoh5py.ui_json import InputFile, monitored_directory_copy, BaseUIJson
+from geoh5py.ui_json import BaseUIJson, InputFile, monitored_directory_copy
 from geoh5py.ui_json.utils import fetch_active_workspace
 from pydantic import BaseModel, ConfigDict, ValidationError
 

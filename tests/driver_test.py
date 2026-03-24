@@ -20,7 +20,7 @@ import pytest
 from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import Points
-from geoh5py.ui_json import InputFile, BaseUIJson
+from geoh5py.ui_json import BaseUIJson, InputFile
 from geoh5py.ui_json.templates import group_parameter, object_parameter
 
 from geoapps_utils.base import Options, get_logger
