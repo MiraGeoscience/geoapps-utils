@@ -167,7 +167,7 @@ class Driver(ABC):
             )
 
     @classmethod
-    def get_default_ui_json(cls) -> Path | None:
+    def get_default_ui_json_path(cls) -> Path | None:
         """
         Get the default ui.json file path for the application.
 
@@ -178,15 +178,16 @@ class Driver(ABC):
         return None
 
     @classmethod
-    def get_empty_ui_json(cls) -> BaseUIJson:
+    def get_default_ui_json(cls) -> BaseUIJson:
         """
-        Get an empty ui.json dictionary for the application.
+        Load the driver's default ui.json template from disk
+        with no parameters filled in.
 
-        :return: Empty ui.json dictionary.
+        :return: The default ui.json configuration.
         """
-        ui_json_path = cls.get_default_ui_json()
+        ui_json_path = cls.get_default_ui_json_path()
 
-        if ui_json_path is None:
+        if ui_json_path is None or not ui_json_path.exists():
             raise ValueError(f"Driver {cls} does not have a default ui.json.")
 
         ui_json = BaseUIJson.read(ui_json_path)
