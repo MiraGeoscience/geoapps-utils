@@ -9,7 +9,7 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict
 
 from geoapps_utils.utils.transformations import (
     rotate_points,
@@ -30,14 +30,20 @@ class PlateModel(BaseModel):
     :param dip: Dip angle of the plate in degrees below the horizontal.
     """
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True)
 
     strike_length: float
     dip_length: float
     width: float
-    origin: tuple[float, float, float] = (0.0, 0.0, 0.0)
-    direction: float = 0.0
+    easting: float
+    northing: float
+    elevation: float
+    direction: float = Field(default=0.0, alias="dip_direction")
     dip: float = 0.0
+
+    @property
+    def origin(self) -> tuple[float, float, float]:
+        return (self.easting, self.northing, self.elevation)
 
 
 def inside_plate(
