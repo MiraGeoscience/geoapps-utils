@@ -163,6 +163,7 @@ def test_make_plate_multiple(tmp_path):
         )
         assert np.all(model[mask] == 1.0)
 
+
 def test_plate_alias():
     plate = PlateModel(
         strike_length=15,
@@ -185,7 +186,7 @@ def test_plate_alias():
         northing=0.0,
         elevation=0.0,
         dip_direction=90,
-        dip=0
+        dip=0,
     )
     assert plate.direction == 90
     assert "dip_direction" in plate.model_dump(by_alias=True)
