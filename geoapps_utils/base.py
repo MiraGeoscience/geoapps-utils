@@ -21,7 +21,9 @@ from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import ObjectBase
 from geoh5py.shared.utils import stringify
+
 from geoh5py.ui_json import InputFile, monitored_directory_copy, UIJson
+
 from geoh5py.ui_json.utils import fetch_active_workspace
 from pydantic import BaseModel, ConfigDict, ValidationError
 
@@ -131,6 +133,7 @@ class Driver(ABC):
         if not isinstance(filepath, InputFile):
             filepath = input_file_deprecation_warning(filepath)
 
+
         ifile = (
             cls.read_ui_json(filepath)
             if isinstance(filepath, str | Path)
@@ -191,7 +194,7 @@ class Driver(ABC):
             )
 
     @classmethod
-    def get_default_ui_json(cls) -> Path | None:
+    def get_default_ui_json_path(cls) -> Path | None:
         """
         Get the default ui.json file path for the application.
 
@@ -200,6 +203,22 @@ class Driver(ABC):
         if issubclass(cls._params_class, Options):
             return cls._params_class.default_ui_json
         return None
+
+    @classmethod
+    def get_default_ui_json(cls) -> UIJson:
+        """
+        Load the driver's default ui.json template from disk
+        with no parameters filled in.
+
+        :return: The default ui.json configuration.
+        """
+        ui_json_path = cls.get_default_ui_json_path()
+
+        if ui_json_path is None or not ui_json_path.exists():
+            raise ValueError(f"Driver {cls} does not have a default ui.json.")
+
+        ui_json = UIJson.read(ui_json_path)
+        return ui_json
 
 
 class Options(BaseModel):
@@ -291,7 +310,6 @@ class Options(BaseModel):
 
         data.update(kwargs)
         options = cls.collect_input_from_dict(cls, data)  # type: ignore
-
         try:
             out = cls(**options)
         except ValidationError as errors:
