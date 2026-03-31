@@ -19,9 +19,7 @@ from typing import Any, ClassVar, GenericAlias, Self  # type: ignore
 from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import ObjectBase
-
-from geoh5py.ui_json import InputFile, monitored_directory_copy, UIJson
-
+from geoh5py.ui_json import InputFile, UIJson, monitored_directory_copy
 from geoh5py.ui_json.utils import fetch_active_workspace
 from pydantic import BaseModel, ConfigDict, ValidationError
 
@@ -42,15 +40,16 @@ def input_file_deprecation_warning(input_file: InputFile) -> Path:
     warnings.warn(
         "The use of InputFile will be deprecated in future versions."
         "Please start using UIJson class instead.",
-        DeprecationWarning, stacklevel=2
+        DeprecationWarning,
+        stacklevel=2,
     )
 
-    path = Path(input_file.path_name).resolve()
-    if not path.exists():
-        path = Path(tempfile.mkdtemp()) / input_file.name
-        input_file.write_ui_json(path=path.parent, name=path.name)
+    if input_file.path_name is None:
+        temp_path = Path(tempfile.mkdtemp()) / "temp.ui.json"
+        input_file.write_ui_json(path=temp_path.parent, name=temp_path.name)
+        return temp_path
 
-    return path
+    return Path(input_file.path_name)
 
 
 class Driver(ABC):
@@ -67,7 +66,6 @@ class Driver(ABC):
     def __init__(self, params: Options | BaseParams):
         self._out_group: UIJsonGroup | None = None
         self.params = params
-
 
     @property
     def params(self):
@@ -119,7 +117,9 @@ class Driver(ABC):
         return UIJson.read(filepath, validate=validate)
 
     @classmethod
-    def start(cls, filepath: str | Path | InputFile | UIJson, mode="r+", **kwargs) -> Self:
+    def start(
+        cls, filepath: str | Path | InputFile | UIJson, mode="r+", **kwargs
+    ) -> Self:
         """
         Run application specified by 'filepath' ui.json file.
 
@@ -133,13 +133,14 @@ class Driver(ABC):
             filepath = input_file_deprecation_warning(filepath)
 
         ifile = (
-            cls.read_ui_json(filepath)
-            if isinstance(filepath, str | Path)
-            else filepath
+            cls.read_ui_json(filepath) if isinstance(filepath, str | Path) else filepath
         )
 
         if not isinstance(ifile, UIJson):
             raise TypeError("Input file must be a string path or an InputFile object.")
+
+        if ifile.geoh5 is None:
+            raise GeoAppsError("The application needs a valid 'geoh5' file.")
 
         with ifile.geoh5.open(mode=mode):
             try:
@@ -157,7 +158,7 @@ class Driver(ABC):
 
     def add_ui_json(self, entity: ObjectBase):
         """
-        Add ui.json file to entity.
+        Add ui.json as FileData to entity.
 
         :param entity: Object to add ui.json file to.
         """
@@ -278,7 +279,9 @@ class Options(BaseModel):
         return update
 
     @classmethod
-    def build(cls, input_data: InputFile | dict | None | UIJson = None, **kwargs) -> Self:
+    def build(
+        cls, input_data: InputFile | dict | None | UIJson = None, **kwargs
+    ) -> Self:
         """
         Build a dataclass from a dictionary or UIJson.
 
@@ -311,9 +314,6 @@ class Options(BaseModel):
             raise GeoAppsError(
                 f"Invalid input data for {cls.__name__}:\n - {summary}"
             ) from errors
-
-        if isinstance(input_data, UIJson):
-            out._ui_json = input_data
 
         return out
 
@@ -348,7 +348,8 @@ class Options(BaseModel):
         warnings.warn(
             "InputFile property is deprecated and will be removed in future versions. "
             "Use `ui_json` instead.",
-            DeprecationWarning, stacklevel=2,
+            DeprecationWarning,
+            stacklevel=2,
         )
         return self.ui_json
 
