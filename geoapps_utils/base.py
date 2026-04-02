@@ -47,7 +47,7 @@ def input_file_deprecation_warning(input_file: InputFile) -> Path:
 
     if input_file.path_name is None or not Path(input_file.path_name).is_file():
         temporary_directory = tempfile.TemporaryDirectory()
-        setattr(input_file, "_temporary_ui_json_dir", temporary_directory)
+        input_file._temporary_ui_json_dir = temporary_directory
         temp_path = Path(temporary_directory.name) / "temp.ui.json"
         input_file.write_ui_json(path=temp_path.parent, name=temp_path.name)
         return temp_path
