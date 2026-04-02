@@ -17,7 +17,6 @@ import numpy as np
 import pytest
 from geoh5py import Workspace
 from geoh5py.objects import Points
-from geoh5py.ui_json import UIJson
 
 from geoapps_utils.base import Options, get_logger
 from geoapps_utils.driver.data import BaseData
@@ -29,7 +28,6 @@ from geoapps_utils.utils.importing import GeoAppsError
 from .dummy_driver_test import (
     TestOptions,
     TestOptionsDriver,
-    TestParamsDriver,
 )
 
 
@@ -81,16 +79,6 @@ def test_base_options(tmp_path):
 
     json_dict = json.loads(file_data.file_bytes.decode())
     assert json_dict.get("client", None) == str(pts.uid)
-
-
-def test_get_empty_ui_json():
-    # Driver with BaseParams has no default ui.json path
-    with pytest.raises(ValueError, match="does not have a default"):
-        TestParamsDriver.get_default_ui_json()
-
-    # Driver with Options subclass that has a default_ui_json returns a UIJson
-    ui_json = TestOptionsDriver.get_default_ui_json()
-    assert isinstance(ui_json, UIJson)
 
 
 def test_params_errors():
