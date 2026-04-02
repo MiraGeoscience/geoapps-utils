@@ -47,7 +47,6 @@ def input_file_deprecation_warning(input_file: InputFile) -> Path:
 
     if input_file.path_name is None or not Path(input_file.path_name).is_file():
         temporary_directory = tempfile.TemporaryDirectory()
-        input_file._temporary_ui_json_dir = temporary_directory
         temp_path = Path(temporary_directory.name) / "temp.ui.json"
         input_file.write_ui_json(path=temp_path.parent, name=temp_path.name)
         return temp_path
@@ -151,8 +150,7 @@ class Driver(ABC):
         :param entity: Object to add ui.json file to.
         """
         with tempfile.TemporaryDirectory() as tmpdirname:
-            path = Path(tmpdirname) / self.params.title
-            self.params.ui_json.write(path)
+            path = self.params.ui_json.write(Path(tmpdirname) / "temp.ui.json")
             entity.add_file(path)
 
     def update_monitoring_directory(
@@ -332,7 +330,7 @@ class Options(BaseModel):
 
     @property
     def input_file(self) -> UIJson:
-        """Create an InputFile with data matching current parameter state."""
+        """Return the current parameter state as a UIJson."""
 
         warnings.warn(
             "InputFile property is deprecated and will be removed in future versions. "
