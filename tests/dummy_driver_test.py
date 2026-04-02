@@ -75,15 +75,5 @@ class TestOptionsDriver(BaseDriver):
         self.update_monitoring_directory(self.params.nested_model.client)
 
 
-class TestParamsDriver(BaseDriver):
-    _params_class = TestParams
-
-    def __init__(self, params: TestParams):
-        super().__init__(params)
-
-    def run(self):
-        pass
-
-
 if __name__ == "__main__":
     TestOptionsDriver.start(sys.argv[1])
