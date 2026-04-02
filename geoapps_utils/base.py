@@ -39,8 +39,7 @@ def input_file_deprecation_warning(input_file: InputFile) -> UIJson:
     """
 
     warnings.warn(
-        "The use of InputFile will be deprecated in future versions."
-        "Please start using UIJson class instead.",
+        "The use of InputFile will be deprecated in future versions. Please start using UIJson class instead.",
         DeprecationWarning,
         stacklevel=2,
     )
