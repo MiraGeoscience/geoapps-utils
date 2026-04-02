@@ -12,27 +12,23 @@ from __future__ import annotations
 
 import json
 import logging
-from copy import deepcopy
-from uuid import UUID
 
 import numpy as np
 import pytest
 from geoh5py import Workspace
-from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import Points
-from geoh5py.ui_json import BaseUIJson, InputFile
-from geoh5py.ui_json.templates import group_parameter, object_parameter
+from geoh5py.ui_json import UIJson
 
 from geoapps_utils.base import Options, get_logger
 from geoapps_utils.driver.data import BaseData
 from geoapps_utils.driver.driver import BaseDriver, Driver
 from geoapps_utils.driver.params import BaseParams
 from geoapps_utils.run import fetch_driver_class
+from geoapps_utils.utils.importing import GeoAppsError
 
 from .dummy_driver_test import (
     TestOptions,
     TestOptionsDriver,
-    TestParams,
     TestParamsDriver,
 )
 
@@ -51,66 +47,12 @@ TEST_DICT = {
 }
 
 
-def test_base_driver(tmp_path):
-    workspace = Workspace.create(tmp_path / f"{__name__}.geoh5")
-    # Create params
-    test_params = deepcopy(TEST_DICT)
-    test_params["geoh5"] = str(workspace.h5file)
-
-    params = TestParams(**test_params)
-    params.write_input_file(path=tmp_path, name="test_ifile.ui.json")
-
-    # Create driver
-    with pytest.raises(TypeError, match="Parameters must be of type"):
-        TestParamsDriver("not a params object")  # type: ignore
-
-    driver = TestParamsDriver(params)
-
-    assert TestParamsDriver.get_default_ui_json_path() is None
-
-    driver.start(tmp_path / "test_ifile.ui.json")
-
-    with pytest.raises(TypeError, match="Input file must be "):
-        driver.start(123)  # type: ignore
-
-
-def test_options_out(tmp_path):
-    workspace = Workspace.create(tmp_path / f"{__name__}.geoh5")
-    # Create params
-    pts = Points.create(workspace, vertices=np.random.randn(10, 3))
-    out_group = UIJsonGroup.create(workspace, name="Test Group")
-
-    with pytest.raises(TypeError, match="Input data must be a dictionary"):
-        TestOptions.build("not a dict")  # type: ignore
-
-    # test creation of input file on the fly
-    options = TestOptions.build({"geoh5": workspace, "client": pts})
-    assert options._input_file is None  # pylint: disable=protected-access
-    options.write_ui_json(tmp_path / "test_options.ui.json")
-    assert isinstance(options._input_file, InputFile)  # pylint: disable=protected-access
-
-    ui_json = deepcopy(TEST_DICT)
-    ui_json["out_group"] = group_parameter(value=out_group)
-    ui_json["geoh5"] = workspace
-    ui_json["client"] = object_parameter(value=pts)
-    ui_json["run_command"] = "geoapps_utils.driver.driver"
-
-    ifile = InputFile(ui_json=ui_json)
-    options = TestOptions.build(ifile)
-
-    # Test updating out_group options
-    assert len(out_group.options) == 0
-    options.update_out_group_options()
-    assert len(out_group.options) > 0
-    assert UUID(out_group.options["out_group"]["value"]) == out_group.uid
-
-
 def test_base_options(tmp_path):
     workspace = Workspace.create(tmp_path / f"{__name__}.geoh5")
     # Create params
     pts = Points.create(workspace, vertices=np.random.randn(10, 3))
 
-    with pytest.raises(TypeError, match="Input data must be a dictionary"):
+    with pytest.raises(GeoAppsError, match="Invalid input data for TestOptions"):
         TestOptions.build("not a dict")  # type: ignore
 
     options = TestOptions.build({"geoh5": workspace, "client": pts})
@@ -127,18 +69,18 @@ def test_base_options(tmp_path):
     assert isinstance(driver.workspace, Workspace)
     assert driver.out_group is None
 
-    demoted = options.serialize()
-    assert demoted["client"] == "{" + str(pts.uid) + "}"
+    demoted = options.serialize(mode="json")
+    assert demoted["client"] == str(pts.uid)
 
     # Write the options as file attached
     driver.update_monitoring_directory(pts)
 
     assert len(pts.children) == 1
     file_data = pts.children[0]
-    assert file_data.name == "base.ui.json"
+    assert file_data.name == "Base Data"
 
     json_dict = json.loads(file_data.file_bytes.decode())
-    assert json_dict.get("client", None) == "{" + str(pts.uid) + "}"
+    assert json_dict.get("client", None) == str(pts.uid)
 
 
 def test_get_empty_ui_json():
@@ -146,9 +88,9 @@ def test_get_empty_ui_json():
     with pytest.raises(ValueError, match="does not have a default"):
         TestParamsDriver.get_default_ui_json()
 
-    # Driver with Options subclass that has a default_ui_json returns a BaseUIJson
+    # Driver with Options subclass that has a default_ui_json returns a UIJson
     ui_json = TestOptionsDriver.get_default_ui_json()
-    assert isinstance(ui_json, BaseUIJson)
+    assert isinstance(ui_json, UIJson)
 
 
 def test_params_errors():

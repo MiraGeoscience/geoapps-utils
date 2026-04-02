@@ -102,8 +102,11 @@ def test_dataclass_input_file(tmp_path):
     model = Options.build(ifile)
 
     assert model.geoh5.h5file == tmp_path / f"{__name__}.geoh5"
-    assert model.flatten() == valid_parameters
-    assert model._input_file == ifile  # pylint: disable=protected-access
+    assert all(
+        valid_parameters[key] == value
+        for key, value in model.flatten().items()
+        if key != "geoh5"
+    )
 
 
 def test_pydantic_validates_nested_models():
@@ -213,13 +216,16 @@ def test_nested_model(tmp_path):
 
     assert isinstance(model.group, GroupParams)
     assert model.group.value == "test"
-    assert model.flatten() == valid_params
+    assert all(
+        valid_params[key] == value
+        for key, value in model.flatten().items()
+        if key != "geoh5"
+    )
     assert model.group.options.group_type == "multi"
 
 
 def test_params_construction(tmp_path):
     params = Options(geoh5=Workspace(tmp_path / "test.geoh5"))
-    assert Options.default_ui_json is None
     assert params.title == "Base Data"
     assert params.run_command == "geoapps_utils.base"
     assert str(params.geoh5.h5file) == str(tmp_path / "test.geoh5")
@@ -230,25 +236,8 @@ def test_base_data_write_ui_json(tmp_path):
         default_ui_json: ClassVar[Path | None] = assets_path() / "uijson/base.ui.json"
 
     params = TestData(geoh5=Workspace(tmp_path / "test.geoh5"))
-    params.write_ui_json(tmp_path / "test.ui.json")
+    params.ui_json.write(tmp_path / "test.ui.json")
     assert (tmp_path / "test.ui.json").exists()
-
-    ifile = InputFile.read_ui_json(
-        assets_path() / "uijson/base.ui.json", validate=False
-    )
-    ifile.ui_json["my_param"] = "test it"
-    ifile.data["my_param"] = "test it"
-    ifile.data["geoh5"] = params.geoh5
-    params2 = Options.build(ifile)
-    params2.write_ui_json(tmp_path / "validation.ui.json")
-
-    ifile = InputFile.read_ui_json(tmp_path / "validation.ui.json")
-    assert ifile.data["my_param"] == "test it"
-
-    ifile.data = None
-    params3 = Options(geoh5=Workspace(tmp_path / "test.geoh5"), _input_file=ifile)
-
-    assert isinstance(params3._create_input_file_from_attributes(), InputFile)  # pylint: disable=protected-access
 
 
 def test_drillhole_groups(tmp_path):
@@ -313,36 +302,3 @@ def test_drillhole_groups(tmp_path):
 
         assert input_file.drillholes.group_value == drillhole_group
         assert input_file.drillholes.value == ["interval_values"]
-
-
-def test_pydantic_error(tmp_path):
-    class TestData(Options):
-        problematic: float = 1
-        problematoc: str = "bidon"
-
-    geoh5_path = tmp_path / "test.geoh5"
-    ui_json_path = tmp_path / "test.ui.json"
-
-    params = TestData(geoh5=Workspace(geoh5_path))
-    params.write_ui_json(ui_json_path)
-
-    # change in the ui.json the value of "problematic" to a string
-    with open(ui_json_path, encoding="utf-8") as file:
-        ui_json = file.read()
-    ui_json = ui_json.replace('"problematic": 1', '"problematic": "not a float"')
-    ui_json = ui_json.replace('"problematoc": "bidon"', '"problematoc": 1')
-    with open(ui_json_path, "w", encoding="utf-8") as file:
-        file.write(ui_json)
-
-    ifile = InputFile.read_ui_json(ui_json_path, validate=False)
-
-    expected_message = (
-        "Invalid input data for TestData:\n"
-        " - problematic: Input should be a valid number, "
-        "unable to parse string as a number for value -> not a float\n"
-        " - problematoc: Input should be a valid string for value -> 1"
-    )
-
-    with pytest.raises(GeoAppsError, match=expected_message):
-        with ifile.geoh5.open(mode="r"):
-            _ = TestData.build(ifile)

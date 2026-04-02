@@ -23,6 +23,7 @@ from geoh5py.ui_json import InputFile, UIJson, monitored_directory_copy
 from geoh5py.ui_json.utils import fetch_active_workspace
 from pydantic import BaseModel, ConfigDict, ValidationError
 
+from geoapps_utils import assets_path
 from geoapps_utils.driver.params import BaseParams
 from geoapps_utils.utils.formatters import recursive_flatten
 from geoapps_utils.utils.importing import GeoAppsError
@@ -44,7 +45,7 @@ def input_file_deprecation_warning(input_file: InputFile) -> Path:
         stacklevel=2,
     )
 
-    if input_file.path_name is None:
+    if input_file.path_name is None or not Path(input_file.path_name).is_file():
         temp_path = Path(tempfile.mkdtemp()) / "temp.ui.json"
         input_file.write_ui_json(path=temp_path.parent, name=temp_path.name)
         return temp_path
@@ -103,20 +104,6 @@ class Driver(ABC):
         """Run the application."""
 
     @classmethod
-    def read_ui_json(cls, filepath: str | Path, validate=True) -> UIJson:
-        """
-        Read a ui.json file and return an UIJson object.
-
-        :param filepath: Path to valid ui.json file for the application driver.
-        :param kwargs: Additional keyword arguments for UIJson read_ui_json.
-
-        :return: UIJson object.
-        """
-        logger.info("Loading input file . . .")
-        filepath = Path(filepath).resolve()
-        return UIJson.read(filepath, validate=validate)
-
-    @classmethod
     def start(
         cls, filepath: str | Path | InputFile | UIJson, mode="r+", **kwargs
     ) -> Self:
@@ -124,6 +111,7 @@ class Driver(ABC):
         Run application specified by 'filepath' ui.json file.
 
         :param filepath: Path to valid ui.json file for the application driver.
+        :param mode: Mode to open the geoh5 file with.
         :param kwargs: Additional keyword arguments for Options class.
 
         :return: Self object.
@@ -132,9 +120,7 @@ class Driver(ABC):
         if isinstance(filepath, InputFile):
             filepath = input_file_deprecation_warning(filepath)
 
-        ifile = (
-            cls.read_ui_json(filepath) if isinstance(filepath, str | Path) else filepath
-        )
+        ifile = UIJson.read(filepath) if isinstance(filepath, str | Path) else filepath
 
         if not isinstance(ifile, UIJson):
             raise TypeError("Input file must be a string path or an InputFile object.")
@@ -142,9 +128,9 @@ class Driver(ABC):
         if ifile.geoh5 is None:
             raise GeoAppsError("The application needs a valid 'geoh5' file.")
 
-        with ifile.geoh5.open(mode=mode):
+        params = cls._params_class.build(ifile, **kwargs)
+        with params.geoh5.open(mode=mode):
             try:
-                params = cls._params_class.build(ifile, **kwargs)
                 logger.info("Initializing application . . .")
                 driver = cls(params)
                 logger.info("Running application . . .")
@@ -227,7 +213,7 @@ class Options(BaseModel):
     model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
 
     name: ClassVar[str] = "base"
-    default_ui_json: ClassVar[Path | None] = None
+    default_ui_json: ClassVar[Path | None] = assets_path() / "uijson/base.ui.json"
 
     title: str = "Base Data"
     run_command: str = "geoapps_utils.base"
@@ -289,13 +275,14 @@ class Options(BaseModel):
 
         :return: Dataclass of application parameters.
         """
-        data = input_data or {}
+        data = input_data if isinstance(input_data, dict | UIJson) else {}
+
         if isinstance(input_data, InputFile) and input_data.data is not None:
             file_path = input_file_deprecation_warning(input_data)
-            input_data = UIJson.read(file_path)
+            data = UIJson.read(file_path)
 
-        if isinstance(input_data, UIJson):
-            data = input_data.to_params()
+        if isinstance(data, UIJson):
+            data = data.to_params()
 
         if not isinstance(data, dict):
             raise TypeError("Input data must be a dictionary or UIJson.")
@@ -353,9 +340,12 @@ class Options(BaseModel):
         )
         return self.ui_json
 
-    def serialize(self):
+    def serialize(self, mode="python"):
         """Return a demoted uijson dictionary representation the params data."""
-        return self.ui_json.model_dump(exclude_unset=True, by_alias=True)
+        serialized = self.ui_json.model_dump(
+            exclude_unset=True, by_alias=True, mode=mode
+        )
+        return serialized
 
     def update_out_group_options(self):
         """
@@ -365,7 +355,7 @@ class Options(BaseModel):
             raise ValueError("No output group defined to save options.")
 
         with fetch_active_workspace(self.geoh5, mode="r+"):
-            self.out_group.options = self.serialize()
+            self.out_group.options = self.serialize(mode="json")
             self.out_group.metadata = None
 
     @property
@@ -389,4 +379,4 @@ class Options(BaseModel):
         if cls.default_ui_json is None or not cls.default_ui_json.exists():
             raise ValueError(f"Driver {cls} does not have a default ui.json.")
 
-        return UIJson.read(cls.default_ui_json, validate=False)
+        return UIJson.read(cls.default_ui_json)

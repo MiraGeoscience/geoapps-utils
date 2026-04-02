@@ -17,7 +17,7 @@ from geoh5py import Workspace
 from geoh5py.data import Data
 from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import Points
-from geoh5py.ui_json.input_file import InputFile
+from geoh5py.ui_json import UIJson
 
 from geoapps_utils.run import (
     get_new_workspace_path,
@@ -36,22 +36,6 @@ def create_uijson(tmp_path):
         points = Points.create(workspace)
 
         out_group = UIJsonGroup.create(workspace, name="uijson_test")
-
-        # Create params
-        test_params = {
-            "monitoring_directory": None,
-            "workspace_geoh5": None,
-            "geoh5": workspace,
-            "run_command": "tests.dummy_driver_test",
-            "title": "test_title",
-            "conda_environment": None,
-            "conda_environment_boolean": False,
-            "generate_sweep": False,
-            "workspace": None,
-            "run_command_boolean": False,
-            "nested_model": {"client": points},
-        }
-
         ui_json = {
             "version": "0.0.0",
             "title": "test_title",
@@ -80,9 +64,10 @@ def create_uijson(tmp_path):
 
         out_group.options = ui_json
 
-        params = TestOptions.build(test_params)
-        params._input_file = InputFile(ui_json=ui_json)  # pylint: disable=protected-access
-        uijson_path = params.write_ui_json(path=tmp_path)
+        uijson_class = UIJson.infer(**ui_json)
+        uijson = uijson_class(**ui_json)
+        uijson_path = tmp_path / f"{__name__}.ui.json"
+        uijson.write(uijson_path)
 
     return uijson_path
 
@@ -104,7 +89,7 @@ def test_run_from_uijson(tmp_path):
     with Workspace(destination / "original.geoh5") as workspace:
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
 
-    ui_json_file = destination / "test_run_from_uijson0.ui.json"
+    ui_json_file = destination / "tests.uijson_run_test.ui.json"
     with open(ui_json_file, encoding="utf-8") as file:
         ui_json_file = file.read()
         ui_json = json.loads(ui_json_file)
@@ -138,7 +123,7 @@ def test_run_from_uijson_shutil(tmp_path):
     with Workspace(destination / "original.geoh5") as workspace:
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
 
-    ui_json_file = destination / "test_run_from_uijson_shutil0.ui.json"
+    ui_json_file = destination / "tests.uijson_run_test.ui.json"
     with open(ui_json_file, encoding="utf-8") as file:
         ui_json_file = file.read()
         ui_json = json.loads(ui_json_file)
