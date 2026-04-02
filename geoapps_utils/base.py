@@ -33,7 +33,7 @@ from geoapps_utils.utils.logger import get_logger
 logger = get_logger(name=__name__, level_name=False, propagate=False, add_name=False)
 
 
-def input_file_deprecation_warning(input_file: InputFile) -> Path:
+def input_file_deprecation_warning(input_file: InputFile) -> UIJson:
     """
     Warn the user of future deprecation and get a file path to an existing file.
     """
@@ -45,13 +45,10 @@ def input_file_deprecation_warning(input_file: InputFile) -> Path:
         stacklevel=2,
     )
 
-    if input_file.path_name is None or not Path(input_file.path_name).is_file():
-        temporary_directory = tempfile.TemporaryDirectory()
-        temp_path = Path(temporary_directory.name) / "temp.ui.json"
-        input_file.write_ui_json(path=temp_path.parent, name=temp_path.name)
-        return temp_path
+    if input_file.ui_json is None:
+        raise GeoAppsError("The application needs a valid 'ui_json' file.")
 
-    return Path(input_file.path_name)
+    return UIJson.from_dict(input_file.ui_json)
 
 
 class Driver(ABC):
@@ -278,8 +275,7 @@ class Options(BaseModel):
         data = input_data if isinstance(input_data, dict | UIJson) else {}
 
         if isinstance(input_data, InputFile) and input_data.data is not None:
-            file_path = input_file_deprecation_warning(input_data)
-            data = UIJson.read(file_path)
+            data = input_file_deprecation_warning(input_data)
 
         if isinstance(data, UIJson):
             data = data.to_params()

@@ -75,7 +75,7 @@ def test_base_options(tmp_path):
 
     assert len(pts.children) == 1
     file_data = pts.children[0]
-    assert file_data.name == "Base Data"
+    assert file_data.name == "temp.ui.json"
 
     json_dict = json.loads(file_data.file_bytes.decode())
     assert json_dict.get("client", None) == str(pts.uid)
