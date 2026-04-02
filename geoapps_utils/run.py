@@ -21,7 +21,7 @@ from shutil import copy
 
 from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
-from geoh5py.ui_json import InputFile, UIJson
+from geoh5py.ui_json import UIJson
 
 from geoapps_utils.base import Driver
 
