@@ -125,9 +125,9 @@ class Driver(ABC):
         if ifile.geoh5 is None:
             raise GeoAppsError("The application needs a valid 'geoh5' file.")
 
-        params = cls._params_class.build(ifile, **kwargs)
-        with params.geoh5.open(mode=mode):
+        with Workspace(ifile.geoh5).open(mode=mode) as workspace:
             try:
+                params = cls._params_class.build(ifile, workspace=workspace, **kwargs)
                 logger.info("Initializing application . . .")
                 driver = cls(params)
                 logger.info("Running application . . .")
@@ -262,12 +262,16 @@ class Options(BaseModel):
 
     @classmethod
     def build(
-        cls, input_data: InputFile | dict | None | UIJson = None, **kwargs
+        cls,
+        input_data: InputFile | dict | None | UIJson = None,
+        workspace: Workspace | None = None,
+        **kwargs,
     ) -> Self:
         """
         Build a dataclass from a dictionary or UIJson.
 
         :param input_data: Dictionary of parameters and values.
+        :param workspace: Workspace to use for building parameters.
 
         :return: Dataclass of application parameters.
         """
@@ -277,7 +281,7 @@ class Options(BaseModel):
             data = input_file_deprecation_warning(input_data)
 
         if isinstance(data, UIJson):
-            data = data.to_params()
+            data = data.to_params(workspace)
 
         if not isinstance(data, dict):
             raise TypeError("Input data must be a dictionary or UIJson.")
