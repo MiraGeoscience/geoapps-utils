@@ -77,8 +77,7 @@ class Plate:
         Create a rectangular prism geoh5py.Surface representing the plate.
 
         :param workspace: Workspace object to save the surface in.
-        :param name: Name of the surface.  If not provided, the name of the
-            plate will be used.
+        :param name: Name of the surface.
         """
 
         with fetch_active_workspace(workspace) as ws:
