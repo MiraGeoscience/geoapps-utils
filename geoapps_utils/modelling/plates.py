@@ -29,7 +29,9 @@ class PlateModel(BaseModel):
     :param strike_length: Length of the plate in the strike direction.
     :param dip_length: Length of the plate in the dip direction.
     :param width: Width of the plate.
-    :param origin: Origin point of the plate in the form [x, y, z].
+    :param easting: Easting of the plate center.
+    :param northing: Northing of the plate center.
+    :param elevation: Elevation of the plate center.
     :param direction: Dip direction of the plate in degrees from North.
     :param dip: Dip angle of the plate in degrees below the horizontal.
     """

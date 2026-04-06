@@ -37,7 +37,9 @@ def test_inside_plate(tmp_path):
                 strike_length=strike_length,
                 dip_length=dip_length,
                 width=width,
-                origin=(1.0, 0.0, 0.0),
+                easting=1.0,
+                northing=0.0,
+                elevation=0.0,
             ),
         )
         model = np.zeros(len(grid.centroids))
@@ -77,6 +79,9 @@ def test_make_plate(tmp_path):
                 strike_length=strike_length,
                 dip_length=dip_length,
                 width=width,
+                easting=0.0,
+                northing=0.0,
+                elevation=0.0,
                 direction=direction,
                 dip=dip,
             ),
@@ -102,6 +107,9 @@ def test_make_plate(tmp_path):
                 strike_length=strike_length,
                 dip_length=dip_length,
                 width=width,
+                easting=0.0,
+                northing=0.0,
+                elevation=0.0,
                 direction=direction,
                 dip=dip,
             ),
@@ -140,16 +148,18 @@ def test_make_plate_multiple(tmp_path):
             strike_length=strike_length,
             dip_length=dip_length,
             width=width,
+            easting=-1.0,
+            northing=0.0,
+            elevation=0.0,
             direction=direction,
             dip=dip,
-            origin=(-1, 0, 0),
         )
         model = make_plate(
             grid.centroids,
             plate=plate,
             background=0.0,
         )
-        plate.origin = (1, 0, 0)
+        plate.easting = 1.0
         model = make_plate(grid.centroids, plate=plate, background=model)
         grid.add_data({"plate model": {"values": model}})
 
