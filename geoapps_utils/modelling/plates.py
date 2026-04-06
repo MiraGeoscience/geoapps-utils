@@ -9,10 +9,14 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict
+from geoh5py import Workspace
+from geoh5py.objects import Octree, Surface
+from geoh5py.shared.utils import fetch_active_workspace
+from pydantic import BaseModel, ConfigDict, Field
 
 from geoapps_utils.utils.transformations import (
     rotate_points,
+    rotate_xyz,
     x_rotation_matrix,
     z_rotation_matrix,
 )
@@ -25,19 +29,120 @@ class PlateModel(BaseModel):
     :param strike_length: Length of the plate in the strike direction.
     :param dip_length: Length of the plate in the dip direction.
     :param width: Width of the plate.
-    :param origin: Origin point of the plate in the form [x, y, z].
+    :param easting: Easting of the plate center.
+    :param northing: Northing of the plate center.
+    :param elevation: Elevation of the plate center.
     :param direction: Dip direction of the plate in degrees from North.
     :param dip: Dip angle of the plate in degrees below the horizontal.
     """
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True, populate_by_name=True)
 
     strike_length: float
     dip_length: float
     width: float
-    origin: tuple[float, float, float] = (0.0, 0.0, 0.0)
-    direction: float = 0.0
+    easting: float
+    northing: float
+    elevation: float
+    direction: float = Field(default=0.0, alias="dip_direction")
     dip: float = 0.0
+
+    @property
+    def origin(self) -> tuple[float, float, float]:
+        return (self.easting, self.northing, self.elevation)
+
+
+class Plate:
+    """
+    Plate representation for surface extraction and masking.
+
+    :param params: Parameters describing the plate.
+    """
+
+    def __init__(self, params: PlateModel):
+        self.params = params
+
+    def mask(self, mesh: Octree) -> np.ndarray:
+        rotations = [
+            z_rotation_matrix(np.deg2rad(self.params.direction)),
+            x_rotation_matrix(np.deg2rad(self.params.dip)),
+        ]
+        rotated_centers = rotate_points(
+            mesh.centroids, origin=self.params.origin, rotations=rotations
+        )
+        return inside_plate(rotated_centers, self.params)
+
+    def surface(self, workspace: Workspace, name: str = "plate") -> Surface:
+        """
+        Create a rectangular prism geoh5py.Surface representing the plate.
+
+        :param workspace: Workspace object to save the surface in.
+        :param name: Name of the surface.
+        """
+
+        with fetch_active_workspace(workspace) as ws:
+            surface = Surface.create(
+                ws,
+                vertices=self.vertices,
+                cells=self.triangles,
+                name=name,
+            )
+
+        return surface
+
+    @property
+    def triangles(self) -> np.ndarray:
+        """Triangulation of the block."""
+        return np.vstack(
+            [
+                [0, 2, 1],
+                [1, 2, 3],
+                [0, 1, 4],
+                [4, 1, 5],
+                [1, 3, 5],
+                [5, 3, 7],
+                [2, 6, 3],
+                [3, 6, 7],
+                [0, 4, 2],
+                [2, 4, 6],
+                [4, 5, 6],
+                [6, 5, 7],
+            ]
+        )
+
+    @property
+    def vertices(self) -> np.ndarray:
+        """Vertices for triangulation of a rectangular prism in 3D space."""
+
+        u_1 = self.params.origin[0] - (self.params.strike_length / 2.0)
+        u_2 = self.params.origin[0] + (self.params.strike_length / 2.0)
+        v_1 = self.params.origin[1] - (self.params.dip_length / 2.0)
+        v_2 = self.params.origin[1] + (self.params.dip_length / 2.0)
+        w_1 = self.params.origin[2] - (self.params.width / 2.0)
+        w_2 = self.params.origin[2] + (self.params.width / 2.0)
+
+        vertices = np.array(
+            [
+                [u_1, v_1, w_1],
+                [u_2, v_1, w_1],
+                [u_1, v_2, w_1],
+                [u_2, v_2, w_1],
+                [u_1, v_1, w_2],
+                [u_2, v_1, w_2],
+                [u_1, v_2, w_2],
+                [u_2, v_2, w_2],
+            ]
+        )
+
+        return self._rotate(vertices)
+
+    def _rotate(self, vertices: np.ndarray) -> np.ndarray:
+        """Rotate vertices and adjust for reference point."""
+        theta = -1 * self.params.direction
+        phi = -1 * self.params.dip
+        rotated_vertices = rotate_xyz(vertices, list(self.params.origin), theta, phi)
+
+        return rotated_vertices
 
 
 def inside_plate(
