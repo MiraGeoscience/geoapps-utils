@@ -125,7 +125,7 @@ class Driver(ABC):
         if ifile.geoh5 is None:
             raise GeoAppsError("The application needs a valid 'geoh5' file.")
 
-        with Workspace(ifile.geoh5).open(mode=mode) as workspace:
+        with Workspace(ifile.geoh5, mode=mode) as workspace:
             try:
                 params = cls._params_class.build(ifile, workspace=workspace, **kwargs)
                 logger.info("Initializing application . . .")

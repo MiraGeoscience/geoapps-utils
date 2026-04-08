@@ -20,68 +20,14 @@ import pytest
 from geoh5py import Workspace
 from geoh5py.objects import Points
 from geoh5py.ui_json import InputFile, UIJson
-from pydantic import BaseModel, ConfigDict
 
-from geoapps_utils import assets_path
 from geoapps_utils.base import Options, get_logger
 from geoapps_utils.driver.data import BaseData
 from geoapps_utils.driver.driver import BaseDriver, Driver
 from geoapps_utils.run import fetch_driver_class
 from geoapps_utils.utils.importing import GeoAppsError
 
-
-class NestedModel(BaseModel):
-    """
-    Mock nested model
-    """
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    client: Points | None = None
-
-
-class TestOptions(Options):
-    """
-    Mock nested options
-    """
-
-    # todo: warning the base driver does not have a client attribute
-    default_ui_json: ClassVar[Path] = assets_path() / "uijson/base.ui.json"
-    nested_model: NestedModel
-
-
-class TestNoDefaultOptions(Options):
-    """
-    Mock nested options
-    """
-
-    # todo: warning the base driver does not have a client attribute
-    default_ui_json: ClassVar[Path] = assets_path() / "uijson/something.ui.json"
-    nested_model: NestedModel
-
-
-class TestOptionsDriver(BaseDriver):
-    _params_class = TestOptions
-
-    def __init__(self, params: TestOptions):
-        super().__init__(params)
-
-    def run(self):
-        """
-        Add a adata to the point to ensure something happens.
-        """
-
-        new_data = self.params.nested_model.client.vertices
-        new_data = new_data.mean(axis=0)
-
-        self.params.nested_model.client.add_data(
-            {
-                "mean_xyz": {
-                    "value": new_data,
-                }
-            }
-        )
-
-        self.update_monitoring_directory(self.params.nested_model.client)
+from .conftest import NestedModel, TestOptions, TestOptionsDriver
 
 
 TEST_DICT = {
@@ -96,6 +42,16 @@ TEST_DICT = {
     "workspace": None,
     "run_command_boolean": False,
 }
+
+
+class TestNoDefaultOptions(Options):
+    """
+    Mock nested options
+    """
+
+    # todo: warning the base driver does not have a client attribute
+    default_ui_json: ClassVar[Path] = Path("uijson/something.ui.json")
+    nested_model: NestedModel
 
 
 def test_base_options(tmp_path):
@@ -202,12 +158,14 @@ class NotOptionsDriver(Driver):
         pass
 
 
-def test_warning_options():
+def test_warning_options(tmp_path):
 
     with pytest.raises(ValueError, match=r"does not have a default ui.json"):
         TestNoDefaultOptions.get_default_ui_json()
 
-    options = TestOptions.model_construct(geoh5=Workspace(), nested_model=NestedModel())
+    options = TestOptions.model_construct(
+        geoh5=Workspace.create(tmp_path / "test.geoh5"), nested_model=NestedModel()
+    )
     with pytest.warns(DeprecationWarning, match=r"InputFile property is deprecated"):
         ui_json = options.input_file
 
