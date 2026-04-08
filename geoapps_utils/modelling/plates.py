@@ -26,12 +26,14 @@ class PlateModel(BaseModel):
     """
     Parameters describing the position and orientation of a dipping plate.
 
+    The plate's origin for rotation is its top face.
+
     :param strike_length: Length of the plate in the strike direction.
     :param dip_length: Length of the plate in the dip direction.
     :param width: Width of the plate.
-    :param easting: Easting of the plate center.
-    :param northing: Northing of the plate center.
-    :param elevation: Elevation of the plate center.
+    :param easting: Easting of the center of the plate's top face.
+    :param northing: Northing of the center of the plate's top face.
+    :param elevation: Elevation of the center of the plate's top face.
     :param direction: Dip direction of the plate in degrees from North.
     :param dip: Dip angle of the plate in degrees below the horizontal.
     """
@@ -63,6 +65,15 @@ class Plate:
         self.params = params
 
     def mask(self, mesh: Octree) -> np.ndarray:
+        """
+        Return a mask for generating models with a plate anomaly.
+
+        :param mesh: Octree mesh object defining cell centers on which
+            the mask will be defined.
+
+        :return Boolean mask that can be applied to models on the cell
+            centers of the input mesh
+        """
         rotations = [
             z_rotation_matrix(np.deg2rad(self.params.direction)),
             x_rotation_matrix(np.deg2rad(self.params.dip)),
@@ -150,7 +161,7 @@ def inside_plate(
     plate: PlateModel,
 ) -> np.ndarray:
     """
-    Create a plate model at a set of points from background, anomaly and size.
+    Create a mask to identify input points located inside the parameterized plate.
 
     :param points: Array of shape (n, 3) representing the x, y, z coordinates of the
         model space (often the cell centers of a mesh).
