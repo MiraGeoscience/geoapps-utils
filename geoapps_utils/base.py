@@ -263,26 +263,23 @@ class Options(BaseModel):
     @classmethod
     def build(
         cls,
-        input_data: InputFile | dict | None | UIJson = None,
+        data: InputFile | dict | UIJson,
         workspace: Workspace | None = None,
         **kwargs,
     ) -> Self:
         """
         Build a dataclass from a dictionary or UIJson.
 
-        :param input_data: Dictionary of parameters and values.
+        :param data: Dictionary of parameters and values.
         :param workspace: Workspace to use for building parameters.
 
         :return: Dataclass of application parameters.
         """
-        if isinstance(input_data, InputFile):
-            input_data = input_file_deprecation_warning(input_data)
-        elif input_data is None:
-            input_data = {}
+        if isinstance(data, InputFile):
+            data = input_file_deprecation_warning(data)
 
-        data = input_data
-        if isinstance(input_data, UIJson):
-            data = input_data.to_params(workspace)
+        if isinstance(data, UIJson):
+            data = data.to_params(workspace)
 
         if not isinstance(data, dict):
             raise TypeError("Input data must be a dictionary or UIJson.")
