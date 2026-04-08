@@ -10,14 +10,11 @@
 from __future__ import annotations
 
 import json
-from uuid import UUID
 
 import pytest
 from geoh5py import Workspace
 from geoh5py.data import Data
 from geoh5py.groups import UIJsonGroup
-from geoh5py.objects import Points
-from geoh5py.ui_json import UIJson
 
 from geoapps_utils.run import (
     get_new_workspace_path,
@@ -27,54 +24,8 @@ from geoapps_utils.run import (
     run_uijson_group,
 )
 
-from .dummy_driver_test import TestOptions
 
-
-# pylint: disable=duplicate-code
-def create_uijson(tmp_path):
-    with Workspace.create(tmp_path / "original.geoh5") as workspace:
-        points = Points.create(workspace)
-
-        out_group = UIJsonGroup.create(workspace, name="uijson_test")
-        ui_json = {
-            "version": "0.0.0",
-            "title": "test_title",
-            "conda_environment": "myenv",
-            "run_command": "tests.dummy_driver_test",
-            "geoh5": workspace,
-            "monitoring_directory": None,
-            "workspace_geoh5": None,
-            "client": {
-                "meshType": [UUID("202c5db1-a56d-4004-9cad-baafd8899406")],
-                "main": True,
-                "label": "Destination",
-                "value": points,
-                "group": "Objects",
-            },
-            "out_group": {
-                "group": "Output preferences",
-                "label": "UIJson group",
-                "value": out_group,
-                "groupType": "{BB50AC61-A657-4926-9C82-067658E246A0}",
-                "visible": True,
-                "optional": True,
-                "enabled": True,
-            },
-        }
-
-        out_group.options = ui_json
-
-        uijson_class = UIJson.infer(**ui_json)
-        uijson = uijson_class(**ui_json)
-        uijson_path = tmp_path / f"{__name__}.ui.json"
-        uijson.write(uijson_path)
-
-    return uijson_path
-
-
-def test_run_from_uijson(tmp_path):
-    uijson_path = create_uijson(tmp_path)
-
+def test_run_from_uijson(tmp_path, uijson_path):
     monitoring_directory = tmp_path / "monitoring"
     monitoring_directory.mkdir(exist_ok=True)
 
@@ -89,7 +40,7 @@ def test_run_from_uijson(tmp_path):
     with Workspace(destination / "original.geoh5") as workspace:
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
 
-    ui_json_file = destination / "tests.uijson_run_test.ui.json"
+    ui_json_file = destination / "original.ui.json"
     with open(ui_json_file, encoding="utf-8") as file:
         ui_json_file = file.read()
         ui_json = json.loads(ui_json_file)
@@ -103,8 +54,7 @@ def test_run_from_uijson(tmp_path):
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
 
 
-def test_run_from_uijson_shutil(tmp_path):
-    uijson_path = create_uijson(tmp_path)
+def test_run_from_uijson_shutil(tmp_path, uijson_path):
 
     monitoring_directory = tmp_path / "monitoring"
     monitoring_directory.mkdir(exist_ok=True)
@@ -123,7 +73,7 @@ def test_run_from_uijson_shutil(tmp_path):
     with Workspace(destination / "original.geoh5") as workspace:
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
 
-    ui_json_file = destination / "tests.uijson_run_test.ui.json"
+    ui_json_file = destination / "original.ui.json"
     with open(ui_json_file, encoding="utf-8") as file:
         ui_json_file = file.read()
         ui_json = json.loads(ui_json_file)
@@ -137,8 +87,7 @@ def test_run_from_uijson_shutil(tmp_path):
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
 
 
-def test_run_from_out_group(tmp_path):
-    create_uijson(tmp_path)
+def test_run_from_out_group(tmp_path, uijson_path):
 
     monitoring_directory = tmp_path / "monitoring"
     monitoring_directory.mkdir(exist_ok=True)
@@ -164,9 +113,7 @@ def test_run_from_out_group(tmp_path):
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
 
 
-def test_run_from_out_group_no_destination(tmp_path):
-    create_uijson(tmp_path)
-
+def test_run_from_out_group_no_destination(tmp_path, uijson_path):
     run_from_outgroup_name(tmp_path / "original.geoh5", "uijson_test")
 
     # test destination
@@ -174,8 +121,7 @@ def test_run_from_out_group_no_destination(tmp_path):
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
 
 
-def test_out_group_errors(tmp_path):
-    create_uijson(tmp_path)
+def test_out_group_errors(tmp_path, uijson_path):
 
     with Workspace(tmp_path / "original.geoh5") as workspace:
         # create an empty uijson group
@@ -194,8 +140,7 @@ def test_out_group_errors(tmp_path):
             )
 
 
-def test_utils_errors(tmp_path):
-    create_uijson(tmp_path)
+def test_utils_errors(tmp_path, uijson_path):
 
     with pytest.raises(ValueError, match=r"Invalid ui\.json file"):
         load_ui_json_as_dict(123)  # type: ignore
