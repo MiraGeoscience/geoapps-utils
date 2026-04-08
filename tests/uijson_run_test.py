@@ -25,6 +25,9 @@ from geoapps_utils.run import (
 )
 
 
+# pylint: disable=unused-argument
+
+
 def test_run_from_uijson(tmp_path, uijson_path):
     monitoring_directory = tmp_path / "monitoring"
     monitoring_directory.mkdir(exist_ok=True)
@@ -32,9 +35,12 @@ def test_run_from_uijson(tmp_path, uijson_path):
     destination = tmp_path / "copy"
     destination.mkdir(exist_ok=True)
 
-    run_from_uijson(
+    driver = run_from_uijson(
         uijson_path, destination=destination, monitoring_directory=monitoring_directory
     )
+
+    # Check it is updatable
+    driver.params.update_out_group_options()
 
     # test destination
     with Workspace(destination / "original.geoh5") as workspace:
