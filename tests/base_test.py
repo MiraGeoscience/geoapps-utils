@@ -172,7 +172,7 @@ def test_warning_options(tmp_path):
     assert isinstance(ui_json, UIJson)
 
     with pytest.raises(TypeError, match=r"Input data must be a dictionary"):
-        TestOptions.build(input_data=123)  # type: ignore
+        TestOptions.build(123)  # type: ignore
 
     ws = Workspace()
     pts = Points.create(ws, vertices=np.random.randn(10, 3))
@@ -185,4 +185,4 @@ def test_warning_options(tmp_path):
     with pytest.raises(
         GeoAppsError, match=r"The application needs a valid 'ui_json' file"
     ):
-        TestOptions.build(input_data=ifile)
+        TestOptions.build(ifile)
