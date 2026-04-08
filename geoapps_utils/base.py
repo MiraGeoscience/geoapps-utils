@@ -24,7 +24,6 @@ from geoh5py.ui_json.utils import fetch_active_workspace
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from geoapps_utils import assets_path
-from geoapps_utils.driver.params import BaseParams
 from geoapps_utils.utils.formatters import recursive_flatten
 from geoapps_utils.utils.importing import GeoAppsError
 from geoapps_utils.utils.logger import get_logger
@@ -39,7 +38,8 @@ def input_file_deprecation_warning(input_file: InputFile) -> UIJson:
     """
 
     warnings.warn(
-        "The use of InputFile will be deprecated in future versions. Please start using UIJson class instead.",
+        "The use of InputFile will be deprecated in future versions.\n"
+        "Please start using UIJson class instead.",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -61,7 +61,7 @@ class Driver(ABC):
 
     _params_class: type[Options]
 
-    def __init__(self, params: Options | BaseParams):
+    def __init__(self, params: Options):
         self._out_group: UIJsonGroup | None = None
         self.params = params
 
@@ -71,7 +71,7 @@ class Driver(ABC):
         return self._params
 
     @params.setter
-    def params(self, val: Options | BaseParams):
+    def params(self, val: Options):
         if not isinstance(val, self._params_class):
             raise TypeError(
                 f"Parameters must be of type {self._params_class}.\n"

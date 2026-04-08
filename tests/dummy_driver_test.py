@@ -10,18 +10,15 @@
 from __future__ import annotations
 
 import sys
-from copy import deepcopy
 from pathlib import Path
 from typing import ClassVar
 
 from geoh5py.objects import Points
-from geoh5py.ui_json.constants import default_ui_json as base_ui_json
 from pydantic import BaseModel, ConfigDict
 
 from geoapps_utils import assets_path
 from geoapps_utils.base import Options
 from geoapps_utils.driver.driver import BaseDriver
-from geoapps_utils.driver.params import BaseParams
 
 
 class NestedModel(BaseModel):
@@ -41,13 +38,6 @@ class TestOptions(Options):
     # todo: warning the base driver does not have a client attribute
     default_ui_json: ClassVar[Path] = assets_path() / "uijson/base.ui.json"
     nested_model: NestedModel
-
-
-class TestParams(BaseParams):
-    _default_ui_json = deepcopy(base_ui_json)
-
-    def __init__(self, input_file=None, **kwargs):
-        super().__init__(input_file=input_file, **kwargs)
 
 
 class TestOptionsDriver(BaseDriver):

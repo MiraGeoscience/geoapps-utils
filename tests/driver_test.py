@@ -21,14 +21,10 @@ from geoh5py.objects import Points
 from geoapps_utils.base import Options, get_logger
 from geoapps_utils.driver.data import BaseData
 from geoapps_utils.driver.driver import BaseDriver, Driver
-from geoapps_utils.driver.params import BaseParams
 from geoapps_utils.run import fetch_driver_class
 from geoapps_utils.utils.importing import GeoAppsError
 
-from .dummy_driver_test import (
-    TestOptions,
-    TestOptionsDriver,
-)
+from .dummy_driver_test import TestOptions, TestOptionsDriver
 
 
 TEST_DICT = {
@@ -79,11 +75,6 @@ def test_base_options(tmp_path):
 
     json_dict = json.loads(file_data.file_bytes.decode())
     assert json_dict.get("client", None) == str(pts.uid)
-
-
-def test_params_errors():
-    with pytest.raises(TypeError, match="'input_data' must be "):
-        BaseParams.build(input_data="bidon")  # type: ignore
 
 
 def test_old_base_driver(caplog):
