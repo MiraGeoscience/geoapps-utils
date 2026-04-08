@@ -275,13 +275,14 @@ class Options(BaseModel):
 
         :return: Dataclass of application parameters.
         """
-        data = input_data if isinstance(input_data, dict | UIJson) else {}
+        if isinstance(input_data, InputFile):
+            input_data = input_file_deprecation_warning(input_data)
+        elif input_data is None:
+            input_data = {}
 
-        if isinstance(input_data, InputFile) and input_data.data is not None:
-            data = input_file_deprecation_warning(input_data)
-
-        if isinstance(data, UIJson):
-            data = data.to_params(workspace)
+        data = input_data
+        if isinstance(input_data, UIJson):
+            data = input_data.to_params(workspace)
 
         if not isinstance(data, dict):
             raise TypeError("Input data must be a dictionary or UIJson.")
@@ -376,6 +377,6 @@ class Options(BaseModel):
         :return: The default ui.json configuration.
         """
         if cls.default_ui_json is None or not cls.default_ui_json.exists():
-            raise ValueError(f"Driver {cls} does not have a default ui.json.")
+            raise ValueError(f"Class '{cls}' does not have a default ui.json.")
 
         return UIJson.read(cls.default_ui_json)

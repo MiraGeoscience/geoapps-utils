@@ -12,19 +12,76 @@ from __future__ import annotations
 
 import json
 import logging
+from pathlib import Path
+from typing import ClassVar
 
 import numpy as np
 import pytest
 from geoh5py import Workspace
 from geoh5py.objects import Points
+from geoh5py.ui_json import InputFile, UIJson
+from pydantic import BaseModel, ConfigDict
 
+from geoapps_utils import assets_path
 from geoapps_utils.base import Options, get_logger
 from geoapps_utils.driver.data import BaseData
 from geoapps_utils.driver.driver import BaseDriver, Driver
 from geoapps_utils.run import fetch_driver_class
 from geoapps_utils.utils.importing import GeoAppsError
 
-from .dummy_driver_test import TestOptions, TestOptionsDriver
+
+class NestedModel(BaseModel):
+    """
+    Mock nested model
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    client: Points | None = None
+
+
+class TestOptions(Options):
+    """
+    Mock nested options
+    """
+
+    # todo: warning the base driver does not have a client attribute
+    default_ui_json: ClassVar[Path] = assets_path() / "uijson/base.ui.json"
+    nested_model: NestedModel
+
+
+class TestNoDefaultOptions(Options):
+    """
+    Mock nested options
+    """
+
+    # todo: warning the base driver does not have a client attribute
+    default_ui_json: ClassVar[Path] = assets_path() / "uijson/something.ui.json"
+    nested_model: NestedModel
+
+
+class TestOptionsDriver(BaseDriver):
+    _params_class = TestOptions
+
+    def __init__(self, params: TestOptions):
+        super().__init__(params)
+
+    def run(self):
+        """
+        Add a adata to the point to ensure something happens.
+        """
+
+        new_data = self.params.nested_model.client.vertices
+        new_data = new_data.mean(axis=0)
+
+        self.params.nested_model.client.add_data(
+            {
+                "mean_xyz": {
+                    "value": new_data,
+                }
+            }
+        )
+
+        self.update_monitoring_directory(self.params.nested_model.client)
 
 
 TEST_DICT = {
@@ -45,10 +102,6 @@ def test_base_options(tmp_path):
     workspace = Workspace.create(tmp_path / f"{__name__}.geoh5")
     # Create params
     pts = Points.create(workspace, vertices=np.random.randn(10, 3))
-
-    with pytest.raises(GeoAppsError, match="Invalid input data for TestOptions"):
-        TestOptions.build("not a dict")  # type: ignore
-
     options = TestOptions.build({"geoh5": workspace, "client": pts})
 
     with pytest.raises(ValueError, match="No output group"):
@@ -140,3 +193,38 @@ def test_logger(caplog):
     assert "my-app" in caplog.text
     assert caplog.records[0].levelname == "INFO"
     assert caplog.records[0].name == "my-app"
+
+
+class NotOptionsDriver(Driver):
+    _params_class = Points  # type: ignore
+
+    def run(self):
+        pass
+
+
+def test_warning_options():
+
+    with pytest.raises(ValueError, match=r"does not have a default ui.json"):
+        TestNoDefaultOptions.get_default_ui_json()
+
+    options = TestOptions.model_construct(geoh5=Workspace(), nested_model=NestedModel())
+    with pytest.warns(DeprecationWarning, match=r"InputFile property is deprecated"):
+        ui_json = options.input_file
+
+    assert isinstance(ui_json, UIJson)
+
+    with pytest.raises(TypeError, match=r"Input data must be a dictionary"):
+        TestOptions.build(input_data=123)  # type: ignore
+
+    ws = Workspace()
+    pts = Points.create(ws, vertices=np.random.randn(10, 3))
+    driver = NotOptionsDriver(pts)
+
+    with pytest.raises(ValueError, match=r"does not have a default ui.json"):
+        driver.get_default_ui_json()
+
+    ifile = InputFile()
+    with pytest.raises(
+        GeoAppsError, match=r"The application needs a valid 'ui_json' file"
+    ):
+        TestOptions.build(input_data=ifile)
