@@ -23,7 +23,7 @@ from geoh5py.ui_json import InputFile
 from geoh5py.workspace import Workspace
 from pydantic import BaseModel, ValidationError
 
-from geoapps_utils import GeoAppsError, assets_path
+from geoapps_utils import assets_path
 from geoapps_utils.base import Options
 from geoapps_utils.utils.importing import DrillholeGroupValue
 
