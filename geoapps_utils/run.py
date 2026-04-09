@@ -21,7 +21,7 @@ from shutil import copy
 
 from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
-from geoh5py.ui_json import InputFile
+from geoh5py.ui_json import UIJson
 
 from geoapps_utils.base import Driver
 
@@ -124,7 +124,8 @@ def run_uijson_group(
         raise ValueError("UIJsonGroup must have options set.")
 
     driver_class = fetch_driver_class(out_group.options)
-    driver_instance = driver_class.start(InputFile(ui_json=out_group.options))
+    uijson = UIJson.from_dict(out_group.options)
+    driver_instance = driver_class.start(uijson)
 
     return driver_instance
 
@@ -143,8 +144,9 @@ def get_new_workspace_path(
 
     :return: The path to the new workspace.
     """
+    destination = Path(destination).resolve()
     new_workspace_name = new_workspace_name or name
-    workspace_path = Path(destination) / new_workspace_name
+    workspace_path = destination / new_workspace_name
     workspace_path = workspace_path.with_suffix(".geoh5")
 
     if workspace_path.is_file():
@@ -167,24 +169,29 @@ def copy_uijson_relatives_only(
     :param new_workspace_name: New geoh5 file name. If None, the original name is kept.
     :param monitoring_directory: New monitoring directory. If None, the original is kept.
     """
-    ifile = InputFile.read_ui_json(uijson_path)
+    uijson_path = Path(uijson_path).resolve()
+    destination = Path(destination).resolve()
+
+    ifile = UIJson.read(uijson_path)
+
+    if ifile.geoh5 is None:
+        raise AttributeError(
+            "The ui.json file provided does not link to a valid geoh5 file."
+        )
 
     workspace_path = get_new_workspace_path(
-        ifile.geoh5.h5file.name, destination, new_workspace_name
+        ifile.geoh5.name, destination, new_workspace_name
     )
 
-    with ifile.geoh5.open():
-        with Workspace.create(workspace_path) as new_workspace:
-            ifile.copy_relatives(new_workspace)
-            temp_json = ifile.ui_json.copy()
-            temp_json["geoh5"] = new_workspace
-            if monitoring_directory is not None:
-                temp_json["monitoring_directory"] = str(monitoring_directory)
-            new_input_file = InputFile(ui_json=temp_json)
+    with Workspace.create(workspace_path) as new_workspace:
+        ifile.copy_relatives(new_workspace)
+        ifile.geoh5 = new_workspace.h5file
+        if monitoring_directory is not None:
+            ifile.monitoring_directory = Path(monitoring_directory)
 
-            uijson_path_name = new_input_file.write_ui_json(
-                path=str(destination), name=new_workspace_name or ifile.name
-            )
+        uijson_path_name = ifile.write(
+            destination / (new_workspace_name or uijson_path.name)
+        )
 
     return uijson_path_name
 

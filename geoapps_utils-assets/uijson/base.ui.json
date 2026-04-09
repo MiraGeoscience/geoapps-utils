@@ -6,5 +6,12 @@
     "geoh5": "",
     "monitoring_directory": "",
     "workspace_geoh5": "",
-    "out_group": ""
+    "out_group": {
+        "label": "UIJson group",
+        "value": "",
+        "groupType": "{BB50AC61-A657-4926-9C82-067658E246A0}",
+        "visible": true,
+        "optional": true,
+        "enabled": false
+    }
 }

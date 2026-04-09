@@ -18,7 +18,7 @@ import uuid
 from pathlib import Path
 
 import numpy as np
-from geoh5py.ui_json import InputFile
+from geoh5py.ui_json import UIJson
 from geoh5py.workspace import Workspace
 from pydantic import ConfigDict
 
@@ -113,31 +113,29 @@ class SweepDriver(Driver):
 
     def write_files(self, lookup):
         """Write ui.geoh5 and ui.json files for sweep trials."""
-        ifile = InputFile.read_ui_json(self.params.worker_uijson)
+        ifile = UIJson.read(self.params.worker_uijson)
         for name, trial in lookup.items():
             if trial["status"] != "pending":
                 continue
 
             iter_h5file = str(Path(self.workspace.h5file).parent / f"{name}.ui.geoh5")
-            shutil.copy(self.workspace.h5file, iter_h5file)
+            shutil.copyfile(self.workspace.h5file, iter_h5file)
 
-            ifile.update_ui_values(
-                dict(
+            ifile.set_values(
+                copy=True,
+                **dict(
                     {key: val for key, val in trial.items() if key != "status"},
                     **{"geoh5": Workspace(iter_h5file)},
-                )
+                ),
             )
-
-            ifile.name = f"{name}.ui.json"
-            ifile.path = str(Path(self.workspace.h5file).parent)
-            ifile.write_ui_json()
+            ifile.write(Path(self.workspace.h5file).parent / f"{name}.ui.json")
             lookup[name]["status"] = "written"
 
         _ = self.update_lookup(lookup)
 
     def run(self):
         """Execute a sweep."""
-
+        self.workspace.close()
         lookup = self.get_lookup()
         self.write_files(lookup)
 

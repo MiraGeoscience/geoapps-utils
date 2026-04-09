@@ -14,9 +14,9 @@ import argparse
 import re
 from pathlib import Path
 
-from geoh5py.ui_json import InputFile
+from geoh5py.ui_json import UIJson
 
-from geoapps_utils.base import Options
+from geoapps_utils import assets_path
 
 
 def generate(
@@ -33,27 +33,23 @@ def generate(
     """
 
     file_path = Path(worker_uijson).resolve(strict=True)
-    ifile = InputFile.read_ui_json(file_path)
+    ifile = UIJson.read(file_path)
+    data = ifile.to_params()
 
-    options = Options(geoh5=ifile.data["geoh5"])
-    ui_json = options.serialize()
+    base = UIJson.read(assets_path() / "uijson/base.ui.json").model_dump()
+    base.update({"worker_uijson": str(worker_uijson)})
+    base["geoh5"] = data["geoh5"]
 
-    sweepfile = InputFile(ui_json=ui_json, validate=False)
-
-    if sweepfile.data is None or sweepfile.ui_json is None:
-        raise ValueError("Sweep file data is empty.")
-
-    sweepfile.data.update({"worker_uijson": str(worker_uijson)})
     if update_values:
-        sweepfile.data.update(**update_values)
+        base.update(**update_values)
 
-    for param, value in ifile.data.items():
+    for param, value in data.items():
         if parameters is not None and param not in parameters:
             continue
 
         if type(value) in [int, float]:
             forms = sweep_forms(param, value)
-            sweepfile.ui_json.update(forms)
+            base.update(forms)
 
     dirpath = file_path.parent
     filename = file_path.name.removesuffix(".ui.json")
@@ -61,7 +57,8 @@ def generate(
     filename = f"{filename}_sweep.ui.json"
 
     print(f"Writing sweep file to: {dirpath / filename}")
-    sweepfile.write_ui_json(name=filename, path=dirpath)
+    ui_json = UIJson.from_dict(base)
+    ui_json.write(dirpath / filename)
 
 
 def sweep_forms(param: str, value: int | float) -> dict:
