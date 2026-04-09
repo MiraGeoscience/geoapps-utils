@@ -14,7 +14,31 @@ import numpy as np
 from geoh5py import Workspace
 from geoh5py.objects import BlockModel
 
-from geoapps_utils.modelling.plates import PlateModel, inside_plate, make_plate
+from geoapps_utils.modelling.plates import (
+    PlateModel,
+    bounding_box,
+    inside_plate,
+    make_plate,
+)
+
+
+def test_bounding_box():
+    origin = [0.0, 0.0, 0.0]
+    strike_length = 10
+    dip_length = 20
+    width = 2
+    xmin, xmax, ymin, ymax, zmin, zmax = bounding_box(
+        origin=origin,
+        strike_length=strike_length,
+        dip_length=dip_length,
+        width=width,
+    )
+    assert xmin == -5.0
+    assert xmax == 5.0
+    assert ymin == 0.0
+    assert ymax == 20.0
+    assert zmin == -1.0
+    assert zmax == 1.0
 
 
 def test_inside_plate(tmp_path):

@@ -26,7 +26,7 @@ class PlateModel(BaseModel):
     """
     Parameters describing the position and orientation of a dipping plate.
 
-    The plate's origin for rotation is its top face.
+    The plate's origin for rotation is the center of its top face.
 
     :param strike_length: Length of the plate in the strike direction.
     :param dip_length: Length of the plate in the dip direction.
@@ -43,9 +43,9 @@ class PlateModel(BaseModel):
     strike_length: float
     dip_length: float
     width: float
-    easting: float
-    northing: float
-    elevation: float
+    easting: float = 0.0
+    northing: float = 0.0
+    elevation: float = 0.0
     direction: float = Field(default=0.0, alias="dip_direction")
     dip: float = 0.0
 
@@ -125,12 +125,12 @@ class Plate:
     def vertices(self) -> np.ndarray:
         """Vertices for triangulation of a rectangular prism in 3D space."""
 
-        u_1 = self.params.origin[0] - (self.params.strike_length / 2.0)
-        u_2 = self.params.origin[0] + (self.params.strike_length / 2.0)
-        v_1 = self.params.origin[1] - (self.params.dip_length / 2.0)
-        v_2 = self.params.origin[1] + (self.params.dip_length / 2.0)
-        w_1 = self.params.origin[2] - (self.params.width / 2.0)
-        w_2 = self.params.origin[2] + (self.params.width / 2.0)
+        u_1, u_2, v_1, v_2, w_1, w_2 = bounding_box(
+            origin=list(self.params.origin),
+            strike_length=self.params.strike_length,
+            dip_length=self.params.dip_length,
+            width=self.params.width,
+        )
 
         vertices = np.array(
             [
@@ -156,6 +156,27 @@ class Plate:
         return rotated_vertices
 
 
+def bounding_box(
+    origin: list[float], strike_length: float, dip_length: float, width: float
+) -> list[float]:
+    """
+    Calculate unrotated bounding box from plate geometry.
+
+    :param origin: Southern face of an east-west striking horizontal plate.
+    :param strike_length: Length of the plate in the strike (x) dimension.
+    :param dip_length: Length of the plate in the (0) dip (y) dimension.
+    :param width: Width of the plate (z dimension).
+    """
+    xmin = origin[0] - strike_length / 2
+    xmax = origin[0] + strike_length / 2
+    ymin = origin[1]
+    ymax = origin[1] + dip_length
+    zmin = origin[2] - width / 2
+    zmax = origin[2] + width / 2
+
+    return [xmin, xmax, ymin, ymax, zmin, zmax]
+
+
 def inside_plate(
     points: np.ndarray,
     plate: PlateModel,
@@ -163,17 +184,21 @@ def inside_plate(
     """
     Create a mask to identify input points located inside the parameterized plate.
 
+    Plate is considered orthogonal to the coordinate axes, and ignores any rotation
+    parameters in the PlateModel.  For masking rotated plates, consider dumping plate
+    parameters to Plate object and using the mask method there.
+
     :param points: Array of shape (n, 3) representing the x, y, z coordinates of the
         model space (often the cell centers of a mesh).
     :param plate: Dipping plate parameters.
     """
 
-    xmin = plate.origin[0] - plate.strike_length / 2
-    xmax = plate.origin[0] + plate.strike_length / 2
-    ymin = plate.origin[1] - plate.dip_length / 2
-    ymax = plate.origin[1] + plate.dip_length / 2
-    zmin = plate.origin[2] - plate.width / 2
-    zmax = plate.origin[2] + plate.width / 2
+    xmin, xmax, ymin, ymax, zmin, zmax = bounding_box(
+        origin=list(plate.origin),
+        strike_length=plate.strike_length,
+        dip_length=plate.dip_length,
+        width=plate.width,
+    )
 
     mask = (
         (points[:, 0] >= xmin)
