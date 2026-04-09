@@ -72,8 +72,8 @@ def test_inside_plate(tmp_path):
         validation_mask = (
             (grid.centroids[:, 0] >= ((-strike_length / 2) + 1))
             & (grid.centroids[:, 0] <= ((strike_length / 2) + 1))
-            & (grid.centroids[:, 1] >= -dip_length / 2)
-            & (grid.centroids[:, 1] <= dip_length / 2)
+            & (grid.centroids[:, 1] >= 0)
+            & (grid.centroids[:, 1] <= dip_length)
             & (grid.centroids[:, 2] >= -width / 2)
             & (grid.centroids[:, 2] <= width / 2)
         )
@@ -114,8 +114,8 @@ def test_make_plate(tmp_path):
         grid.add_data({"plate model 1": {"values": model}})
 
         mask = (
-            (grid.centroids[:, 0] >= (-dip_length / 2))
-            & (grid.centroids[:, 0] <= (dip_length / 2))
+            (grid.centroids[:, 0] >= 0)
+            & (grid.centroids[:, 0] <= dip_length)
             & (grid.centroids[:, 1] >= (-strike_length / 2))
             & (grid.centroids[:, 1] <= (strike_length / 2))
             & (grid.centroids[:, 2] >= (-width / 2))
@@ -146,8 +146,8 @@ def test_make_plate(tmp_path):
             & (grid.centroids[:, 0] <= (strike_length / 2))
             & (grid.centroids[:, 1] >= (-width / 2))
             & (grid.centroids[:, 1] <= (width / 2))
-            & (grid.centroids[:, 2] >= (-dip_length / 2))
-            & (grid.centroids[:, 2] <= (dip_length / 2))
+            & (grid.centroids[:, 2] >= -dip_length)
+            & (grid.centroids[:, 2] <= 0)
         )
     assert np.all(model[mask] == 1.0)
 
@@ -192,8 +192,8 @@ def test_make_plate_multiple(tmp_path):
             & (grid.centroids[:, 0] <= (width))
             & (grid.centroids[:, 1] >= (-strike_length / 2))
             & (grid.centroids[:, 1] <= (strike_length / 2))
-            & (grid.centroids[:, 2] >= (-dip_length / 2))
-            & (grid.centroids[:, 2] <= (dip_length / 2))
+            & (grid.centroids[:, 2] >= -dip_length)
+            & (grid.centroids[:, 2] <= 0)
         )
         assert np.all(model[mask] == 1.0)
 
