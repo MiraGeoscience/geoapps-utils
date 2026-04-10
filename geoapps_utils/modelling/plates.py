@@ -124,6 +124,11 @@ class Plate:
         return plate
 
     def mask(self, mesh: Octree) -> np.ndarray:
+        """
+        Create a mask for the centroids of the input mesh.
+
+        :param mesh: Input mesh whose centroids will be used to define the mask.
+        """
         rotations = [
             z_rotation_matrix(np.deg2rad(self.params.direction)),
             x_rotation_matrix(np.deg2rad(self.params.dip)),
