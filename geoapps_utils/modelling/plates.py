@@ -8,11 +8,13 @@
 #                                                                                   '
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
+import warnings
+
 import numpy as np
 from geoh5py import Workspace
 from geoh5py.objects import Octree, Surface
 from geoh5py.shared.utils import fetch_active_workspace
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from geoapps_utils.utils.transformations import (
     rotate_points,
@@ -26,7 +28,12 @@ class PlateModel(BaseModel):
     """
     Parameters describing the position and orientation of a dipping plate.
 
-    The plate's origin for rotation is the center of its top face.
+    Dip rotations are applied about the plate's origin (easting, northing,
+    and elevation) so that the origin of a dipping plate marks the center
+    of the plate's top (up-dip) face.  Without dip rotations, the plate is
+    horizontal striking east-west with the origin at the center of the
+    southern face.
+
 
     :param strike_length: Length of the plate in the strike direction.
     :param dip_length: Length of the plate in the dip direction.
@@ -48,6 +55,16 @@ class PlateModel(BaseModel):
     elevation: float = 0.0
     direction: float = Field(default=0.0, alias="dip_direction")
     dip: float = 0.0
+
+    @model_validator(mode="after")
+    def check_origin_set(self):
+        if not all(
+            k in self.model_fields_set for k in ["easting", "northing", "elevation"]
+        ):
+            warnings.warn(
+                "Not all origin parameters ('easting', 'northing', 'elevation') were set. "
+                "Missing parameters default to 0 and may lead to unexpected results."
+            )
 
     @property
     def origin(self) -> tuple[float, float, float]:
@@ -184,9 +201,13 @@ def inside_plate(
     """
     Create a mask to identify input points located inside the parameterized plate.
 
-    Plate is considered orthogonal to the coordinate axes, and ignores any rotation
-    parameters in the PlateModel.  For masking rotated plates, consider dumping plate
-    parameters to Plate object and using the mask method there.
+    The plate is treated as orthogonal to the coordinate axes, and any rotation
+    parameters in the PlateModel are ignored. For rotated plates, create or wrap a
+    Plate from the plate parameters and use Plate.mask instead.
+
+    The plate is treated as orthogonal to the coordinate axes, and any rotation
+    parameters in the PlateModel are ignored.  For masking rotated plates, consider
+    constructing a Plate object to use it's mask method.
 
     :param points: Array of shape (n, 3) representing the x, y, z coordinates of the
         model space (often the cell centers of a mesh).
@@ -219,7 +240,7 @@ def make_plate(
     anomaly: float = 1.0,
 ):
     """
-    Create a plate model at a set of points from background, anomaly, size and attitude.
+    Create a plate model at a set of points from background, anomaly, size and geometry.
 
     :param points: Array of shape (n, 3) representing the x, y, z coordinates of the
         model space (often the cell centers of a mesh).
