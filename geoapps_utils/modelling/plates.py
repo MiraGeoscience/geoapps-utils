@@ -65,6 +65,7 @@ class PlateModel(BaseModel):
                 "Not all origin parameters ('easting', 'northing', 'elevation') were set. "
                 "Missing parameters default to 0 and may lead to unexpected results."
             )
+        return self
 
     @property
     def origin(self) -> tuple[float, float, float]:
