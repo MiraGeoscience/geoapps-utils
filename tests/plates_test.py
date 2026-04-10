@@ -11,10 +11,11 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 from geoh5py import Workspace
 from geoh5py.objects import BlockModel
 
-from geoapps_utils.modelling.plates import PlateModel, inside_plate, make_plate
+from geoapps_utils.modelling.plates import Plate, PlateModel, inside_plate, make_plate
 
 
 def test_inside_plate(tmp_path):
@@ -200,3 +201,35 @@ def test_plate_alias():
     )
     assert plate.direction == 90
     assert "dip_direction" in plate.model_dump(by_alias=True)
+
+
+def test_maxwell_plate_integration(tmp_path):
+
+    plate = Plate(
+        PlateModel(
+            strike_length=100,
+            dip_length=300,
+            width=20,
+            easting=100.0,
+            northing=0.0,
+            elevation=0.0,
+            dip_direction=90,
+            dip=45,
+        )
+    )
+    with Workspace(tmp_path / "test.geoh5") as workspace:
+        maxwell_plate = plate.to_maxwell_plate(workspace)
+        assert maxwell_plate.geometry is not None
+        maxwell_plate.geometry.rotation = 10.0
+
+    with pytest.warns(UserWarning, match="Plunging plate"):
+        plate = Plate.from_maxwell_plate(maxwell_plate)
+
+    assert plate.params.strike_length == 100
+    assert plate.params.dip_length == 300
+    assert plate.params.width == 20
+    assert plate.params.easting == 100
+    assert plate.params.northing == 0
+    assert plate.params.elevation == 0
+    assert plate.params.direction == 90
+    assert plate.params.dip == 45

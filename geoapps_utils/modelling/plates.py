@@ -8,9 +8,12 @@
 #                                                                                   '
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
+import warnings
+
 import numpy as np
 from geoh5py import Workspace
 from geoh5py.objects import Octree, Surface
+from geoh5py.objects.maxwell_plate import MaxwellPlate, PlateGeometry, PlatePosition
 from geoh5py.shared.utils import fetch_active_workspace
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -47,6 +50,40 @@ class PlateModel(BaseModel):
     direction: float = Field(default=0.0, alias="dip_direction")
     dip: float = 0.0
 
+    @classmethod
+    def from_maxwell_plate_geometry(cls, geometry: PlateGeometry):
+
+        if geometry.rotation != 0.0:
+            warnings.warn(
+                "Plunging plate models are not yet implemented. "
+                "Ignoring the maxwell plate geometry rotation."
+            )
+
+        return PlateModel(
+            strike_length=geometry.width,
+            dip_length=geometry.length,
+            width=geometry.thickness,
+            easting=geometry.position.x,
+            northing=geometry.position.y,
+            elevation=geometry.position.z,
+            direction=geometry.dip_direction,
+            dip=geometry.dip,
+        )
+
+    def to_maxwell_plate_geometry(self) -> PlateGeometry:
+        return PlateGeometry(
+            position=PlatePosition(
+                x=self.easting,
+                y=self.northing,
+                z=self.elevation,
+            ),
+            dip=self.dip,
+            dip_direction=self.direction,
+            length=self.dip_length,
+            width=self.strike_length,
+            thickness=self.width,
+        )
+
     @property
     def origin(self) -> tuple[float, float, float]:
         return (self.easting, self.northing, self.elevation)
@@ -61,6 +98,21 @@ class Plate:
 
     def __init__(self, params: PlateModel):
         self.params = params
+
+    @classmethod
+    def from_maxwell_plate(cls, plate: MaxwellPlate):
+        if plate.geometry is None:
+            raise ValueError("Maxwell plate must have its geometry set.")
+        return Plate(PlateModel.from_maxwell_plate_geometry(plate.geometry))
+
+    def to_maxwell_plate(
+        self, workspace: Workspace, name: str | None = None
+    ) -> MaxwellPlate:
+        with fetch_active_workspace(workspace) as ws:
+            plate = MaxwellPlate.create(
+                ws, name=name, geometry=self.params.to_maxwell_plate_geometry()
+            )
+        return plate
 
     def mask(self, mesh: Octree) -> np.ndarray:
         rotations = [
