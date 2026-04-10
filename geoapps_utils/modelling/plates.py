@@ -52,6 +52,7 @@ class PlateModel(BaseModel):
 
     @classmethod
     def from_maxwell_plate_geometry(cls, geometry: PlateGeometry):
+        """Construct a PlateModel from geoh5py MaxwellPlate geometry."""
 
         if geometry.rotation != 0.0:
             warnings.warn(
@@ -71,6 +72,7 @@ class PlateModel(BaseModel):
         )
 
     def to_maxwell_plate_geometry(self) -> PlateGeometry:
+        """Convert the PlateModel to geoh5py PlateGeometry object."""
         return PlateGeometry(
             position=PlatePosition(
                 x=self.easting,
@@ -101,6 +103,7 @@ class Plate:
 
     @classmethod
     def from_maxwell_plate(cls, plate: MaxwellPlate):
+        """Construct a Plate from geoh5py MaxwellPlate object."""
         if plate.geometry is None:
             raise ValueError("Maxwell plate must have its geometry set.")
         return Plate(PlateModel.from_maxwell_plate_geometry(plate.geometry))
@@ -108,6 +111,12 @@ class Plate:
     def to_maxwell_plate(
         self, workspace: Workspace, name: str | None = None
     ) -> MaxwellPlate:
+        """
+        Save the Plate as a MaxwellPlate entity in the provided workspace.
+
+        :param workspace: Workspace to save the MaxwellPlate in.
+        :param name: Name of the MaxwellPlate entity.
+        """
         with fetch_active_workspace(workspace) as ws:
             plate = MaxwellPlate.create(
                 ws, name=name, geometry=self.params.to_maxwell_plate_geometry()
