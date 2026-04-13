@@ -64,8 +64,8 @@ class PlateModel(BaseModel):
             )
 
         return cls(
-            strike_length=geometry.width,
-            dip_length=geometry.length,
+            strike_length=geometry.length,
+            dip_length=geometry.width,
             width=geometry.thickness,
             easting=geometry.position.x,
             northing=geometry.position.y,
@@ -84,8 +84,8 @@ class PlateModel(BaseModel):
             ),
             dip=self.dip,
             dip_direction=self.direction,
-            length=self.dip_length,
-            width=self.strike_length,
+            length=self.strike_length,
+            width=self.dip_length,
             thickness=self.width,
         )
 
