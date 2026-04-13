@@ -106,7 +106,11 @@ class Plate:
 
     @classmethod
     def from_maxwell_plate(cls, plate: MaxwellPlate) -> Self:
-        """Construct a Plate from geoh5py MaxwellPlate object."""
+        """
+        Construct a Plate from geoh5py MaxwellPlate object.
+
+        :param plate: Maxwell plate object to construct the Plate from.
+        """
         if plate.geometry is None:
             raise ValueError("Maxwell plate must have its geometry set.")
         return cls(PlateModel.from_maxwell_plate_geometry(plate.geometry))
