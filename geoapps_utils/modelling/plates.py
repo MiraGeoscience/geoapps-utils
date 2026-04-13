@@ -8,13 +8,12 @@
 #                                                                                   '
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
-import warnings
 
 import numpy as np
 from geoh5py import Workspace
 from geoh5py.objects import Octree, Surface
 from geoh5py.shared.utils import fetch_active_workspace
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 from geoapps_utils.utils.transformations import (
     rotate_points,
@@ -55,18 +54,6 @@ class PlateModel(BaseModel):
     elevation: float = 0.0
     direction: float = Field(default=0.0, alias="dip_direction")
     dip: float = 0.0
-
-    @model_validator(mode="after")
-    def check_origin_set(self):
-        """Default origin should be transparent to user if not explicitly provided."""
-        if not all(
-            k in self.model_fields_set for k in ["easting", "northing", "elevation"]
-        ):
-            warnings.warn(
-                "Not all origin parameters ('easting', 'northing', 'elevation') were set. "
-                "Missing parameters default to 0 and may lead to unexpected results."
-            )
-        return self
 
     @property
     def origin(self) -> tuple[float, float, float]:
