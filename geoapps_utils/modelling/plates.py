@@ -112,17 +112,17 @@ class Plate:
         return cls(PlateModel.from_maxwell_plate_geometry(plate.geometry))
 
     def to_maxwell_plate(
-        self, workspace: Workspace, name: str | None = None
+        self, workspace: Workspace, **plate_kwargs
     ) -> MaxwellPlate:
         """
         Save the Plate as a MaxwellPlate entity in the provided workspace.
 
         :param workspace: Workspace to save the MaxwellPlate in.
-        :param name: Name of the MaxwellPlate entity.
+        :param plate_kwargs: Arguments passed on to the MaxwellPlate instantiation.
         """
         with fetch_active_workspace(workspace) as ws:
             plate = MaxwellPlate.create(
-                ws, name=name, geometry=self.params.to_maxwell_plate_geometry()
+                ws, geometry=self.params.to_maxwell_plate_geometry(), **plate_kwargs
             )
         return plate
 
