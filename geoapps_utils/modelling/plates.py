@@ -9,6 +9,7 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 import warnings
+from typing import Self
 
 import numpy as np
 from geoh5py import Workspace
@@ -51,7 +52,7 @@ class PlateModel(BaseModel):
     dip: float = 0.0
 
     @classmethod
-    def from_maxwell_plate_geometry(cls, geometry: PlateGeometry):
+    def from_maxwell_plate_geometry(cls, geometry: PlateGeometry) -> Self:
         """Construct a PlateModel from geoh5py MaxwellPlate geometry."""
 
         if geometry.rotation != 0.0:
@@ -60,7 +61,7 @@ class PlateModel(BaseModel):
                 "Ignoring the maxwell plate geometry rotation."
             )
 
-        return PlateModel(
+        return cls(
             strike_length=geometry.width,
             dip_length=geometry.length,
             width=geometry.thickness,
@@ -102,11 +103,11 @@ class Plate:
         self.params = params
 
     @classmethod
-    def from_maxwell_plate(cls, plate: MaxwellPlate):
+    def from_maxwell_plate(cls, plate: MaxwellPlate) -> Self:
         """Construct a Plate from geoh5py MaxwellPlate object."""
         if plate.geometry is None:
             raise ValueError("Maxwell plate must have its geometry set.")
-        return Plate(PlateModel.from_maxwell_plate_geometry(plate.geometry))
+        return cls(PlateModel.from_maxwell_plate_geometry(plate.geometry))
 
     def to_maxwell_plate(
         self, workspace: Workspace, name: str | None = None
