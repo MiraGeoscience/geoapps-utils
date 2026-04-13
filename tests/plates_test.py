@@ -223,13 +223,6 @@ def test_maxwell_plate_integration(tmp_path):
         maxwell_plate.geometry.rotation = 10.0
 
     with pytest.warns(UserWarning, match="Plunging plate"):
-        plate = Plate.from_maxwell_plate(maxwell_plate)
+        new_plate = Plate.from_maxwell_plate(maxwell_plate)
 
-    assert plate.params.strike_length == 100
-    assert plate.params.dip_length == 300
-    assert plate.params.width == 20
-    assert plate.params.easting == 100
-    assert plate.params.northing == 0
-    assert plate.params.elevation == 0
-    assert plate.params.direction == 90
-    assert plate.params.dip == 45
+    assert new_plate.params == plate.params
