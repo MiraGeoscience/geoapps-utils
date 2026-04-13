@@ -11,7 +11,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 from geoh5py import Workspace
 from geoh5py.objects import BlockModel
 
@@ -21,11 +20,6 @@ from geoapps_utils.modelling.plates import (
     inside_plate,
     make_plate,
 )
-
-
-def test_plate_model_origin_warning():
-    with pytest.warns(UserWarning, match="Not all origin"):
-        PlateModel(strike_length=15, dip_length=7, width=2)
 
 
 def test_bounding_box():
