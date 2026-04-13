@@ -8,6 +8,7 @@
 #                                                                                   '
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
+
 import numpy as np
 from geoh5py import Workspace
 from geoh5py.objects import Octree, Surface
@@ -26,12 +27,19 @@ class PlateModel(BaseModel):
     """
     Parameters describing the position and orientation of a dipping plate.
 
+    Dip rotations are applied about the plate's origin (easting, northing,
+    and elevation) so that the origin of a dipping plate marks the center
+    of the plate's top (up-dip) face.  Without dip rotations, the plate is
+    horizontal striking east-west with the origin at the center of the
+    southern face.
+
+
     :param strike_length: Length of the plate in the strike direction.
     :param dip_length: Length of the plate in the dip direction.
     :param width: Width of the plate.
-    :param easting: Easting of the plate center.
-    :param northing: Northing of the plate center.
-    :param elevation: Elevation of the plate center.
+    :param easting: Easting of the center of the plate's top face.
+    :param northing: Northing of the center of the plate's top face.
+    :param elevation: Elevation of the center of the plate's top face.
     :param direction: Dip direction of the plate in degrees from North.
     :param dip: Dip angle of the plate in degrees below the horizontal.
     """
@@ -41,9 +49,9 @@ class PlateModel(BaseModel):
     strike_length: float
     dip_length: float
     width: float
-    easting: float
-    northing: float
-    elevation: float
+    easting: float = 0.0
+    northing: float = 0.0
+    elevation: float = 0.0
     direction: float = Field(default=0.0, alias="dip_direction")
     dip: float = 0.0
 
@@ -63,6 +71,15 @@ class Plate:
         self.params = params
 
     def mask(self, mesh: Octree) -> np.ndarray:
+        """
+        Return a mask for generating models with a plate anomaly.
+
+        :param mesh: Octree mesh object defining cell centers on which
+            the mask will be defined.
+
+        :return Boolean mask that can be applied to models on the cell
+            centers of the input mesh
+        """
         rotations = [
             z_rotation_matrix(np.deg2rad(self.params.direction)),
             x_rotation_matrix(np.deg2rad(self.params.dip)),
@@ -114,12 +131,12 @@ class Plate:
     def vertices(self) -> np.ndarray:
         """Vertices for triangulation of a rectangular prism in 3D space."""
 
-        u_1 = self.params.origin[0] - (self.params.strike_length / 2.0)
-        u_2 = self.params.origin[0] + (self.params.strike_length / 2.0)
-        v_1 = self.params.origin[1] - (self.params.dip_length / 2.0)
-        v_2 = self.params.origin[1] + (self.params.dip_length / 2.0)
-        w_1 = self.params.origin[2] - (self.params.width / 2.0)
-        w_2 = self.params.origin[2] + (self.params.width / 2.0)
+        u_1, u_2, v_1, v_2, w_1, w_2 = bounding_box(
+            origin=list(self.params.origin),
+            strike_length=self.params.strike_length,
+            dip_length=self.params.dip_length,
+            width=self.params.width,
+        )
 
         vertices = np.array(
             [
@@ -145,24 +162,53 @@ class Plate:
         return rotated_vertices
 
 
+def bounding_box(
+    origin: list[float], strike_length: float, dip_length: float, width: float
+) -> list[float]:
+    """
+    Calculate unrotated bounding box from plate geometry.
+
+    :param origin: Southern face of an east-west striking horizontal plate.
+    :param strike_length: Length of the plate in the strike (x) dimension.
+    :param dip_length: Length of the plate in the (0) dip (y) dimension.
+    :param width: Width of the plate (z dimension).
+    """
+    xmin = origin[0] - strike_length / 2
+    xmax = origin[0] + strike_length / 2
+    ymin = origin[1]
+    ymax = origin[1] + dip_length
+    zmin = origin[2] - width / 2
+    zmax = origin[2] + width / 2
+
+    return [xmin, xmax, ymin, ymax, zmin, zmax]
+
+
 def inside_plate(
     points: np.ndarray,
     plate: PlateModel,
 ) -> np.ndarray:
     """
-    Create a plate model at a set of points from background, anomaly and size.
+    Create a mask to identify input points located inside the parameterized plate.
+
+    The plate is treated as orthogonal to the coordinate axes, and any rotation
+    parameters in the PlateModel are ignored. For rotated plates, create or wrap a
+    Plate from the plate parameters and use Plate.mask instead.
+
+    The plate is treated as orthogonal to the coordinate axes, and any rotation
+    parameters in the PlateModel are ignored.  For masking rotated plates, consider
+    constructing a Plate object to use it's mask method.
 
     :param points: Array of shape (n, 3) representing the x, y, z coordinates of the
         model space (often the cell centers of a mesh).
     :param plate: Dipping plate parameters.
     """
 
-    xmin = plate.origin[0] - plate.strike_length / 2
-    xmax = plate.origin[0] + plate.strike_length / 2
-    ymin = plate.origin[1] - plate.dip_length / 2
-    ymax = plate.origin[1] + plate.dip_length / 2
-    zmin = plate.origin[2] - plate.width / 2
-    zmax = plate.origin[2] + plate.width / 2
+    xmin, xmax, ymin, ymax, zmin, zmax = bounding_box(
+        origin=list(plate.origin),
+        strike_length=plate.strike_length,
+        dip_length=plate.dip_length,
+        width=plate.width,
+    )
 
     mask = (
         (points[:, 0] >= xmin)
@@ -183,7 +229,7 @@ def make_plate(
     anomaly: float = 1.0,
 ):
     """
-    Create a plate model at a set of points from background, anomaly, size and attitude.
+    Create a plate model at a set of points from background, anomaly, size and geometry.
 
     :param points: Array of shape (n, 3) representing the x, y, z coordinates of the
         model space (often the cell centers of a mesh).
