@@ -111,9 +111,7 @@ class Plate:
             raise ValueError("Maxwell plate must have its geometry set.")
         return cls(PlateModel.from_maxwell_plate_geometry(plate.geometry))
 
-    def to_maxwell_plate(
-        self, workspace: Workspace, **plate_kwargs
-    ) -> MaxwellPlate:
+    def to_maxwell_plate(self, workspace: Workspace, **plate_kwargs) -> MaxwellPlate:
         """
         Save the Plate as a MaxwellPlate entity in the provided workspace.
 
