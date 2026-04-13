@@ -58,6 +58,7 @@ class PlateModel(BaseModel):
 
     @model_validator(mode="after")
     def check_origin_set(self):
+        """Default origin should be transparent to user if not explicitly provided."""
         if not all(
             k in self.model_fields_set for k in ["easting", "northing", "elevation"]
         ):
