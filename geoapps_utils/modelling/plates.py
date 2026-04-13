@@ -58,7 +58,9 @@ class PlateModel(BaseModel):
         if geometry.rotation != 0.0:
             warnings.warn(
                 "Plunging plate models are not yet implemented. "
-                "Ignoring the maxwell plate geometry rotation."
+                "Ignoring the maxwell plate geometry rotation.",
+                category=UserWarning,
+                stacklevel=2,
             )
 
         return cls(
