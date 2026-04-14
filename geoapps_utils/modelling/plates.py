@@ -8,10 +8,13 @@
 #                                                                                   '
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
+import warnings
+from typing import Self
 
 import numpy as np
 from geoh5py import Workspace
 from geoh5py.objects import Octree, Surface
+from geoh5py.objects.maxwell_plate import MaxwellPlate, PlateGeometry, PlatePosition
 from geoh5py.shared.utils import fetch_active_workspace
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -55,6 +58,44 @@ class PlateModel(BaseModel):
     direction: float = Field(default=0.0, alias="dip_direction")
     dip: float = 0.0
 
+    @classmethod
+    def from_maxwell_plate_geometry(cls, geometry: PlateGeometry) -> Self:
+        """Construct a PlateModel from geoh5py MaxwellPlate geometry."""
+
+        if geometry.rotation != 0.0:
+            warnings.warn(
+                "Plunging plate models are not yet implemented. "
+                "Ignoring the maxwell plate geometry rotation.",
+                category=UserWarning,
+                stacklevel=2,
+            )
+
+        return cls(
+            strike_length=geometry.length,
+            dip_length=geometry.width,
+            width=geometry.thickness,
+            easting=geometry.position.x,
+            northing=geometry.position.y,
+            elevation=geometry.position.z,
+            direction=geometry.dip_direction,
+            dip=geometry.dip,
+        )
+
+    def to_maxwell_plate_geometry(self) -> PlateGeometry:
+        """Convert the PlateModel to geoh5py PlateGeometry object."""
+        return PlateGeometry(
+            position=PlatePosition(
+                x=self.easting,
+                y=self.northing,
+                z=self.elevation,
+            ),
+            dip=self.dip,
+            dip_direction=self.direction,
+            length=self.strike_length,
+            width=self.dip_length,
+            thickness=self.width,
+        )
+
     @property
     def origin(self) -> tuple[float, float, float]:
         return (self.easting, self.northing, self.elevation)
@@ -69,6 +110,30 @@ class Plate:
 
     def __init__(self, params: PlateModel):
         self.params = params
+
+    @classmethod
+    def from_maxwell_plate(cls, plate: MaxwellPlate) -> Self:
+        """
+        Construct a Plate from geoh5py MaxwellPlate object.
+
+        :param plate: Maxwell plate object to construct the Plate from.
+        """
+        if plate.geometry is None:
+            raise ValueError("Maxwell plate must have its geometry set.")
+        return cls(PlateModel.from_maxwell_plate_geometry(plate.geometry))
+
+    def to_maxwell_plate(self, workspace: Workspace, **plate_kwargs) -> MaxwellPlate:
+        """
+        Save the Plate as a MaxwellPlate entity in the provided workspace.
+
+        :param workspace: Workspace to save the MaxwellPlate in.
+        :param plate_kwargs: Arguments passed on to the MaxwellPlate instantiation.
+        """
+        with fetch_active_workspace(workspace) as ws:
+            plate = MaxwellPlate.create(
+                ws, geometry=self.params.to_maxwell_plate_geometry(), **plate_kwargs
+            )
+        return plate
 
     def mask(self, mesh: Octree) -> np.ndarray:
         """
