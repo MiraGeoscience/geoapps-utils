@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import logging
+from contextlib import contextmanager
 
 
 def get_logger(
@@ -61,3 +62,18 @@ def get_logger(
     log.setLevel(level)
 
     return log
+
+
+@contextmanager
+def suppress_logging(level=logging.WARNING):
+    """
+    Temporarily disable logging records at or below the given level.
+
+    :param level: Logging level to suppress (default: logging.WARNING).
+    """
+    previous_disable_level = logging.root.manager.disable
+    logging.disable(level)
+    try:
+        yield
+    finally:
+        logging.disable(previous_disable_level)
