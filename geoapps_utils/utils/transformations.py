@@ -95,18 +95,12 @@ def cartesian_to_polar(
     if not isinstance(origin, Sequence | np.ndarray) or len(origin) != 3:
         raise ValueError("Origin must be an iterable of length 3.")
 
-    local_xyz = locations - locations[0, :]
-    distances = np.linalg.norm(local_xyz[:, :2], axis=1) - np.linalg.norm(
-        locations[0, :2] - origin[:2]
-    )
-    azimuths = 90 - np.rad2deg(np.arctan2(local_xyz[:, 1], local_xyz[:, 0]))
-    azimuths[distances < 0] += 180
+    local_xyz = locations - np.asarray(origin)
+    distances = np.linalg.norm(local_xyz[:, :2], axis=1)
 
-    # Deal with points close to the origin with nearest neighbor azimuth
-    if np.any(distances < 1e-8):
-        indices = np.where(distances >= 1e-8)[0]
-        nearest = indices[np.argsort(distances[indices])]
-        azimuths[distances < 1e-8] = azimuths[nearest[0]]
+    # Compute azimuth from the delta between points and the origin
+    azimuths = 90 - np.rad2deg(np.arctan2(local_xyz[:, 1], local_xyz[:, 0]))
+    azimuths = azimuths % 360
 
     return np.c_[distances, azimuths, locations[:, 2]]
 
