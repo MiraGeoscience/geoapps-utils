@@ -97,12 +97,15 @@ def cartesian_to_polar(
 
     local_xyz = locations - np.asarray(origin)
     distances = np.linalg.norm(local_xyz[:, :2], axis=1)
-    azimuths = 90 - np.rad2deg(np.arctan2(local_xyz[:, 0], local_xyz[:, 1]))
 
-    # Deal with points close to the origin with nearest neighbor azimuth
+    # Compute azimuth from the delta between points and the origin
+    azimuths = 90 - np.rad2deg(np.arctan2(local_xyz[:, 1], local_xyz[:, 0]))
+    azimuths = azimuths % 360
+
+    # Deal with locations at the origin (0 distance)
     if np.any(distances < 1e-8):
-        indices = np.where(distances >= 1e-8)[0]
-        nearest = indices[np.argsort(distances[indices])]
+        neighbours = np.where(distances >= 1e-8)[0]
+        nearest = neighbours[np.argsort(distances[neighbours])]
         azimuths[distances < 1e-8] = azimuths[nearest[0]]
 
     return np.c_[distances, azimuths, locations[:, 2]]

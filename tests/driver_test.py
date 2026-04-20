@@ -28,6 +28,7 @@ from geoapps_utils.driver.data import BaseData
 from geoapps_utils.driver.driver import BaseDriver, Driver
 from geoapps_utils.driver.params import BaseParams
 from geoapps_utils.run import fetch_driver_class
+from geoapps_utils.utils.logger import suppress_logging
 
 from .dummy_driver_test import (
     TestOptions,
@@ -219,3 +220,20 @@ def test_logger(caplog):
     assert "my-app" in caplog.text
     assert caplog.records[0].levelname == "INFO"
     assert caplog.records[0].name == "my-app"
+
+
+def test_suppress_logging(caplog):
+    """
+    Test that the logger suppression occurs, then restored after the context is closed.
+    """
+    logger = get_logger("my-app")
+    with caplog.at_level("INFO"):
+        with suppress_logging(level=logging.INFO):
+            logger.info("Test log message")
+
+    assert "Test log message" not in caplog.text
+
+    # Check if logging is reinstated after the context
+    with caplog.at_level("INFO"):
+        logger.info("Test log message")
+    assert "Test log message" in caplog.text
