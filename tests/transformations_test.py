@@ -208,7 +208,7 @@ def test_cartesian_to_polar():
     polar = cartesian_to_polar(locations)
     np.testing.assert_almost_equal(polar[0, 0], 0.0)  # First point at zero distance
     np.testing.assert_allclose(
-        polar[:, 1], np.rad2deg(azm)
+        polar[:, 1], 90 - np.rad2deg(azm)
     )  # All other distances positive
 
     with pytest.raises(ValueError, match=r"Origin must be an iterable of length 3\."):
@@ -225,5 +225,5 @@ def test_cartesian_to_polar():
     # End reference
     polar = cartesian_to_polar(locations, origin=locations[-1, :])
     np.testing.assert_allclose(
-        polar[:, 1], np.rad2deg(azm) + 180
+        polar[:, 1], 90 - np.rad2deg(azm) + 180
     )  # All other distances positive
