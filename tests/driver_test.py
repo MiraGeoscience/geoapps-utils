@@ -224,7 +224,7 @@ def test_logger(caplog):
 
 def test_suppress_logging(caplog):
     """
-    Test that the logger is set up correctly.
+    Test that the logger suppression occurs, then restored after the context is closed.
     """
     logger = get_logger("my-app")
     with caplog.at_level("INFO"):
