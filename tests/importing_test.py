@@ -93,3 +93,4 @@ def test_warn_module_not_found():
             from nonexisting.nope import nada as test_import_from_nonexisting_submodule
     with pytest.raises(NameError):
         noop(test_import_from_nonexisting_submodule)
+
