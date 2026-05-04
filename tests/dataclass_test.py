@@ -364,6 +364,7 @@ class DummyOptions(Options):
 
 def test_options_build_model_validation_error_metadata(tmp_path):
     from geoh5py.workspace import Workspace
+
     ws = Workspace.create(tmp_path / "test.geoh5")
     data = {"test_value": 99, "another_value": 1, "geoh5": ws}
     with pytest.raises(GeoAppsError) as exc_info:

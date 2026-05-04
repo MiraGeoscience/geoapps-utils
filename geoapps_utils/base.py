@@ -360,7 +360,6 @@ class Options(BaseModel):
             {key: value for key, value in attributes.items() if value is not None}
         )
 
-
         return ifile
 
     def write_ui_json(self, path: Path) -> str:

@@ -238,14 +238,14 @@ def test_suppress_logging(caplog):
         logger.info("Test log message")
     assert "Test log message" in caplog.text
 
+
 def test_something():
-    from pydantic import BaseModel, model_validator, ValidationError
+    from pydantic import BaseModel, ValidationError, model_validator
 
     class MyError(ValueError):
         def __init__(self, msg, parameter):
             self.parameter = parameter
             super().__init__(msg)
-
 
     class MyModel(BaseModel):
         a: int
@@ -256,5 +256,5 @@ def test_something():
 
     try:
         mod = MyModel(a=1)
-    except ValidationError as errors:
+    except ValidationError:
         pass
