@@ -21,11 +21,11 @@ from geoh5py.groups import DrillholeGroup
 from geoh5py.objects import Drillhole
 from geoh5py.ui_json import InputFile
 from geoh5py.workspace import Workspace
-from pydantic import BaseModel, ValidationError, field_validator, model_validator
+from pydantic import BaseModel, ValidationError, model_validator
 
 from geoapps_utils import GeoAppsError, assets_path
 from geoapps_utils.base import Options
-from geoapps_utils.utils.importing import DrillholeGroupValue, ModelValidationError
+from geoapps_utils.utils.importing import DrillholeGroupValue
 
 
 def get_params_dict(tmp_path):
@@ -355,20 +355,17 @@ class DummyOptions(Options):
     @model_validator(mode="after")
     def validate_test_value(self):
         if self.test_value != 42:
-            raise ModelValidationError(
+            raise ValueError(
                 "test_value must be 42",
-                metadata={"value": self.test_value},
             )
         return self
 
 
 def test_options_build_model_validation_error_metadata(tmp_path):
-    from geoh5py.workspace import Workspace
 
     ws = Workspace.create(tmp_path / "test.geoh5")
     data = {"test_value": 99, "another_value": 1, "geoh5": ws}
     with pytest.raises(GeoAppsError) as exc_info:
         DummyOptions.build(data)
     msg = str(exc_info.value)
-    assert "for value -> 99" in msg
-    assert "another_value" not in msg
+    assert "for value ->" not in msg

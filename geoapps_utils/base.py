@@ -27,7 +27,7 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 
 from geoapps_utils.driver.params import BaseParams
 from geoapps_utils.utils.formatters import recursive_flatten
-from geoapps_utils.utils.importing import GeoAppsError, ModelValidationError
+from geoapps_utils.utils.importing import GeoAppsError
 from geoapps_utils.utils.logger import get_logger
 
 
@@ -284,14 +284,11 @@ class Options(BaseModel):
         except ValidationError as errors:
             error_strings = []
             for error in errors.errors():
-                error_type = error["ctx"]["error"]
-                value = (
-                    (error_type.metadata.get("value", None) or error["input"])
-                    if isinstance(error_type, ModelValidationError)
-                    else error["input"]
-                )
                 location = ".".join(str(loc) for loc in error["loc"])
-                error_strings.append(f"{location}: {error['msg']} for value -> {value}")
+                error_string = f"{location}: {error['msg']}"
+                if not isinstance(error["input"], dict):
+                    error_string += f" for value -> {error['input']}"
+                error_strings.append(error_string)
             summary = "\n - ".join(error_strings)
             raise GeoAppsError(
                 f"Invalid input data for {cls.__name__}:\n - {summary}"

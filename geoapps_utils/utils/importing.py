@@ -84,11 +84,3 @@ class GeoAppsError(Exception):
     """
     Base class for exceptions in this module.
     """
-
-
-class ModelValidationError(ValueError):
-    """Provides a type that pydantic will catch with model validation metadata."""
-
-    def __init__(self, msg: str, metadata: dict[str, Any]):
-        self.metadata = metadata
-        super().__init__(msg)
