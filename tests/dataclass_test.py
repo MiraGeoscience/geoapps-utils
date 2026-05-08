@@ -21,7 +21,7 @@ from geoh5py.groups import DrillholeGroup
 from geoh5py.objects import Drillhole
 from geoh5py.ui_json import InputFile
 from geoh5py.workspace import Workspace
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, model_validator
 
 from geoapps_utils import GeoAppsError, assets_path
 from geoapps_utils.base import Options
@@ -346,3 +346,26 @@ def test_pydantic_error(tmp_path):
     with pytest.raises(GeoAppsError, match=expected_message):
         with ifile.geoh5.open(mode="r"):
             _ = TestData.build(ifile)
+
+
+class DummyOptions(Options):
+    test_value: int
+    another_value: int
+
+    @model_validator(mode="after")
+    def validate_test_value(self):
+        if self.test_value != 42:
+            raise ValueError(
+                "test_value must be 42",
+            )
+        return self
+
+
+def test_options_build_model_validation_error_metadata(tmp_path):
+
+    ws = Workspace.create(tmp_path / "test.geoh5")
+    data = {"test_value": 99, "another_value": 1, "geoh5": ws}
+    with pytest.raises(GeoAppsError) as exc_info:
+        DummyOptions.build(data)
+    msg = str(exc_info.value)
+    assert "for value ->" not in msg

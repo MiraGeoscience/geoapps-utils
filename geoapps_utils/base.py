@@ -282,12 +282,14 @@ class Options(BaseModel):
         try:
             out = cls(**options)
         except ValidationError as errors:
-            summary = "\n - ".join(
-                f"{'.'.join(str(loc) for loc in error['loc'])}: "
-                f"{error['msg']} for value -> {error['input']}"
-                for error in errors.errors()
-            )
-
+            error_strings = []
+            for error in errors.errors():
+                location = ".".join(str(loc) for loc in error["loc"])
+                error_string = f"{location}: {error['msg']}"
+                if not isinstance(error["input"], dict):
+                    error_string += f" for value -> {error['input']}"
+                error_strings.append(error_string)
+            summary = "\n - ".join(error_strings)
             raise GeoAppsError(
                 f"Invalid input data for {cls.__name__}:\n - {summary}"
             ) from errors
