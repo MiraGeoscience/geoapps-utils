@@ -69,8 +69,8 @@ scipy = "~1.17.0"
 
 ## pip dependencies from Git repositories
 #----------------------------------------
-#geoh5py = {version = ">=0.13.0a, 0.13.*", source = "pypi", allow-prereleases = true}
-geoh5py = {git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "release/GA_4.8"}
+# geoh5py = {version = ">=0.14.0a, 0.14.*", source = "pypi", allow-prereleases = true}
+geoh5py = {git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "develop"}
 
 
 ## about pip dependencies
