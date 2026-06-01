@@ -1,6 +1,6 @@
 
 default_language_version:
-    python: python3
+    python: python3.12
 exclude: ^docs/(conf.py|_ext/)
 default_stages: [pre-commit,pre-push]
 fail_fast: false
@@ -28,7 +28,7 @@ repos:
         args:
         -   --fix
         -   --exit-non-zero-on-fix
-#        -   --unsafe-fixes
+        # -   --unsafe-fixes
     -   id: ruff-format
 -   repo: https://github.com/pre-commit/mirrors-mypy
     rev: v2.1.0
