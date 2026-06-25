@@ -299,8 +299,6 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
             ui_groups.sort()
             for group in ui_groups:
                 if self._free_parameter_identifier in group.lower():
-                    # TODO Create a geoh5py validation for
-                    #  "allof" -> ["object", "levels", "type", "distance"]
                     free_parameter_dict[group] = {}
                     forms = utils.collect(self.ui_json, "group", group)
                     for label, key in zip(
@@ -440,7 +438,7 @@ class BaseParams:  # pylint: disable=too-many-instance-attributes, too-many-publ
 
         if ifile is not None:
             self.validator = ifile.validators
-            self.validations = ifile.validations
+            self.validations = ifile.validations  # type: ignore
 
         self._input_file = ifile
 
