@@ -36,8 +36,6 @@ logger = get_logger(name=__name__, level_name=False, propagate=False, add_name=F
 
 class Driver(ABC):
     """
-    # todo: Get rid of BaseParams to have a more robust DriverClass
-
     Base driver class.
 
     :param params: Application parameters.
