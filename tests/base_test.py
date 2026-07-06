@@ -66,7 +66,6 @@ def test_base_options(tmp_path):
     driver = TestOptionsDriver(options)
 
     assert TestOptionsDriver.get_default_ui_json_path().exists()  # type: ignore
-
     assert isinstance(driver.params, TestOptions)
     assert driver.params_class == TestOptions
     assert isinstance(driver.workspace, Workspace)
@@ -84,6 +83,18 @@ def test_base_options(tmp_path):
 
     json_dict = json.loads(file_data.file_bytes.decode())
     assert json_dict.get("client", None) == str(pts.uid)
+
+
+# def test_driver_add_ui_json(tmp_path):
+#     workspace = Workspace.create(tmp_path / f"{__name__}.geoh5")
+#     # Create params
+#     pts = Points.create(workspace, vertices=np.random.randn(10, 3))
+#     options = TestOptions.build({"geoh5": workspace, "client": pts})
+#     file_name = options.to_file_data(pts)
+#
+#     # Read the bytes back
+#     file = file_name.file_bytes.decode()
+#     assert file
 
 
 def test_old_base_driver(caplog):
