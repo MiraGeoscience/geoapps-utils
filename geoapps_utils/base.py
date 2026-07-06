@@ -403,7 +403,7 @@ class Options(BaseModel):
 
         return UIJson.read(cls.default_ui_json)
 
-    def write(self, path: Path) -> UIJson:
+    def write(self, path: Path | None = None) -> UIJson:
         """
         Write UI JSON file.
         """
