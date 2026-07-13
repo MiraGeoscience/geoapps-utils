@@ -58,7 +58,7 @@ class Driver(ABC):
     """
 
     _params_class: type[Options]
-    _out_group_class: type[UIJsonGroup]
+    _out_group_class: type[UIJsonGroup] = UIJsonGroup
 
     def __init__(self, params: Options):
         self._out_group: UIJsonGroup | None = None
@@ -196,19 +196,32 @@ class Driver(ABC):
             if geoh5 is None:
                 raise ValueError("Workspace cannot be None.")
 
-            options = self.params.ui_json.model_dump(
-                mode="json", exclude_unset=True, by_alias=True
-            )
+            options = self.params.serialize(mode="json")
             ui_json_group = self._out_group_class.create(
                 workspace=geoh5,
                 **kwargs,
             )
-            ui_json_group.entity_type.name = options.title
+            ui_json_group.entity_type.name = options["title"]
             options["out_group"]["value"] = ui_json_group.uid
             options["out_group"]["enabled"] = True
             ui_json_group.options = options
 
             return ui_json_group
+
+    def validate_out_group(self, out_group: UIJsonGroup | None) -> UIJsonGroup:
+        """
+        Validate or create a UIJsonGroup to store results.
+
+        :param out_group: Output group from selection.
+        """
+
+        if not isinstance(out_group, self._out_group_class | None):
+            raise TypeError("Output group must be a UIJsonGroup.")
+
+        if out_group is None:
+            out_group = self.to_out_group()
+
+        return out_group
 
 
 class Options(BaseModel):
@@ -280,7 +293,7 @@ class Options(BaseModel):
     @classmethod
     def build(
         cls,
-        data: InputFile | dict | UIJson,
+        data: InputFile | dict | UIJson | None = None,
         workspace: Workspace | None = None,
         **kwargs,
     ) -> Self:
@@ -297,6 +310,9 @@ class Options(BaseModel):
 
         if isinstance(data, UIJson):
             data = data.to_params(workspace)
+
+        if data is None:
+            data = {}
 
         if not isinstance(data, dict):
             raise TypeError("Input data must be a dictionary or UIJson.")
@@ -318,26 +334,6 @@ class Options(BaseModel):
 
         return out
 
-    @classmethod
-    def _recursive_flatten(
-        cls, data: dict[str, Any], ui_json: UIJson
-    ) -> dict[str, Any]:
-        """
-        Recursively flatten nested dictionary.
-
-        To be used on output of BaseModel.model_dump.
-
-        :param data: Dictionary of parameters and values.
-        """
-        values: dict[str, Any] = {}
-        for key, val in data.items():
-            if isinstance(val, dict) and getattr(ui_json, key, None) is None:
-                values.update(cls._recursive_flatten(val, ui_json))
-            else:
-                values[key] = val
-
-        return values
-
     def flatten(self) -> dict:
         """
         Flatten the parameters to a dictionary.
@@ -345,10 +341,22 @@ class Options(BaseModel):
         :return: Dictionary of parameters.
         """
         ui_json = self.get_default_ui_json()
-        out = self._recursive_flatten(self.model_dump(), ui_json)
-        out.pop("input_file", None)
+        out = self._recursive_flatten(self.model_dump(exclude_unset=True), ui_json)
 
         return out
+
+    @classmethod
+    def get_default_ui_json(cls) -> UIJson:
+        """
+        Load the driver's default ui.json template from disk
+        with no parameters filled in.
+
+        :return: The default ui.json configuration.
+        """
+        if cls.default_ui_json is None or not cls.default_ui_json.exists():
+            raise ValueError(f"Class '{cls}' does not have a default ui.json.")
+
+        return UIJson.read(cls.default_ui_json)
 
     @property
     def input_file(self) -> UIJson:
@@ -369,6 +377,16 @@ class Options(BaseModel):
         )
         return serialized
 
+    @property
+    def ui_json(self) -> UIJson:
+        """
+        The parent UIJson object.
+        """
+        ui_json = self.get_default_ui_json()
+        ui_json.set_values(**self.flatten())
+
+        return ui_json
+
     def update_out_group_options(self):
         """
         Serialize current state and save to the out_group options.
@@ -380,29 +398,6 @@ class Options(BaseModel):
             self.out_group.options = self.serialize(mode="json")
             self.out_group.metadata = None
 
-    @property
-    def ui_json(self) -> UIJson:
-        """
-        The parent UIJson object.
-        """
-        ui_json = self.get_default_ui_json()
-        ui_json.set_values(**self.flatten())
-
-        return ui_json
-
-    @classmethod
-    def get_default_ui_json(cls) -> UIJson:
-        """
-        Load the driver's default ui.json template from disk
-        with no parameters filled in.
-
-        :return: The default ui.json configuration.
-        """
-        if cls.default_ui_json is None or not cls.default_ui_json.exists():
-            raise ValueError(f"Class '{cls}' does not have a default ui.json.")
-
-        return UIJson.read(cls.default_ui_json)
-
     def write(self, path: Path | None = None) -> UIJson:
         """
         Write UI JSON file.
@@ -411,3 +406,23 @@ class Options(BaseModel):
         ui_json.write(path)
 
         return ui_json
+
+    @classmethod
+    def _recursive_flatten(
+        cls, data: dict[str, Any], ui_json: UIJson
+    ) -> dict[str, Any]:
+        """
+        Recursively flatten nested dictionary.
+
+        To be used on output of BaseModel.model_dump.
+
+        :param data: Dictionary of parameters and values.
+        """
+        values: dict[str, Any] = {}
+        for key, val in data.items():
+            if isinstance(val, dict) and getattr(ui_json, key, None) is None:
+                values.update(cls._recursive_flatten(val, ui_json))
+            else:
+                values[key] = val
+
+        return values
