@@ -85,18 +85,6 @@ def test_base_options(tmp_path):
     assert json_dict.get("client", None) == str(pts.uid)
 
 
-# def test_driver_add_ui_json(tmp_path):
-#     workspace = Workspace.create(tmp_path / f"{__name__}.geoh5")
-#     # Create params
-#     pts = Points.create(workspace, vertices=np.random.randn(10, 3))
-#     options = TestOptions.build({"geoh5": workspace, "client": pts})
-#     file_name = options.to_file_data(pts)
-#
-#     # Read the bytes back
-#     file = file_name.file_bytes.decode()
-#     assert file
-
-
 def test_old_base_driver(caplog):
     ws = Workspace()
     params = Options(geoh5=ws)
