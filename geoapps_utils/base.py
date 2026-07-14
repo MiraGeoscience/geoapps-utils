@@ -398,7 +398,7 @@ class Options(BaseModel):
             self.out_group.options = self.serialize(mode="json")
             self.out_group.metadata = None
 
-    def write(self, path: Path | None = None) -> UIJson:
+    def write_ui_json(self, path: Path | None = None) -> UIJson:
         """
         Write UI JSON file.
         """
