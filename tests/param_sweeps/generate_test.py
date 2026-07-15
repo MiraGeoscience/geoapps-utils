@@ -22,7 +22,7 @@ def test_generate(tmp_path: Path):
     workspace = Workspace(tmp_path / f"{__name__}.ui.geoh5")
 
     options = Options(geoh5=workspace)
-    ui_json = options.serialize()
+    ui_json = options.ui_json.serialize()
     ui_json.update(
         {
             "param1": {"label": "param1", "value": 1},

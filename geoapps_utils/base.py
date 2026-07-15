@@ -196,15 +196,9 @@ class Driver(ABC):
             if geoh5 is None:
                 raise ValueError("Workspace cannot be None.")
 
-            options = self.params.serialize(mode="json")
-            ui_json_group = self._out_group_class.create(
-                workspace=geoh5,
-                **kwargs,
+            ui_json_group = self.params.ui_json.to_ui_json_group(
+                workspace=geoh5, **kwargs
             )
-            ui_json_group.entity_type.name = options["title"]
-            options["out_group"]["value"] = ui_json_group.uid
-            options["out_group"]["enabled"] = True
-            ui_json_group.options = options
 
             return ui_json_group
 
@@ -247,6 +241,8 @@ class Options(BaseModel):
     geoh5: Workspace
     monitoring_directory: str | Path | None = None
     out_group: UIJsonGroup | None = None
+
+    _ui_json_class: ClassVar[type[UIJson]] = UIJson
 
     @staticmethod
     def collect_input_from_dict(
@@ -356,7 +352,7 @@ class Options(BaseModel):
         if cls.default_ui_json is None or not cls.default_ui_json.exists():
             raise ValueError(f"Class '{cls}' does not have a default ui.json.")
 
-        return UIJson.read(cls.default_ui_json)
+        return cls._ui_json_class.read(cls.default_ui_json)
 
     @property
     def input_file(self) -> UIJson:
@@ -369,13 +365,6 @@ class Options(BaseModel):
             stacklevel=2,
         )
         return self.ui_json
-
-    def serialize(self, mode="python"):
-        """Return a demoted uijson dictionary representation the params data."""
-        serialized = self.ui_json.model_dump(
-            exclude_unset=True, by_alias=True, mode=mode
-        )
-        return serialized
 
     @property
     def ui_json(self) -> UIJson:
@@ -395,7 +384,7 @@ class Options(BaseModel):
             raise ValueError("No output group defined to save options.")
 
         with fetch_active_workspace(self.geoh5, mode="r+"):
-            self.out_group.options = self.serialize(mode="json")
+            self.out_group.options = self.ui_json.serialize(mode="json")
             self.out_group.metadata = None
 
     def write_ui_json(self, path: Path | None = None) -> UIJson:

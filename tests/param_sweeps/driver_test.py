@@ -25,9 +25,6 @@ from geoapps_utils.param_sweeps.generate import generate
 class TestDriver(Driver):
     _params_class = Options
 
-    def __init__(self, params: Options):
-        super().__init__(params)
-
     def run(self):
         pass
 
@@ -36,7 +33,7 @@ def test_params(tmp_path: Path):
     file = tmp_path / f"{__name__}.ui.geoh5"
     workspace = Workspace.create(file)
     options = Options(geoh5=workspace)
-    test = options.serialize()
+    test = options.ui_json.serialize()
     test.update(
         {
             "param1_start": {"label": "param1 start", "value": 1},
@@ -77,7 +74,7 @@ def test_sweep(tmp_path: Path):  # pylint: disable=R0914
         pts = Points.create(workspace, name="data", vertices=locs)
         dat = pts.add_data({"initial": {"values": np.ones(4, dtype=np.int32)}})
         options = Options(geoh5=workspace)
-        ui_json = options.serialize()
+        ui_json = options.ui_json.serialize()
         ui_json.update(
             {
                 "run_command": "tests.param_sweeps.driver_test",

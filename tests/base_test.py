@@ -14,6 +14,7 @@ import json
 import logging
 from pathlib import Path
 from typing import ClassVar
+from uuid import UUID
 
 import numpy as np
 import pytest
@@ -71,18 +72,18 @@ def test_base_options(tmp_path):
     assert isinstance(driver.workspace, Workspace)
     assert driver.out_group is None
 
-    demoted = options.serialize(mode="json")
-    assert demoted["client"] == str(pts.uid)
+    demoted = options.ui_json.serialize(mode="json")
+    assert UUID(demoted["client"]) == pts.uid
 
     # Write the options as file attached
     driver.update_monitoring_directory(pts)
 
     assert len(pts.children) == 1
     file_data = pts.children[0]
-    assert file_data.name == "temp.ui.json"
+    assert file_data.name == "base.ui.json"
 
     json_dict = json.loads(file_data.file_bytes.decode())
-    assert json_dict.get("client", None) == str(pts.uid)
+    assert UUID(json_dict.get("client", None)) == pts.uid
 
 
 def test_old_base_driver(caplog):
