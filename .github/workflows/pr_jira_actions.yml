@@ -2,7 +2,7 @@ name: JIRA actions
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
 
 jobs:
   call-workflow-pr_jira_actions:

@@ -11,11 +11,10 @@
 from __future__ import annotations
 
 import inspect
-import json
 import logging
 import sys
 from importlib import import_module
-from json import load
+from io import BytesIO
 from pathlib import Path
 from shutil import copy
 
@@ -29,27 +28,6 @@ from geoapps_utils.base import Driver
 logger = logging.getLogger()
 
 
-def load_ui_json_as_dict(filepath: str | Path | dict) -> dict:
-    """
-    Load a ui.json file as a dictionary
-
-    :param filepath: Path to a ui.json file.
-
-    :return: Parsed JSON dictionary.
-    """
-
-    if isinstance(filepath, (str, Path)):
-        with open(filepath, encoding="utf-8") as jsonfile:
-            uijson = load(jsonfile)
-    else:
-        uijson = filepath
-
-    if not isinstance(uijson, dict):
-        raise ValueError(f"Invalid ui.json file: {filepath}.")
-
-    return uijson
-
-
 def fetch_driver_class_from_string(module_path: str) -> type[Driver]:
     """
     Fetch the driver class from a module path string.
@@ -58,19 +36,11 @@ def fetch_driver_class_from_string(module_path: str) -> type[Driver]:
 
     :return: Driver class.
     """
-    # TODO Remove after deprecation of geoapps_utils.driver
-    from geoapps_utils.driver.driver import (  # pylint: disable=import-outside-toplevel, cyclic-import
-        BaseDriver,
-    )
-
     module = import_module(module_path)
     cls = None
     for _, cls in inspect.getmembers(module):
         try:
-            if (
-                issubclass(cls, Driver | BaseDriver)
-                and cls.__module__ == module.__name__
-            ):
+            if issubclass(cls, Driver) and cls.__module__ == module.__name__:
                 break
         except TypeError:
             continue
@@ -85,23 +55,28 @@ def fetch_driver_class_from_string(module_path: str) -> type[Driver]:
     return cls
 
 
-def fetch_driver_class(json_dict: str | Path | dict) -> type[Driver]:
+def fetch_driver_class(json_ref: str | Path | dict | BytesIO | UIJson) -> type[Driver]:
     """
     Fetch the driver class from the ui.json 'run_command'.
 
-    :param json_dict: Path to a ui.json file with a 'run_command' key.
+    :param json_ref: Reference to a ui.json file, either as Path, dict, BytesIO or UIJson instance.
 
     :return: Driver class.
     """
-    uijson = load_ui_json_as_dict(json_dict)
+    if isinstance(json_ref, UIJson):
+        uijson = json_ref
+    elif isinstance(json_ref, dict):
+        uijson = UIJson.from_dict(json_ref)
+    else:
+        uijson = UIJson.read(json_ref)
 
-    if "run_command" not in uijson or not isinstance(uijson["run_command"], str):
+    if not isinstance(uijson.run_command, str):
         raise KeyError(
             "'run_command' in ui.json must be a string representing the module path."
-            f" Got {uijson.get('run_command', None)}."
+            f" Got {getattr(uijson, 'run_command', None)}."
         )
 
-    cls = fetch_driver_class_from_string(uijson["run_command"])
+    cls = fetch_driver_class_from_string(uijson.run_command)
 
     return cls
 
@@ -123,8 +98,8 @@ def run_uijson_group(
     if not out_group.options:
         raise ValueError("UIJsonGroup must have options set.")
 
-    driver_class = fetch_driver_class(out_group.options)
     uijson = UIJson.from_dict(out_group.options)
+    driver_class = fetch_driver_class(uijson)
     driver_instance = driver_class.start(uijson)
 
     return driver_instance
@@ -156,11 +131,11 @@ def get_new_workspace_path(
 
 
 def copy_uijson_relatives_only(
-    uijson_path: Path | str,
+    uijson_path: Path | str | BytesIO,
     destination: Path | str,
     new_workspace_name: str | None = None,
     monitoring_directory: Path | str | None = None,
-) -> Path:
+) -> Path | BytesIO:
     """
     Copy a ui.json file to a new location, optionally changing the geoh5 file name.
 
@@ -169,7 +144,6 @@ def copy_uijson_relatives_only(
     :param new_workspace_name: New geoh5 file name. If None, the original name is kept.
     :param monitoring_directory: New monitoring directory. If None, the original is kept.
     """
-    uijson_path = Path(uijson_path).resolve()
     destination = Path(destination).resolve()
 
     ifile = UIJson.read(uijson_path)
@@ -190,14 +164,16 @@ def copy_uijson_relatives_only(
             ifile.monitoring_directory = Path(monitoring_directory)
 
         uijson_path_name = ifile.write(
-            destination / (new_workspace_name or uijson_path.name)
+            destination / (new_workspace_name or ifile.geoh5.name)
+            if isinstance(uijson_path, Path | str)
+            else None
         )
 
     return uijson_path_name
 
 
 def copy_uijson_and_workspace(
-    uijson_path: Path | str,
+    uijson_path: Path | str | BytesIO,
     destination: Path | str,
     new_workspace_name: str | None = None,
     monitoring_directory: Path | str | None = None,
@@ -215,24 +191,26 @@ def copy_uijson_and_workspace(
 
     :return: Path to the new ui.json file.
     """
-    uijson_path = Path(uijson_path).resolve()
     destination = Path(destination).resolve()
-    uijson_dict = load_ui_json_as_dict(uijson_path)
+    uijson = UIJson.read(uijson_path)
 
-    orig_geoh5 = Path(str(uijson_dict.get("geoh5")))
+    if uijson.geoh5 is None:
+        raise ValueError(
+            "The ui.json file provided does not link to a valid geoh5 file."
+        )
+
     workspace_path = get_new_workspace_path(
-        orig_geoh5.name, destination, new_workspace_name
+        uijson.geoh5.name, destination, new_workspace_name
     )
-    copy(orig_geoh5, Path(str(workspace_path)))
+    copy(uijson.geoh5, Path(str(workspace_path)))
 
-    uijson_dict["geoh5"] = str(workspace_path)
+    uijson.geoh5 = workspace_path
     if monitoring_directory is not None:
-        uijson_dict["monitoring_directory"] = str(monitoring_directory)
+        uijson.monitoring_directory = Path(monitoring_directory)
 
-    output_uijson = destination / (new_workspace_name or uijson_path.name)
+    output_uijson = destination / (new_workspace_name or uijson.geoh5.name)
 
-    with open(output_uijson, "w", encoding="utf8") as out_file:
-        json.dump(uijson_dict, out_file, indent=4)
+    uijson.write(output_uijson)
 
     return output_uijson
 
@@ -292,7 +270,7 @@ def run_from_outgroup_name(
 
 
 def run_from_uijson(
-    uijson_path: str | Path,
+    uijson_path: str | Path | BytesIO,
     *,
     destination: Path | str | None = None,
     new_workspace_name: str | None = None,
@@ -328,8 +306,9 @@ def run_from_uijson(
                 monitoring_directory=monitoring_directory,
             )
 
-    driver_class = fetch_driver_class(uijson_path)
-    driver_instance = driver_class.start(uijson_path)
+    uijson = UIJson.read(uijson_path)
+    driver_class = fetch_driver_class(uijson)
+    driver_instance = driver_class.start(uijson)
 
     return driver_instance
 
