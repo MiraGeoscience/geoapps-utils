@@ -117,7 +117,9 @@ class Driver(ABC):
         ifile = UIJson.read(filepath) if isinstance(filepath, str | Path) else filepath
 
         if not isinstance(ifile, UIJson):
-            raise TypeError("Input file must be a string path or an InputFile object.")
+            raise TypeError(
+                "Input file must be a path (str/Path) or a UIJson instance."
+            )
 
         if ifile.geoh5 is None:
             raise GeoAppsError("The application needs a valid 'geoh5' file.")

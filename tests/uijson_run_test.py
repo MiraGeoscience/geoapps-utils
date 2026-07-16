@@ -25,7 +25,6 @@ from geoapps_utils.run import (
 )
 
 
-# pylint: disable=unused-argument
 def test_run_from_bytesio(tmp_path, uijson_path):
     monitoring_directory = tmp_path / "monitoring"
     monitoring_directory.mkdir(exist_ok=True)
@@ -106,7 +105,7 @@ def test_run_from_uijson_shutil(tmp_path, uijson_path):
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
 
 
-def test_run_from_out_group(tmp_path, uijson_path):
+def test_run_from_out_group(tmp_path, uijson_path):  # pylint: disable=unused-argument
 
     monitoring_directory = tmp_path / "monitoring"
     monitoring_directory.mkdir(exist_ok=True)
@@ -132,7 +131,7 @@ def test_run_from_out_group(tmp_path, uijson_path):
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
 
 
-def test_run_from_out_group_no_destination(tmp_path, uijson_path):
+def test_run_from_out_group_no_destination(tmp_path, uijson_path):  # pylint: disable=unused-argument
     run_from_outgroup_name(tmp_path / "original.geoh5", "uijson_test")
 
     # test destination
@@ -140,7 +139,7 @@ def test_run_from_out_group_no_destination(tmp_path, uijson_path):
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
 
 
-def test_out_group_errors(tmp_path, uijson_path):
+def test_out_group_errors(tmp_path, uijson_path):  # pylint: disable=unused-argument
 
     with Workspace(tmp_path / "original.geoh5") as workspace:
         # create an empty uijson group
@@ -159,6 +158,6 @@ def test_out_group_errors(tmp_path, uijson_path):
             )
 
 
-def test_utils_errors(tmp_path, uijson_path):
+def test_utils_errors(tmp_path, uijson_path):  # pylint: disable=unused-argument
     with pytest.raises(FileExistsError, match="File "):
         get_new_workspace_path("original.geoh5", tmp_path)
