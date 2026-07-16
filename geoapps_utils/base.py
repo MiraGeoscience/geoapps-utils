@@ -165,9 +165,7 @@ class Driver(ABC):
 
         :return: Path to default ui.json file.
         """
-        if issubclass(cls._params_class, Options):
-            return cls._params_class.default_ui_json
-        return None
+        return cls._params_class.default_ui_json
 
     @classmethod
     def get_default_ui_json(cls) -> UIJson:
@@ -177,10 +175,7 @@ class Driver(ABC):
 
         :return: The default ui.json configuration.
         """
-        if issubclass(cls._params_class, Options):
-            return cls._params_class.get_default_ui_json()
-
-        raise ValueError(f"Driver {cls} does not have a default ui.json.")
+        return cls._params_class.get_default_ui_json()
 
     def to_out_group(self, workspace: Workspace | None = None, **kwargs) -> UIJsonGroup:
         """
@@ -192,7 +187,7 @@ class Driver(ABC):
 
         :return: A UIJsonGroup representing the application.
         """
-        with fetch_active_workspace(workspace or self.workspace) as geoh5:
+        with fetch_active_workspace(workspace or self.workspace, mode="r+") as geoh5:
             if geoh5 is None:
                 raise ValueError("Workspace cannot be None.")
 
