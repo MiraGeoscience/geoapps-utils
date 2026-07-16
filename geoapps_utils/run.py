@@ -66,17 +66,17 @@ def fetch_driver_class(json_ref: str | Path | dict | BytesIO | UIJson) -> type[D
     if isinstance(json_ref, UIJson):
         uijson = json_ref
     elif isinstance(json_ref, dict):
-        uijson = UIJson.from_dict(json_ref)
+        uijson = UIJson.from_dict(json_ref, validate=False)
     else:
-        uijson = UIJson.read(json_ref)
+        uijson = UIJson.read(json_ref, validate=False)
 
-    if not isinstance(uijson.run_command, str):
+    if not isinstance(run_command := getattr(uijson, "run_command", None), str):
         raise KeyError(
             "'run_command' in ui.json must be a string representing the module path."
-            f" Got {getattr(uijson, 'run_command', None)}."
+            f" Got {run_command}."
         )
 
-    cls = fetch_driver_class_from_string(uijson.run_command)
+    cls = fetch_driver_class_from_string(run_command)
 
     return cls
 
@@ -203,16 +203,13 @@ def copy_uijson_and_workspace(
         uijson.geoh5.name, destination, new_workspace_name
     )
     copy(uijson.geoh5, Path(str(workspace_path)))
-
     uijson.geoh5 = workspace_path
+
     if monitoring_directory is not None:
         uijson.monitoring_directory = Path(monitoring_directory)
 
     output_uijson = destination / (new_workspace_name or uijson.geoh5.name)
-
-    uijson.write(output_uijson)
-
-    return output_uijson
+    return uijson.write(output_uijson)
 
 
 def run_from_outgroup_name(

@@ -178,7 +178,7 @@ def test_warning_options(tmp_path):
     pts = Points.create(ws, vertices=np.random.randn(10, 3))
     driver = NotOptionsDriver(pts)
 
-    with pytest.raises(ValueError, match=r"does not have a default ui.json"):
+    with pytest.raises(AttributeError, match=r"has no attribute 'get_default_ui_json'"):
         driver.get_default_ui_json()
 
     ifile = InputFile()
