@@ -106,6 +106,7 @@ def test_dataclass_input_file(tmp_path):
         """
 
         _name = "nested"
+        default_ui_json = assets_path() / "uijson/base.ui.json"
 
     model = TestOptions.build(ifile)
 

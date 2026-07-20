@@ -110,22 +110,22 @@ class Driver(ABC):
         :return: Self object.
         """
 
-        if isinstance(filepath, InputFile):
-            uijson = input_file_deprecation_warning(filepath)
+        if isinstance(uijson, InputFile):
+            uijson = input_file_deprecation_warning(uijson)
 
         uijson = UIJson.read(uijson) if isinstance(uijson, str | Path) else uijson
 
-        if not isinstance(ifile, UIJson):
+        if not isinstance(uijson, UIJson):
             raise TypeError(
                 "Input file must be a path (str/Path) or a UIJson instance."
             )
 
-        if ifile.geoh5 is None:
+        if uijson.geoh5 is None:
             raise GeoAppsError("The application needs a valid 'geoh5' file.")
 
-        with Workspace(ifile.geoh5, mode=mode) as workspace:
+        with Workspace(uijson.geoh5, mode=mode) as workspace:
             try:
-                params = cls._params_class.build(ifile, workspace=workspace, **kwargs)
+                params = cls._params_class.build(uijson, workspace=workspace, **kwargs)
                 logger.info("Initializing application . . .")
                 driver = cls(params)
                 logger.info("Running application . . .")
