@@ -99,12 +99,12 @@ class Driver(ABC):
 
     @classmethod
     def start(
-        cls, filepath: str | Path | InputFile | UIJson, mode="r+", **kwargs
+        cls, uijson: str | Path | InputFile | UIJson, mode="r+", **kwargs
     ) -> Self:
         """
         Run application specified by 'filepath' ui.json file.
 
-        :param filepath: Path to valid ui.json file for the application driver.
+        :param uijson: Path to valid ui.json file for the application driver.
         :param mode: Mode to open the geoh5 file with.
         :param kwargs: Additional keyword arguments for Options class.
 
@@ -112,9 +112,9 @@ class Driver(ABC):
         """
 
         if isinstance(filepath, InputFile):
-            filepath = input_file_deprecation_warning(filepath)
+            uijson = input_file_deprecation_warning(filepath)
 
-        ifile = UIJson.read(filepath) if isinstance(filepath, str | Path) else filepath
+        uijson = UIJson.read(uijson) if isinstance(uijson, str | Path) else uijson
 
         if not isinstance(ifile, UIJson):
             raise TypeError(
