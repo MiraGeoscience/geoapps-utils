@@ -22,7 +22,6 @@ from geoh5py.ui_json import InputFile, UIJson, monitored_directory_copy
 from geoh5py.ui_json.utils import fetch_active_workspace
 from pydantic import BaseModel, ConfigDict, ValidationError
 
-from geoapps_utils import assets_path
 from geoapps_utils.utils.importing import GeoAppsError
 from geoapps_utils.utils.logger import get_logger
 
@@ -183,14 +182,11 @@ class Driver(ABC):
 
         :param workspace: Workspace to fetch entities from.  Used for passing active
             workspaces to avoid closing and flushing data.
-        :param kwargs: Additional keyword arguments to update the UIJson data before
+        :param kwargs: Additional keyword arguments to pass to the UIJsonGroup constructor.
 
         :return: A UIJsonGroup representing the application.
         """
         with fetch_active_workspace(workspace or self.workspace, mode="r+") as geoh5:
-            if geoh5 is None:
-                raise ValueError("Workspace cannot be None.")
-
             ui_json_group = self.params.ui_json.to_ui_json_group(
                 workspace=geoh5, **kwargs
             )
@@ -228,7 +224,7 @@ class Options(BaseModel):
     model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
 
     name: ClassVar[str] = "base"
-    default_ui_json: ClassVar[Path | None] = assets_path() / "uijson/base.ui.json"
+    default_ui_json: ClassVar[Path | None] = None
 
     title: str = "Base Data"
     run_command: str = "geoapps_utils.base"
