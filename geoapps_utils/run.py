@@ -58,7 +58,6 @@ def fetch_driver_class_from_string(module_path: str) -> type[Driver]:
 
     :return: Driver class.
     """
-    # TODO Remove after deprecation of geoapps_utils.driver
     from geoapps_utils.driver.driver import (  # pylint: disable=import-outside-toplevel, cyclic-import
         BaseDriver,
     )
