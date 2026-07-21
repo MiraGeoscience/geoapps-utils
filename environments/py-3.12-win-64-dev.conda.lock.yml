@@ -34,7 +34,7 @@ dependencies:
   - freetype=2.14.3=h57928b3_1
   - h5py=3.16.0=nompi_py312h5ddec8c_102
   - hdf5=2.1.0=nompi_h0d3e4b2_110
-  - icu=78.3=h637d24d_0
+  - icu=78.3=h637d24d_1
   - importlib-metadata=9.0.0=pyhcf101f3_0
   - iniconfig=2.3.0=pyhd8ed1ab_0
   - isort=8.0.1=pyhd8ed1ab_0
@@ -84,7 +84,7 @@ dependencies:
   - packaging=26.2=pyhc364b38_0
   - pillow=12.3.0=py312h31f0997_0
   - pip=26.1.2=pyh8b19718_0
-  - platformdirs=4.10.0=pyhcf101f3_0
+  - platformdirs=4.10.1=pyhcf101f3_0
   - pluggy=1.6.0=pyhf9edf01_1
   - psutil=7.2.2=py312he5662c2_0
   - pthread-stubs=0.4=h0e40799_1002
@@ -106,11 +106,11 @@ dependencies:
   - tbb=2023.0.0=hd3d4ead_2
   - tk=8.6.13=h967ab96_3
   - tomli=2.4.1=pyhcf101f3_0
-  - tomlkit=0.15.0=pyha770c72_0
+  - tomlkit=0.15.1=pyhcf101f3_0
   - typing-extensions=4.16.0=h69aa097_0
   - typing-inspection=0.4.2=pyhcf101f3_2
   - typing_extensions=4.16.0=pyhcf101f3_0
-  - tzdata=2025c=hc9c84f9_1
+  - tzdata=2026c=h151e31d_0
   - ucrt=10.0.26100.0=h57928b3_0
   - unicodedata2=17.0.1=py312he06e257_0
   - vc=14.5=h1b7c187_39
@@ -125,7 +125,7 @@ dependencies:
   - zlib-ng=2.3.3=h0261ad2_1
   - zstd=1.5.7=h534d264_6
   - pip:
-    - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@6e241131cd822f269a37b729c03bc184a43a0c2c
+    - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@8d0eb76a6aaa84f02c374092ae14f8f8ba23a398
 
 variables:
   KMP_WARNINGS: 0

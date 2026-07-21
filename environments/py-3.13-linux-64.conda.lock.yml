@@ -30,7 +30,7 @@ dependencies:
   - freetype=2.14.3=ha770c72_0
   - h5py=3.16.0=nompi_py313h22c32d4_102
   - hdf5=2.1.0=nompi_h654f344_110
-  - icu=78.3=h33c6efd_0
+  - icu=78.3=h33c6efd_1
   - keyutils=1.6.3=hb9d3cd8_0
   - kiwisolver=1.5.0=py313hc8edb43_0
   - krb5=1.22.2=hbde042b_1
@@ -99,13 +99,13 @@ dependencies:
   - typing-extensions=4.16.0=h69aa097_0
   - typing-inspection=0.4.2=pyhcf101f3_2
   - typing_extensions=4.16.0=pyhcf101f3_0
-  - tzdata=2025c=hc9c84f9_1
+  - tzdata=2026c=h151e31d_0
   - xorg-libxau=1.0.12=hb03c661_1
   - xorg-libxdmcp=1.1.5=hb03c661_1
   - zlib-ng=2.3.3=hceb46e0_1
   - zstd=1.5.7=hb78ec9c_6
   - pip:
-    - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@6e241131cd822f269a37b729c03bc184a43a0c2c
+    - geoh5py @ git+https://github.com/MiraGeoscience/geoh5py.git@8d0eb76a6aaa84f02c374092ae14f8f8ba23a398
 
 variables:
   KMP_WARNINGS: 0
