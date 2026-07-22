@@ -1,5 +1,5 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#  Copyright (c) 2022-2026 Mira Geoscience Ltd.                                     '
 #                                                                                   '
 #  This file is part of geoapps-utils package.                                      '
 #                                                                                   '
@@ -20,7 +20,7 @@ import pytest
 from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import Points
-from geoh5py.ui_json import InputFile
+from geoh5py.ui_json import BaseUIJson, InputFile
 from geoh5py.ui_json.templates import group_parameter, object_parameter
 
 from geoapps_utils.base import Options, get_logger
@@ -28,6 +28,7 @@ from geoapps_utils.driver.data import BaseData
 from geoapps_utils.driver.driver import BaseDriver, Driver
 from geoapps_utils.driver.params import BaseParams
 from geoapps_utils.run import fetch_driver_class
+from geoapps_utils.utils.logger import suppress_logging
 
 from .dummy_driver_test import (
     TestOptions,
@@ -65,6 +66,9 @@ def test_base_driver(tmp_path):
         TestParamsDriver("not a params object")  # type: ignore
 
     driver = TestParamsDriver(params)
+
+    assert TestParamsDriver.get_default_ui_json_path() is None
+
     driver.start(tmp_path / "test_ifile.ui.json")
 
     with pytest.raises(TypeError, match="Input file must be "):
@@ -117,6 +121,8 @@ def test_base_options(tmp_path):
 
     driver = TestOptionsDriver(options)
 
+    assert TestOptionsDriver.get_default_ui_json_path().exists()  # type: ignore
+
     assert isinstance(driver.params, TestOptions)
     assert driver.params_class == TestOptions
     assert isinstance(driver.workspace, Workspace)
@@ -134,6 +140,16 @@ def test_base_options(tmp_path):
 
     json_dict = json.loads(file_data.file_bytes.decode())
     assert json_dict.get("client", None) == "{" + str(pts.uid) + "}"
+
+
+def test_get_empty_ui_json():
+    # Driver with BaseParams has no default ui.json path
+    with pytest.raises(ValueError, match="does not have a default"):
+        TestParamsDriver.get_default_ui_json()
+
+    # Driver with Options subclass that has a default_ui_json returns a BaseUIJson
+    ui_json = TestOptionsDriver.get_default_ui_json()
+    assert isinstance(ui_json, BaseUIJson)
 
 
 def test_params_errors():
@@ -183,7 +199,7 @@ def test_fetch_driver(tmp_path):
 
     # Repeat with missing run_command
     del dict_params["run_command"]
-    with pytest.raises(KeyError, match="'run_command' in ui.json must be a string"):
+    with pytest.raises(KeyError, match=r"'run_command' in ui\.json must be a string"):
         fetch_driver_class(dict_params)
 
     # Repeat with missing driver in module
@@ -204,3 +220,20 @@ def test_logger(caplog):
     assert "my-app" in caplog.text
     assert caplog.records[0].levelname == "INFO"
     assert caplog.records[0].name == "my-app"
+
+
+def test_suppress_logging(caplog):
+    """
+    Test that the logger suppression occurs, then restored after the context is closed.
+    """
+    logger = get_logger("my-app")
+    with caplog.at_level("INFO"):
+        with suppress_logging(level=logging.INFO):
+            logger.info("Test log message")
+
+    assert "Test log message" not in caplog.text
+
+    # Check if logging is reinstated after the context
+    with caplog.at_level("INFO"):
+        logger.info("Test log message")
+    assert "Test log message" in caplog.text

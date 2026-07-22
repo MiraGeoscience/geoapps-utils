@@ -125,6 +125,7 @@ venv.bak/
 
 #pycharm
 /.idea/*
+!/.idea/*.iml
 !/.idea/scopes/
 !/.idea/copyright/
 
@@ -147,3 +148,4 @@ pyproject-sha.toml
 /poetry.lock
 #version ignore
 geoapps_utils/_version.py
+/_version.json

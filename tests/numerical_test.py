@@ -1,5 +1,5 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#  Copyright (c) 2022-2026 Mira Geoscience Ltd.                                     '
 #                                                                                   '
 #  This file is part of geoapps-utils package.                                      '
 #                                                                                   '
@@ -17,6 +17,7 @@ from numpy import random
 from geoapps_utils.utils.numerical import (
     fibonacci_series,
     fit_circle,
+    inverse_weighted_operator,
     running_mean,
     traveling_salesman,
     weighted_average,
@@ -196,3 +197,26 @@ def test_fit_cicle():
 def test_fibonacci_series():
     np.testing.assert_allclose(fibonacci_series(1), [0])
     np.testing.assert_allclose(fibonacci_series(6), [0, 1, 1, 2, 3, 5])
+
+
+def test_inverse_weighted_operator():
+    """
+    Test the inverse_weighted_operator utility function.
+
+    For a constant input, the output should be the same constant.
+    """
+    power = 2.0
+    threshold = 1e-12
+    shape = (100, 1000)
+    values = np.random.randn(shape[0] * 2)
+    indices = np.c_[
+        np.random.randint(0, shape[1] - 1, shape[0]),
+        np.random.randint(0, shape[1] - 1, shape[0]),
+    ].flatten()
+
+    opt = inverse_weighted_operator(values, indices, shape, power, threshold)
+    test_val = np.random.randn()
+    interp = opt * np.full(shape[1], test_val)
+
+    assert opt.shape == shape
+    np.testing.assert_allclose(interp, test_val, rtol=1e-3)

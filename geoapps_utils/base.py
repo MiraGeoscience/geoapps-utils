@@ -1,5 +1,5 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#  Copyright (c) 2022-2026 Mira Geoscience Ltd.                                     '
 #                                                                                   '
 #  This file is part of geoapps-utils package.                                      '
 #                                                                                   '
@@ -15,16 +15,15 @@ import warnings
 from abc import ABC, abstractmethod
 from copy import copy
 from pathlib import Path
-from typing import Any, ClassVar, GenericAlias  # type: ignore
+from typing import Any, ClassVar, GenericAlias, Self  # type: ignore
 
 from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import ObjectBase
 from geoh5py.shared.utils import stringify
-from geoh5py.ui_json import InputFile, monitored_directory_copy
+from geoh5py.ui_json import BaseUIJson, InputFile, monitored_directory_copy
 from geoh5py.ui_json.utils import fetch_active_workspace
 from pydantic import BaseModel, ConfigDict, ValidationError
-from typing_extensions import Self
 
 from geoapps_utils.driver.params import BaseParams
 from geoapps_utils.utils.formatters import recursive_flatten
@@ -44,7 +43,7 @@ class Driver(ABC):
     :param params: Application parameters.
     """
 
-    _params_class: type[Options | BaseParams]
+    _params_class: type[Options] | type[BaseParams]
     _validations: dict | None = None
 
     def __init__(self, params: Options | BaseParams):
@@ -57,7 +56,7 @@ class Driver(ABC):
         return self._params
 
     @params.setter
-    def params(self, val: Options):
+    def params(self, val: Options | BaseParams):
         if not isinstance(val, self._params_class):
             raise TypeError(
                 f"Parameters must be of type {self._params_class}.\n"
@@ -108,7 +107,6 @@ class Driver(ABC):
         :param filepath: Path to valid ui.json file for the application driver.
         :param kwargs: Additional keyword arguments for InputFile read_ui_json.
         """
-
         ifile = (
             cls.read_ui_json(filepath, **kwargs)
             if isinstance(filepath, str | Path)
@@ -167,6 +165,33 @@ class Driver(ABC):
                 entity,
                 copy_children=copy_children,
             )
+
+    @classmethod
+    def get_default_ui_json_path(cls) -> Path | None:
+        """
+        Get the default ui.json file path for the application.
+
+        :return: Path to default ui.json file.
+        """
+        if issubclass(cls._params_class, Options):
+            return cls._params_class.default_ui_json
+        return None
+
+    @classmethod
+    def get_default_ui_json(cls) -> BaseUIJson:
+        """
+        Load the driver's default ui.json template from disk
+        with no parameters filled in.
+
+        :return: The default ui.json configuration.
+        """
+        ui_json_path = cls.get_default_ui_json_path()
+
+        if ui_json_path is None or not ui_json_path.exists():
+            raise ValueError(f"Driver {cls} does not have a default ui.json.")
+
+        ui_json = BaseUIJson.read(ui_json_path)
+        return ui_json
 
 
 class Options(BaseModel):
@@ -254,7 +279,6 @@ class Options(BaseModel):
 
         data.update(kwargs)
         options = cls.collect_input_from_dict(cls, data)  # type: ignore
-
         try:
             out = cls(**options)
         except ValidationError as errors:

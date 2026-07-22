@@ -1,5 +1,5 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#  Copyright (c) 2025 Mira Geoscience Ltd.                                          '
+#  Copyright (c) 2022-2026 Mira Geoscience Ltd.                                     '
 #                                                                                   '
 #  This file is part of geoapps-utils package.                                      '
 #                                                                                   '
@@ -212,7 +212,7 @@ def test_out_group_errors(tmp_path):
 def test_utils_errors(tmp_path):
     create_uijson(tmp_path)
 
-    with pytest.raises(ValueError, match="Invalid ui.json file"):
+    with pytest.raises(ValueError, match=r"Invalid ui\.json file"):
         load_ui_json_as_dict(123)  # type: ignore
 
     with pytest.raises(FileExistsError, match="File "):

@@ -1,5 +1,5 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#  Copyright (c) 2023-2025 Mira Geoscience Ltd.                                     '
+#  Copyright (c) 2022-2026 Mira Geoscience Ltd.                                     '
 #                                                                                   '
 #  This file is part of geoapps-utils package.                                      '
 #                                                                                   '
@@ -11,10 +11,36 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 from geoh5py import Workspace
 from geoh5py.objects import BlockModel
 
-from geoapps_utils.modelling.plates import PlateModel, inside_plate, make_plate
+from geoapps_utils.modelling.plates import (
+    Plate,
+    PlateModel,
+    bounding_box,
+    inside_plate,
+    make_plate,
+)
+
+
+def test_bounding_box():
+    origin = [0.0, 0.0, 0.0]
+    strike_length = 10
+    dip_length = 20
+    width = 2
+    xmin, xmax, ymin, ymax, zmin, zmax = bounding_box(
+        origin=origin,
+        strike_length=strike_length,
+        dip_length=dip_length,
+        width=width,
+    )
+    assert xmin == -5.0
+    assert xmax == 5.0
+    assert ymin == 0.0
+    assert ymax == 20.0
+    assert zmin == -1.0
+    assert zmax == 1.0
 
 
 def test_inside_plate(tmp_path):
@@ -37,7 +63,9 @@ def test_inside_plate(tmp_path):
                 strike_length=strike_length,
                 dip_length=dip_length,
                 width=width,
-                origin=(1.0, 0.0, 0.0),
+                easting=1.0,
+                northing=0.0,
+                elevation=0.0,
             ),
         )
         model = np.zeros(len(grid.centroids))
@@ -46,8 +74,8 @@ def test_inside_plate(tmp_path):
         validation_mask = (
             (grid.centroids[:, 0] >= ((-strike_length / 2) + 1))
             & (grid.centroids[:, 0] <= ((strike_length / 2) + 1))
-            & (grid.centroids[:, 1] >= -dip_length / 2)
-            & (grid.centroids[:, 1] <= dip_length / 2)
+            & (grid.centroids[:, 1] >= 0)
+            & (grid.centroids[:, 1] <= dip_length)
             & (grid.centroids[:, 2] >= -width / 2)
             & (grid.centroids[:, 2] <= width / 2)
         )
@@ -77,6 +105,9 @@ def test_make_plate(tmp_path):
                 strike_length=strike_length,
                 dip_length=dip_length,
                 width=width,
+                easting=0.0,
+                northing=0.0,
+                elevation=0.0,
                 direction=direction,
                 dip=dip,
             ),
@@ -85,8 +116,8 @@ def test_make_plate(tmp_path):
         grid.add_data({"plate model 1": {"values": model}})
 
         mask = (
-            (grid.centroids[:, 0] >= (-dip_length / 2))
-            & (grid.centroids[:, 0] <= (dip_length / 2))
+            (grid.centroids[:, 0] >= 0)
+            & (grid.centroids[:, 0] <= dip_length)
             & (grid.centroids[:, 1] >= (-strike_length / 2))
             & (grid.centroids[:, 1] <= (strike_length / 2))
             & (grid.centroids[:, 2] >= (-width / 2))
@@ -102,6 +133,9 @@ def test_make_plate(tmp_path):
                 strike_length=strike_length,
                 dip_length=dip_length,
                 width=width,
+                easting=0.0,
+                northing=0.0,
+                elevation=0.0,
                 direction=direction,
                 dip=dip,
             ),
@@ -114,8 +148,8 @@ def test_make_plate(tmp_path):
             & (grid.centroids[:, 0] <= (strike_length / 2))
             & (grid.centroids[:, 1] >= (-width / 2))
             & (grid.centroids[:, 1] <= (width / 2))
-            & (grid.centroids[:, 2] >= (-dip_length / 2))
-            & (grid.centroids[:, 2] <= (dip_length / 2))
+            & (grid.centroids[:, 2] >= -dip_length)
+            & (grid.centroids[:, 2] <= 0)
         )
     assert np.all(model[mask] == 1.0)
 
@@ -140,16 +174,18 @@ def test_make_plate_multiple(tmp_path):
             strike_length=strike_length,
             dip_length=dip_length,
             width=width,
+            easting=-1.0,
+            northing=0.0,
+            elevation=0.0,
             direction=direction,
             dip=dip,
-            origin=(-1, 0, 0),
         )
         model = make_plate(
             grid.centroids,
             plate=plate,
             background=0.0,
         )
-        plate.origin = (1, 0, 0)
+        plate.easting = 1.0
         model = make_plate(grid.centroids, plate=plate, background=model)
         grid.add_data({"plate model": {"values": model}})
 
@@ -158,7 +194,60 @@ def test_make_plate_multiple(tmp_path):
             & (grid.centroids[:, 0] <= (width))
             & (grid.centroids[:, 1] >= (-strike_length / 2))
             & (grid.centroids[:, 1] <= (strike_length / 2))
-            & (grid.centroids[:, 2] >= (-dip_length / 2))
-            & (grid.centroids[:, 2] <= (dip_length / 2))
+            & (grid.centroids[:, 2] >= -dip_length)
+            & (grid.centroids[:, 2] <= 0)
         )
         assert np.all(model[mask] == 1.0)
+
+
+def test_plate_alias():
+    plate = PlateModel(
+        strike_length=15,
+        dip_length=7,
+        width=2,
+        easting=0.0,
+        northing=0.0,
+        elevation=0.0,
+        direction=90,
+        dip=0,
+    )
+    assert plate.direction == 90
+    assert "direction" in plate.model_dump()
+
+    plate = PlateModel(
+        strike_length=15,
+        dip_length=7,
+        width=2,
+        easting=0.0,
+        northing=0.0,
+        elevation=0.0,
+        dip_direction=90,
+        dip=0,
+    )
+    assert plate.direction == 90
+    assert "dip_direction" in plate.model_dump(by_alias=True)
+
+
+def test_maxwell_plate_integration(tmp_path):
+
+    plate = Plate(
+        PlateModel(
+            strike_length=100,
+            dip_length=300,
+            width=20,
+            easting=100.0,
+            northing=0.0,
+            elevation=0.0,
+            dip_direction=90,
+            dip=45,
+        )
+    )
+    with Workspace(tmp_path / "test.geoh5") as workspace:
+        maxwell_plate = plate.to_maxwell_plate(workspace)
+        assert maxwell_plate.geometry is not None
+        maxwell_plate.geometry.rotation = 10.0
+
+    with pytest.warns(UserWarning, match="Plunging plate"):
+        new_plate = Plate.from_maxwell_plate(maxwell_plate)
+
+    assert new_plate.params == plate.params
