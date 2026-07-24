@@ -15,17 +15,29 @@ import pytest
 from geoh5py import Workspace
 from geoh5py.data import Data
 from geoh5py.groups import UIJsonGroup
+from geoh5py.ui_json import UIJson
 
 from geoapps_utils.run import (
     get_new_workspace_path,
-    load_ui_json_as_dict,
     run_from_outgroup_name,
     run_from_uijson,
     run_uijson_group,
 )
 
 
-# pylint: disable=unused-argument
+def test_run_from_bytesio(tmp_path, uijson_path):
+    monitoring_directory = tmp_path / "monitoring"
+    monitoring_directory.mkdir(exist_ok=True)
+
+    destination = tmp_path / "copy"
+    destination.mkdir(exist_ok=True)
+
+    ui_json = UIJson.read(uijson_path)
+    byteio = ui_json.write()
+
+    assert run_from_uijson(
+        byteio, destination=destination, monitoring_directory=monitoring_directory
+    )
 
 
 def test_run_from_uijson(tmp_path, uijson_path):
@@ -93,7 +105,7 @@ def test_run_from_uijson_shutil(tmp_path, uijson_path):
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
 
 
-def test_run_from_out_group(tmp_path, uijson_path):
+def test_run_from_out_group(tmp_path, uijson_path):  # pylint: disable=unused-argument
 
     monitoring_directory = tmp_path / "monitoring"
     monitoring_directory.mkdir(exist_ok=True)
@@ -119,7 +131,7 @@ def test_run_from_out_group(tmp_path, uijson_path):
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
 
 
-def test_run_from_out_group_no_destination(tmp_path, uijson_path):
+def test_run_from_out_group_no_destination(tmp_path, uijson_path):  # pylint: disable=unused-argument
     run_from_outgroup_name(tmp_path / "original.geoh5", "uijson_test")
 
     # test destination
@@ -127,7 +139,7 @@ def test_run_from_out_group_no_destination(tmp_path, uijson_path):
         assert isinstance(workspace.get_entity("mean_xyz")[0], Data)
 
 
-def test_out_group_errors(tmp_path, uijson_path):
+def test_out_group_errors(tmp_path, uijson_path):  # pylint: disable=unused-argument
 
     with Workspace(tmp_path / "original.geoh5") as workspace:
         # create an empty uijson group
@@ -146,10 +158,6 @@ def test_out_group_errors(tmp_path, uijson_path):
             )
 
 
-def test_utils_errors(tmp_path, uijson_path):
-
-    with pytest.raises(ValueError, match=r"Invalid ui\.json file"):
-        load_ui_json_as_dict(123)  # type: ignore
-
+def test_utils_errors(tmp_path, uijson_path):  # pylint: disable=unused-argument
     with pytest.raises(FileExistsError, match="File "):
         get_new_workspace_path("original.geoh5", tmp_path)

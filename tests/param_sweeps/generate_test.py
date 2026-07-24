@@ -14,15 +14,25 @@ from pathlib import Path
 from geoh5py.ui_json import InputFile
 from geoh5py.workspace import Workspace
 
+from geoapps_utils import assets_path
 from geoapps_utils.base import Options
 from geoapps_utils.param_sweeps.generate import generate, sweep_forms
+
+
+class TestModel(Options):
+    """
+    Example of nested model
+    """
+
+    _name = "nested"
+    default_ui_json = assets_path() / "uijson/base.ui.json"
 
 
 def test_generate(tmp_path: Path):
     workspace = Workspace(tmp_path / f"{__name__}.ui.geoh5")
 
-    options = Options(geoh5=workspace)
-    ui_json = options.serialize()
+    options = TestModel(geoh5=workspace)
+    ui_json = options.ui_json.serialize()
     ui_json.update(
         {
             "param1": {"label": "param1", "value": 1},

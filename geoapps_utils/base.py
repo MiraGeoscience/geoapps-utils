@@ -10,7 +10,6 @@
 from __future__ import annotations
 
 import sys
-import tempfile
 import warnings
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -23,8 +22,6 @@ from geoh5py.ui_json import InputFile, UIJson, monitored_directory_copy
 from geoh5py.ui_json.utils import fetch_active_workspace
 from pydantic import BaseModel, ConfigDict, ValidationError
 
-from geoapps_utils import assets_path
-from geoapps_utils.utils.formatters import recursive_flatten
 from geoapps_utils.utils.importing import GeoAppsError
 from geoapps_utils.utils.logger import get_logger
 
@@ -58,6 +55,7 @@ class Driver(ABC):
     """
 
     _params_class: type[Options]
+    _out_group_class: type[UIJsonGroup] = UIJsonGroup
 
     def __init__(self, params: Options):
         self._out_group: UIJsonGroup | None = None
@@ -100,32 +98,34 @@ class Driver(ABC):
 
     @classmethod
     def start(
-        cls, filepath: str | Path | InputFile | UIJson, mode="r+", **kwargs
+        cls, uijson: str | Path | InputFile | UIJson, mode="r+", **kwargs
     ) -> Self:
         """
         Run application specified by 'filepath' ui.json file.
 
-        :param filepath: Path to valid ui.json file for the application driver.
+        :param uijson: Path to valid ui.json file for the application driver.
         :param mode: Mode to open the geoh5 file with.
         :param kwargs: Additional keyword arguments for Options class.
 
         :return: Self object.
         """
 
-        if isinstance(filepath, InputFile):
-            filepath = input_file_deprecation_warning(filepath)
+        if isinstance(uijson, InputFile):
+            uijson = input_file_deprecation_warning(uijson)
 
-        ifile = UIJson.read(filepath) if isinstance(filepath, str | Path) else filepath
+        uijson = UIJson.read(uijson) if isinstance(uijson, str | Path) else uijson
 
-        if not isinstance(ifile, UIJson):
-            raise TypeError("Input file must be a string path or an InputFile object.")
+        if not isinstance(uijson, UIJson):
+            raise TypeError(
+                "Input file must be a path (str/Path) or a UIJson instance."
+            )
 
-        if ifile.geoh5 is None:
+        if uijson.geoh5 is None:
             raise GeoAppsError("The application needs a valid 'geoh5' file.")
 
-        with Workspace(ifile.geoh5, mode=mode) as workspace:
+        with Workspace(uijson.geoh5, mode=mode) as workspace:
             try:
-                params = cls._params_class.build(ifile, workspace=workspace, **kwargs)
+                params = cls._params_class.build(uijson, workspace=workspace, **kwargs)
                 logger.info("Initializing application . . .")
                 driver = cls(params)
                 logger.info("Running application . . .")
@@ -137,16 +137,6 @@ class Driver(ABC):
 
         return driver
 
-    def add_ui_json(self, entity: ObjectBase):
-        """
-        Add ui.json as FileData to entity.
-
-        :param entity: Object to add ui.json file to.
-        """
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            path = self.params.ui_json.write(Path(tmpdirname) / "temp.ui.json")
-            entity.add_file(path)
-
     def update_monitoring_directory(
         self, entity: ObjectBase, copy_children: bool = True
     ):
@@ -156,7 +146,7 @@ class Driver(ABC):
         :param entity: Object being added to monitoring directory.
         :param copy_children: If True, copy all children of the entity to the monitoring directory.
         """
-        self.add_ui_json(entity)
+        self.params.ui_json.to_file_data(entity)
         if (
             self.params.monitoring_directory is not None
             and Path(self.params.monitoring_directory).is_dir()
@@ -174,9 +164,7 @@ class Driver(ABC):
 
         :return: Path to default ui.json file.
         """
-        if issubclass(cls._params_class, Options):
-            return cls._params_class.default_ui_json
-        return None
+        return cls._params_class.default_ui_json
 
     @classmethod
     def get_default_ui_json(cls) -> UIJson:
@@ -186,10 +174,39 @@ class Driver(ABC):
 
         :return: The default ui.json configuration.
         """
-        if issubclass(cls._params_class, Options):
-            return cls._params_class.get_default_ui_json()
+        return cls._params_class.get_default_ui_json()
 
-        raise ValueError(f"Driver {cls} does not have a default ui.json.")
+    def to_out_group(self, workspace: Workspace | None = None, **kwargs) -> UIJsonGroup:
+        """
+        Convert the UIJson to a UIJsonGroup.
+
+        :param workspace: Workspace to fetch entities from.  Used for passing active
+            workspaces to avoid closing and flushing data.
+        :param kwargs: Additional keyword arguments to pass to the UIJsonGroup constructor.
+
+        :return: A UIJsonGroup representing the application.
+        """
+        with fetch_active_workspace(workspace or self.workspace, mode="r+") as geoh5:
+            ui_json_group = self.params.ui_json.to_ui_json_group(
+                workspace=geoh5, **kwargs
+            )
+
+            return ui_json_group
+
+    def validate_out_group(self, out_group: UIJsonGroup | None) -> UIJsonGroup:
+        """
+        Validate or create a UIJsonGroup to store results.
+
+        :param out_group: Output group from selection.
+        """
+
+        if not isinstance(out_group, self._out_group_class | None):
+            raise TypeError("Output group must be a UIJsonGroup.")
+
+        if out_group is None:
+            out_group = self.to_out_group()
+
+        return out_group
 
 
 class Options(BaseModel):
@@ -207,7 +224,7 @@ class Options(BaseModel):
     model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
 
     name: ClassVar[str] = "base"
-    default_ui_json: ClassVar[Path | None] = assets_path() / "uijson/base.ui.json"
+    default_ui_json: ClassVar[Path | None] = None
 
     title: str = "Base Data"
     run_command: str = "geoapps_utils.base"
@@ -215,6 +232,8 @@ class Options(BaseModel):
     geoh5: Workspace
     monitoring_directory: str | Path | None = None
     out_group: UIJsonGroup | None = None
+
+    _ui_json_class: ClassVar[type[UIJson]] = UIJson
 
     @staticmethod
     def collect_input_from_dict(
@@ -261,7 +280,7 @@ class Options(BaseModel):
     @classmethod
     def build(
         cls,
-        data: InputFile | dict | UIJson,
+        data: InputFile | dict | UIJson | None = None,
         workspace: Workspace | None = None,
         **kwargs,
     ) -> Self:
@@ -278,6 +297,9 @@ class Options(BaseModel):
 
         if isinstance(data, UIJson):
             data = data.to_params(workspace)
+
+        if data is None:
+            data = {}
 
         if not isinstance(data, dict):
             raise TypeError("Input data must be a dictionary or UIJson.")
@@ -301,29 +323,29 @@ class Options(BaseModel):
 
         return out
 
-    def _recursive_flatten(self, data: dict[str, Any]) -> dict[str, Any]:
-        """
-        Recursively flatten nested dictionary.
-
-        To be used on output of BaseModel.model_dump.
-
-        :param data: Dictionary of parameters and values.
-        """
-        logger.warning(
-            "Deprecated method: Use geoapps_utils.utils.formatters._recursive_flatten"
-        )
-        return recursive_flatten(data)
-
     def flatten(self) -> dict:
         """
         Flatten the parameters to a dictionary.
 
         :return: Dictionary of parameters.
         """
-        out = recursive_flatten(self.model_dump())
-        out.pop("input_file", None)
+        ui_json = self.get_default_ui_json()
+        out = self._recursive_flatten(self.model_dump(exclude_unset=True), ui_json)
 
         return out
+
+    @classmethod
+    def get_default_ui_json(cls) -> UIJson:
+        """
+        Load the driver's default ui.json template from disk
+        with no parameters filled in.
+
+        :return: The default ui.json configuration.
+        """
+        if cls.default_ui_json is None or not cls.default_ui_json.exists():
+            raise ValueError(f"Class '{cls}' does not have a default ui.json.")
+
+        return cls._ui_json_class.read(cls.default_ui_json)
 
     @property
     def input_file(self) -> UIJson:
@@ -337,24 +359,6 @@ class Options(BaseModel):
         )
         return self.ui_json
 
-    def serialize(self, mode="python"):
-        """Return a demoted uijson dictionary representation the params data."""
-        serialized = self.ui_json.model_dump(
-            exclude_unset=True, by_alias=True, mode=mode
-        )
-        return serialized
-
-    def update_out_group_options(self):
-        """
-        Serialize current state and save to the out_group options.
-        """
-        if self.out_group is None:
-            raise ValueError("No output group defined to save options.")
-
-        with fetch_active_workspace(self.geoh5, mode="r+"):
-            self.out_group.options = self.serialize(mode="json")
-            self.out_group.metadata = None
-
     @property
     def ui_json(self) -> UIJson:
         """
@@ -365,15 +369,42 @@ class Options(BaseModel):
 
         return ui_json
 
+    def update_out_group_options(self):
+        """
+        Serialize current state and save to the out_group options.
+        """
+        if self.out_group is None:
+            raise ValueError("No output group defined to save options.")
+
+        with fetch_active_workspace(self.geoh5, mode="r+"):
+            self.out_group.options = self.ui_json.serialize(mode="json")
+            self.out_group.metadata = None
+
+    def write_ui_json(self, path: Path | None = None) -> UIJson:
+        """
+        Write UI JSON file.
+        """
+        ui_json = self.ui_json
+        ui_json.write(path)
+
+        return ui_json
+
     @classmethod
-    def get_default_ui_json(cls) -> UIJson:
+    def _recursive_flatten(
+        cls, data: dict[str, Any], ui_json: UIJson
+    ) -> dict[str, Any]:
         """
-        Load the driver's default ui.json template from disk
-        with no parameters filled in.
+        Recursively flatten nested dictionary.
 
-        :return: The default ui.json configuration.
+        To be used on output of BaseModel.model_dump.
+
+        :param data: Dictionary of parameters and values.
         """
-        if cls.default_ui_json is None or not cls.default_ui_json.exists():
-            raise ValueError(f"Class '{cls}' does not have a default ui.json.")
+        values: dict[str, Any] = {}
+        for key, val in data.items():
+            if isinstance(val, dict) and getattr(ui_json, key, None) is None:
+                values.update(cls._recursive_flatten(val, ui_json))
+            else:
+                values[key] = val
 
-        return UIJson.read(cls.default_ui_json)
+        return values

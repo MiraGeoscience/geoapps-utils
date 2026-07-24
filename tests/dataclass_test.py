@@ -99,7 +99,16 @@ def test_dataclass_invalid_values(tmp_path):
 def test_dataclass_input_file(tmp_path):
     valid_parameters = get_params_dict(tmp_path / f"{__name__}.geoh5")
     ifile = InputFile(ui_json=valid_parameters)
-    model = Options.build(ifile)
+
+    class TestOptions(Options):
+        """
+        Example of nested model
+        """
+
+        _name = "nested"
+        default_ui_json = assets_path() / "uijson/base.ui.json"
+
+    model = TestOptions.build(ifile)
 
     assert model.geoh5.h5file == tmp_path / f"{__name__}.geoh5"
     assert all(
@@ -205,6 +214,7 @@ def test_nested_model(tmp_path):
         """
 
         _name = "nested"
+        default_ui_json = assets_path() / "uijson/base.ui.json"
         group: GroupParams
 
     valid_params = get_params_dict(tmp_path / f"{__name__}.geoh5")
