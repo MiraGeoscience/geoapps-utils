@@ -129,7 +129,13 @@ class Driver(ABC):
                 logger.info("Initializing application . . .")
                 driver = cls(params)
                 logger.info("Running application . . .")
-                driver.run()
+                result = driver.run()
+
+                if result is not None:
+                    uijson.to_file_data(driver.out_group or result)
+
+                driver.update_monitoring_directory(driver.out_group or result)
+
                 logger.info("Results saved to %s", params.geoh5.h5file)
             except GeoAppsError as error:
                 logger.warning("\n\nApplicationError: %s\n\n", error)
@@ -138,7 +144,7 @@ class Driver(ABC):
         return driver
 
     def update_monitoring_directory(
-        self, entity: ObjectBase, copy_children: bool = True
+        self, entity: ObjectBase | UIJsonGroup | None, copy_children: bool = True
     ):
         """
         If monitoring directory is active, copy entity to monitoring directory.
@@ -146,10 +152,10 @@ class Driver(ABC):
         :param entity: Object being added to monitoring directory.
         :param copy_children: If True, copy all children of the entity to the monitoring directory.
         """
-        self.params.ui_json.to_file_data(entity)
         if (
             self.params.monitoring_directory is not None
             and Path(self.params.monitoring_directory).is_dir()
+            and entity is not None
         ):
             monitored_directory_copy(
                 str(Path(self.params.monitoring_directory).resolve()),
