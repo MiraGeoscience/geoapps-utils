@@ -365,7 +365,8 @@ class Options(BaseModel):
         The parent UIJson object.
         """
         ui_json = self.get_default_ui_json()
-        ui_json.set_values(**self.flatten())
+        values = self._recursive_flatten(self.model_dump(exclude_unset=True), ui_json)
+        ui_json.set_values(**values)
 
         return ui_json
 
