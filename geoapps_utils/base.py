@@ -12,12 +12,13 @@ from __future__ import annotations
 import sys
 import warnings
 from abc import ABC, abstractmethod
+from collections.abc import Iterable  # type: ignore
 from pathlib import Path
-from typing import Any, ClassVar, GenericAlias, Self  # type: ignore
+from typing import Any, ClassVar, Self
 
 from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
-from geoh5py.objects import ObjectBase
+from geoh5py.shared.entity_container import EntityContainer
 from geoh5py.ui_json import InputFile, UIJson, monitored_directory_copy
 from geoh5py.ui_json.utils import fetch_active_workspace
 from pydantic import BaseModel, ConfigDict, ValidationError
@@ -129,12 +130,16 @@ class Driver(ABC):
                 logger.info("Initializing application . . .")
                 driver = cls(params)
                 logger.info("Running application . . .")
-                result = driver.run()
+                results = driver.run()
 
-                if result is not None:
-                    uijson.to_file_data(driver.out_group or result)
+                if driver.out_group is not None:
+                    uijson.to_file_data(driver.out_group)
+                elif isinstance(results, tuple | list):
+                    uijson.to_file_data(results[0])
+                elif results is not None:
+                    uijson.to_file_data(results)
 
-                driver.update_monitoring_directory(driver.out_group or result)
+                driver.update_monitoring_directory(driver.out_group or results)
 
                 logger.info("Results saved to %s", params.geoh5.h5file)
             except GeoAppsError as error:
@@ -144,7 +149,9 @@ class Driver(ABC):
         return driver
 
     def update_monitoring_directory(
-        self, entity: ObjectBase | UIJsonGroup | None, copy_children: bool = True
+        self,
+        entity: EntityContainer | Iterable[EntityContainer] | None,
+        copy_children: bool = True,
     ):
         """
         If monitoring directory is active, copy entity to monitoring directory.
@@ -262,10 +269,8 @@ class Options(BaseModel):
                 if isinstance(update.get(field, None), BaseModel):
                     continue
 
-                if (
-                    isinstance(info.annotation, type)
-                    and not isinstance(info.annotation, GenericAlias)
-                    and issubclass(info.annotation, BaseModel)
+                if isinstance(info.annotation, type) and issubclass(
+                    info.annotation, BaseModel
                 ):
                     # Nest and deal with aliases
                     update = Options.collect_input_from_dict(info.annotation, update)

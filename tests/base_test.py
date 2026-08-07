@@ -19,6 +19,7 @@ from uuid import UUID
 import numpy as np
 import pytest
 from geoh5py import Workspace
+from geoh5py.data import FilenameData
 from geoh5py.objects import Points
 from geoh5py.ui_json import InputFile, UIJson
 
@@ -56,13 +57,13 @@ class TestNoDefaultOptions(Options):
 
 
 def test_base_options(tmp_path):
-    workspace = Workspace.create(tmp_path / f"{__name__}.geoh5")
-    # Create params
-    pts = Points.create(workspace, vertices=np.random.randn(10, 3))
-    options = TestOptions.build({"geoh5": workspace, "client": pts})
+    with Workspace.create(tmp_path / f"{__name__}.geoh5") as workspace:
+        # Create params
+        pts = Points.create(workspace, vertices=np.random.randn(10, 3))
+        options = TestOptions.build({"geoh5": workspace, "client": pts})
 
-    with pytest.raises(ValueError, match="No output group"):
-        options.update_out_group_options()
+        with pytest.raises(ValueError, match="No output group"):
+            options.update_out_group_options()
 
     driver = TestOptionsDriver(options)
 
@@ -75,15 +76,27 @@ def test_base_options(tmp_path):
     demoted = options.ui_json.serialize(mode="json")
     assert UUID(demoted["client"]) == pts.uid
 
+    demoted["client"] = {
+        "label": "my_client",
+        "value": str(pts.uid),
+        "meshType": ["Points"],
+    }
+
+    uijson = UIJson.from_dict(demoted)
     # Write the options as file attached
-    driver.update_monitoring_directory(pts)
+    driver.start(uijson)
 
-    assert len(pts.children) == 1
-    file_data = pts.children[0]
-    assert file_data.name == "base.ui.json"
+    with Workspace(tmp_path / f"{__name__}.geoh5") as ws:
+        pts = ws.objects[0]
+        assert len(pts.children) == 2
+        file_data = next(
+            child for child in pts.children if isinstance(child, FilenameData)
+        )
+        assert file_data.name == "base.ui.json"
 
-    json_dict = json.loads(file_data.file_bytes.decode())
-    assert UUID(json_dict.get("client", None)) == pts.uid
+        json_dict = json.loads(file_data.file_bytes.decode())
+        uijson = UIJson.from_dict(json_dict)
+        assert uijson.client.value == pts.uid  # type: ignore[attr-defined]
 
 
 def test_old_base_driver(caplog):
