@@ -12,7 +12,6 @@ from __future__ import annotations
 import sys
 import warnings
 from abc import ABC, abstractmethod
-from collections.abc import Iterable  # type: ignore
 from pathlib import Path
 from typing import Any, ClassVar, Self
 
@@ -150,7 +149,7 @@ class Driver(ABC):
 
     def update_monitoring_directory(
         self,
-        entity: EntityContainer | Iterable[EntityContainer] | None,
+        entity: EntityContainer | list[EntityContainer] | None,
         copy_children: bool = True,
     ):
         """
@@ -259,7 +258,6 @@ class Options(BaseModel):
         :param data: Flat dictionary of parameters and values without nesting structure.
         """
         update = data.copy()
-        nested_fields: list[str] = []
 
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
@@ -277,14 +275,17 @@ class Options(BaseModel):
                     nested = info.annotation.model_construct(**update).model_dump(
                         exclude_unset=True
                     )
-
+                    aliases = info.annotation.model_construct(**update).model_dump(
+                        exclude_unset=True, by_alias=True
+                    )
                     if any(nested):
                         update[field] = nested
-                        nested_fields += nested
 
-        for field in nested_fields:
-            if field in update:
-                del update[field]
+                        for key, alias in zip(nested, aliases, strict=True):
+                            if key in update:
+                                del update[key]
+                            if alias in update:
+                                del update[alias]
 
         return update
 
