@@ -16,11 +16,13 @@ from uuid import UUID
 import numpy as np
 from geoh5py import Workspace
 from geoh5py.data import Data
-from geoh5py.objects import CellObject, Grid2D, Points
+from geoh5py.objects import CellObject, Curve, Grid2D, Points
 from geoh5py.objects.grid_object import GridObject
 from matplotlib.tri import LinearTriInterpolator, Triangulation
 from scipy.interpolate import NearestNDInterpolator
 from scipy.spatial import cKDTree
+
+from geoapps_utils.utils.transformations import cartesian_to_spherical
 
 
 _logger = getLogger(__name__)
@@ -219,3 +221,37 @@ def get_overlapping_limits(size: int, width: int, overlap: float = 0.25) -> list
         limits = left_limits(n_tiles)
 
     return limits.tolist()
+
+
+def azimuth_dip_from_segments(curve: Curve) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Compute the local orientation of a Curve object at the vertices, in terms of azimuth and dip.
+
+    Azimuth angles are positive counter-clockwise, referenced from East.
+    Dip angles are positive downward, referenced from the horizontal plane.
+
+    :param curve: Curve entity to compute azimuth and dip.
+
+    :return: Arrays containing the azimuth and dip angles, in degrees.
+    """
+    delta = curve.vertices[curve.cells[:, 1]] - curve.vertices[curve.cells[:, 0]]
+
+    spherical = cartesian_to_spherical(delta)
+
+    # Convert angles convention
+    seg_azimuth = (450 - np.rad2deg(spherical[:, 1])) % 360
+    seg_dip = np.rad2deg(spherical[:, 2]) - 90
+
+    # Average at the node positions
+    azimuth, dip = (
+        np.full((curve.n_vertices, 2), np.nan),
+        np.full((curve.n_vertices, 2), np.nan),
+    )
+    for count, nodes in enumerate(curve.cells.T):
+        azimuth[nodes, count] = seg_azimuth
+        dip[nodes, count] = seg_dip
+
+    azimuth = np.nansum(azimuth, axis=1) / (~np.isnan(azimuth)).sum(axis=1)
+    dip = np.nansum(dip, axis=1) / (~np.isnan(dip)).sum(axis=1)
+
+    return azimuth, dip
