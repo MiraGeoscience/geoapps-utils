@@ -19,6 +19,7 @@ from geoh5py.objects import Points, Surface
 from geoapps_utils.utils.transformations import (
     azimuth_to_unit_vector,
     cartesian_normal_to_direction_and_dip,
+    cartesian_to_azimuth_dip,
     cartesian_to_polar,
     cartesian_to_spherical,
     compute_normals,
@@ -227,3 +228,22 @@ def test_cartesian_to_polar():
     np.testing.assert_allclose(
         polar[:, 1], 90 - np.rad2deg(azm) + 180
     )  # All other distances positive
+
+
+@pytest.mark.parametrize(
+    "vector,expected",
+    [
+        ((1, 0, 0), [90, 0]),
+        ((0, 1, 0), [0, 0]),
+        ((0, 0, 1), [90, -90]),
+        ((-1, 0, 0), [270, 0]),
+        ((-1, -1, 0), [225, 0]),
+        ((0.5, 0.5, -0.7071), [45, 45]),
+        ((-0.5, 0.5, -0.7071), [315, 45]),
+    ],
+)
+def test_cartesian_to_azimuth_dip(vector, expected):
+    vector = np.asarray(vector).reshape((1, 3))
+    azm_dip = cartesian_to_azimuth_dip(vector)
+    angles = np.rad2deg(azm_dip).flatten()
+    assert np.allclose(angles, np.r_[expected])
