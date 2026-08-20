@@ -209,13 +209,13 @@ def test_azimuth_dip_from_segments(tmp_path):
 
         curve = Curve.create(workspace, vertices=xyz)
 
-        azi, dip = azimuth_dip_from_segments(curve)
+        azi_dip = np.rad2deg(azimuth_dip_from_segments(curve))
 
         # For visual check in GA
         data = curve.add_data(
             {
-                "azimuth": {"values": azi},
-                "dip": {"values": dip},
+                "azimuth": {"values": azi_dip[:, 0]},
+                "dip": {"values": azi_dip[:, 1]},
             }
         )
         PropertyGroup(
@@ -225,4 +225,6 @@ def test_azimuth_dip_from_segments(tmp_path):
         # Check that angles are within expected ranges expect first and last point
         expected = (450 - np.rad2deg(theta) - 90) % 360
 
-        np.testing.assert_array_almost_equal(azi[1:-1], expected[1:-1], decimal=5)
+        np.testing.assert_array_almost_equal(
+            azi_dip[1:-1, 0], expected[1:-1], decimal=5
+        )

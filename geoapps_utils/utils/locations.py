@@ -22,7 +22,7 @@ from matplotlib.tri import LinearTriInterpolator, Triangulation
 from scipy.interpolate import NearestNDInterpolator
 from scipy.spatial import cKDTree
 
-from geoapps_utils.utils.transformations import cartesian_to_spherical
+from geoapps_utils.utils.transformations import cartesian_to_azimuth_dip
 
 
 _logger = getLogger(__name__)
@@ -227,20 +227,14 @@ def azimuth_dip_from_segments(curve: Curve) -> tuple[np.ndarray, np.ndarray]:
     """
     Compute the local orientation of a Curve object at the vertices, in terms of azimuth and dip.
 
-    Azimuth angles are positive counter-clockwise, referenced from East.
-    Dip angles are positive downward, referenced from the horizontal plane.
-
     :param curve: Curve entity to compute azimuth and dip.
 
-    :return: Arrays containing the azimuth and dip angles, in degrees.
+    :return: Arrays containing the azimuth anglesm, positive counter-clockwise from East
+        and dip angles, positive downward from the horizontal plane, in radian.
     """
     delta = curve.vertices[curve.cells[:, 1]] - curve.vertices[curve.cells[:, 0]]
 
-    spherical = cartesian_to_spherical(delta)
-
-    # Convert angles convention
-    seg_azimuth = (450 - np.rad2deg(spherical[:, 1])) % 360
-    seg_dip = np.rad2deg(spherical[:, 2]) - 90
+    seg_azm_dip = cartesian_to_azimuth_dip(delta)
 
     # Average at the node positions
     azimuth, dip = (
@@ -248,10 +242,10 @@ def azimuth_dip_from_segments(curve: Curve) -> tuple[np.ndarray, np.ndarray]:
         np.full((curve.n_vertices, 2), np.nan),
     )
     for count, nodes in enumerate(curve.cells.T):
-        azimuth[nodes, count] = seg_azimuth
-        dip[nodes, count] = seg_dip
+        azimuth[nodes, count] = seg_azm_dip[:, 0]
+        dip[nodes, count] = seg_azm_dip[:, 1]
 
     azimuth = np.nansum(azimuth, axis=1) / (~np.isnan(azimuth)).sum(axis=1)
     dip = np.nansum(dip, axis=1) / (~np.isnan(dip)).sum(axis=1)
 
-    return azimuth, dip
+    return np.c_[azimuth, dip]

@@ -130,6 +130,24 @@ def cartesian_to_spherical(points: np.ndarray) -> np.ndarray:
     return np.column_stack((magnitude, azimuth, inclination))
 
 
+def cartesian_to_azimuth_dip(vectors: np.ndarray) -> np.ndarray:
+    """
+    Convert vectors in cartesian coordinates to azimuth and dip in radian.
+
+    :param vectors: Array of shape (n, 3) representing x, y, z coordinates of a vector.
+
+    :return: Arrays of azimuth angles are measured in radians counterclockwise from north.
+        and dip angles are measured in radians positive downward from the horizontal plane.
+    """
+    spherical = cartesian_to_spherical(vectors)
+
+    # Convert angles convention
+    azimuth = ccw_east_to_cw_north(spherical[:, 1])
+    dip = spherical[:, 2] - np.pi / 2
+
+    return np.c_[azimuth, dip]
+
+
 def ccw_east_to_cw_north(azimuth: np.ndarray) -> np.ndarray:
     """
     Convert counterclockwise azimuth from east to clockwise from north.
