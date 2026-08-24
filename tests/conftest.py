@@ -1,5 +1,5 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-#  Copyright (c) 2022-2026 Mira Geoscience Ltd.                                     '
+#  Copyright (c) 2026 Mira Geoscience Ltd.                                          '
 #                                                                                   '
 #  This file is part of geoapps-utils package.                                      '
 #                                                                                   '
@@ -7,21 +7,21 @@
 #  (see LICENSE file at the root of this source code package).                      '
 #                                                                                   '
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-from __future__ import annotations
 
-import sys
-from copy import deepcopy
 from pathlib import Path
 from typing import ClassVar
+from uuid import UUID
 
+import pytest
+from geoh5py import Workspace
+from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import Points
-from geoh5py.ui_json.constants import default_ui_json as base_ui_json
+from geoh5py.ui_json import UIJson
 from pydantic import BaseModel, ConfigDict
 
 from geoapps_utils import assets_path
 from geoapps_utils.base import Options
 from geoapps_utils.driver.driver import BaseDriver
-from geoapps_utils.driver.params import BaseParams
 
 
 class NestedModel(BaseModel):
@@ -43,13 +43,6 @@ class TestOptions(Options):
     nested_model: NestedModel
 
 
-class TestParams(BaseParams):
-    _default_ui_json = deepcopy(base_ui_json)
-
-    def __init__(self, input_file=None, **kwargs):
-        super().__init__(input_file=input_file, **kwargs)
-
-
 class TestOptionsDriver(BaseDriver):
     _params_class = TestOptions
 
@@ -60,10 +53,8 @@ class TestOptionsDriver(BaseDriver):
         """
         Add a adata to the point to ensure something happens.
         """
-
         new_data = self.params.nested_model.client.vertices
         new_data = new_data.mean(axis=0)
-
         self.params.nested_model.client.add_data(
             {
                 "mean_xyz": {
@@ -72,18 +63,46 @@ class TestOptionsDriver(BaseDriver):
             }
         )
 
-        self.update_monitoring_directory(self.params.nested_model.client)
+        return self.params.nested_model.client
 
 
-class TestParamsDriver(BaseDriver):
-    _params_class = TestParams
+@pytest.fixture
+def uijson_path(tmp_path) -> Path:
+    with Workspace.create(tmp_path / "original.geoh5") as workspace:
+        points = Points.create(workspace)
 
-    def __init__(self, params: TestParams):
-        super().__init__(params)
+        out_group = UIJsonGroup.create(workspace, name="uijson_test")
+        ui_json = {
+            "version": "0.0.0",
+            "title": "test_title",
+            "conda_environment": "myenv",
+            "run_command": "tests.conftest",
+            "geoh5": workspace,
+            "monitoring_directory": None,
+            "workspace_geoh5": None,
+            "client": {
+                "meshType": [UUID("202c5db1-a56d-4004-9cad-baafd8899406")],
+                "main": True,
+                "label": "Destination",
+                "value": points,
+                "group": "Objects",
+            },
+            "out_group": {
+                "group": "Output preferences",
+                "label": "UIJson group",
+                "value": out_group,
+                "groupType": "{BB50AC61-A657-4926-9C82-067658E246A0}",
+                "visible": True,
+                "optional": True,
+                "enabled": True,
+            },
+        }
 
-    def run(self):
-        pass
+        out_group.options = ui_json
 
+        uijson_class = UIJson.infer(**ui_json)
+        uijson = uijson_class(**ui_json)
+        out_path = tmp_path / "original.ui.json"
+        uijson.write(out_path)
 
-if __name__ == "__main__":
-    TestOptionsDriver.start(sys.argv[1])
+    return out_path

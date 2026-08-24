@@ -17,6 +17,7 @@ from geoh5py.objects import Points
 from geoh5py.ui_json import InputFile
 from geoh5py.workspace import Workspace
 
+from geoapps_utils import assets_path
 from geoapps_utils.base import Driver, Options
 from geoapps_utils.param_sweeps.driver import SweepDriver, SweepParams
 from geoapps_utils.param_sweeps.generate import generate
@@ -25,18 +26,25 @@ from geoapps_utils.param_sweeps.generate import generate
 class TestDriver(Driver):
     _params_class = Options
 
-    def __init__(self, params: Options):
-        super().__init__(params)
-
     def run(self):
         pass
+
+
+class TestModel(Options):
+    """
+    Example of nested model
+    """
+
+    _name = "nested"
+    default_ui_json = assets_path() / "uijson/base.ui.json"
 
 
 def test_params(tmp_path: Path):
     file = tmp_path / f"{__name__}.ui.geoh5"
     workspace = Workspace.create(file)
-    options = Options(geoh5=workspace)
-    test = options.serialize()
+
+    options = TestModel(geoh5=workspace)
+    test = options.ui_json.serialize()
     test.update(
         {
             "param1_start": {"label": "param1 start", "value": 1},
@@ -76,8 +84,9 @@ def test_sweep(tmp_path: Path):  # pylint: disable=R0914
         locs = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]])
         pts = Points.create(workspace, name="data", vertices=locs)
         dat = pts.add_data({"initial": {"values": np.ones(4, dtype=np.int32)}})
-        options = Options(geoh5=workspace)
-        ui_json = options.serialize()
+
+        options = TestModel(geoh5=workspace)
+        ui_json = options.ui_json.serialize()
         ui_json.update(
             {
                 "run_command": "tests.param_sweeps.driver_test",
