@@ -223,16 +223,22 @@ def get_overlapping_limits(size: int, width: int, overlap: float = 0.25) -> list
     return limits.tolist()
 
 
-def azimuth_dip_from_segments(curve: Curve) -> tuple[np.ndarray, np.ndarray]:
+def azimuth_dip_from_segments(
+    curve: Curve, reverse=False
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Compute the local orientation of a Curve object at the vertices, in terms of azimuth and dip.
 
     :param curve: Curve entity to compute azimuth and dip.
+    :param reverse: Reverse the direction of the segments.
 
-    :return: Arrays containing the azimuth anglesm, positive counter-clockwise from East
+    :return: Arrays containing the azimuth angles, positive counter-clockwise from East
         and dip angles, positive downward from the horizontal plane, in radian.
     """
     delta = curve.vertices[curve.cells[:, 1]] - curve.vertices[curve.cells[:, 0]]
+
+    if reverse:
+        delta = -delta
 
     seg_azm_dip = cartesian_to_azimuth_dip(delta)
 
