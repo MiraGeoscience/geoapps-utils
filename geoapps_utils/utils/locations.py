@@ -251,7 +251,12 @@ def azimuth_dip_from_segments(
         azimuth[nodes, count] = seg_azm_dip[:, 0]
         dip[nodes, count] = seg_azm_dip[:, 1]
 
-    azimuth = np.nansum(azimuth, axis=1) / (~np.isnan(azimuth)).sum(axis=1)
+    # Deal with (-pi, pi) or (0, 2pi) transition
+    d_azm = np.diff(azimuth, axis=1) % (2 * np.pi)
+    direction = azimuth[:, 0] + d_azm.flatten() / 2.0
+    end_lines = np.where(np.isnan(azimuth).sum(axis=1))
+    direction[end_lines] = np.nansum(azimuth, axis=1)[end_lines]
+
     dip = np.nansum(dip, axis=1) / (~np.isnan(dip)).sum(axis=1)
 
-    return np.c_[azimuth, dip]
+    return np.c_[direction, dip]

@@ -228,3 +228,11 @@ def test_azimuth_dip_from_segments(tmp_path):
         np.testing.assert_array_almost_equal(
             azi_dip[1:-1, 0], expected[1:-1], decimal=5
         )
+
+        # Test reverse flag
+        azi_dip_reversed = np.rad2deg(azimuth_dip_from_segments(curve, reverse=True))
+
+        np.testing.assert_array_almost_equal(
+            (azi_dip_reversed[:, 0] + 180) % 360, azi_dip[:, 0]
+        )
+        np.testing.assert_array_almost_equal(-azi_dip_reversed[:, 1], azi_dip[:, 1])
