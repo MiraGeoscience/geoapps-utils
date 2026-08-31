@@ -20,9 +20,11 @@ import numpy as np
 import pytest
 from geoh5py import Workspace
 from geoh5py.data import FilenameData
+from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import Points
 from geoh5py.ui_json import InputFile, UIJson
 
+from geoapps_utils import assets_path
 from geoapps_utils.base import Options, get_logger
 from geoapps_utils.driver.data import BaseData
 from geoapps_utils.driver.driver import BaseDriver, Driver
@@ -199,3 +201,47 @@ def test_warning_options(tmp_path):
         GeoAppsError, match=r"The application needs a valid 'ui_json' file"
     ):
         TestOptions.build(ifile)
+
+
+def test_driver_start(tmp_path):
+    ws = Workspace.create(tmp_path / f"{__name__}.geoh5")
+    ws.close()
+
+    class SimpleOptions(Options):
+        default_ui_json: ClassVar[Path] = Path(assets_path() / "uijson/base.ui.json")
+
+    params = SimpleOptions(geoh5=ws)
+
+    class TestDriver(Driver):
+        _params_class = SimpleOptions
+
+        def run(self):
+            raise GeoAppsError("Always errors, no matter what")
+
+    with pytest.raises(SystemExit):
+        TestDriver.start(params.ui_json)
+
+    with pytest.raises(TypeError, match="Input file must be a path"):
+        TestDriver.start(123)  # type: ignore
+
+    class NewDriver(Driver):
+        _params_class = SimpleOptions
+
+        def run(self):
+            pts = Points.create(
+                self.workspace, vertices=np.random.randn(10, 3), name="output"
+            )
+            return [pts]
+
+    driver = NewDriver.start(params.ui_json)
+
+    with Workspace(tmp_path / f"{__name__}.geoh5") as ws:
+        pts = ws.get_entity("output")[0]
+        assert len(pts.children) == 1
+        assert pts.children[0].name == "base.ui.json"
+
+    with pytest.raises(TypeError, match="Output group must be a UIJsonGroup"):
+        driver.validate_out_group("not a UIJsonGroup")  # type: ignore
+
+    out_group = driver.validate_out_group(None)
+    assert isinstance(out_group, UIJsonGroup)
