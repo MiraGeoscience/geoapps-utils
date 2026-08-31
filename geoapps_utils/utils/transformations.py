@@ -136,8 +136,8 @@ def cartesian_to_azimuth_dip(vectors: np.ndarray) -> np.ndarray:
 
     :param vectors: Array of shape (n, 3) representing x, y, z coordinates of a vector.
 
-    :return: Arrays of azimuth angles are measured in radians counterclockwise from north.
-        and dip angles are measured in radians positive downward from the horizontal plane.
+    :return: Arrays of azimuth angles measured in radians clockwise from north
+        and dip angles measured in radians positive downward from the horizontal plane.
     """
     spherical = cartesian_to_spherical(vectors)
 
