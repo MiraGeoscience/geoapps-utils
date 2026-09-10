@@ -16,11 +16,13 @@ from uuid import UUID
 import numpy as np
 from geoh5py import Workspace
 from geoh5py.data import Data
-from geoh5py.objects import CellObject, Grid2D, Points
+from geoh5py.objects import CellObject, Curve, Grid2D, Points
 from geoh5py.objects.grid_object import GridObject
 from matplotlib.tri import LinearTriInterpolator, Triangulation
 from scipy.interpolate import NearestNDInterpolator
 from scipy.spatial import cKDTree
+
+from geoapps_utils.utils.transformations import cartesian_to_azimuth_dip
 
 
 _logger = getLogger(__name__)
@@ -219,3 +221,40 @@ def get_overlapping_limits(size: int, width: int, overlap: float = 0.25) -> list
         limits = left_limits(n_tiles)
 
     return limits.tolist()
+
+
+def azimuth_dip_from_segments(curve: Curve, reverse=False) -> np.ndarray:
+    """
+    Compute the local orientation of a Curve object at the vertices, in terms of azimuth and dip.
+
+    :param curve: Curve entity to compute azimuth and dip.
+    :param reverse: Reverse the direction of the segments.
+
+    :return: Arrays containing the azimuth angles, positive clockwise from north
+        and dip angles, positive downward from the horizontal plane, in radian.
+    """
+    delta = curve.vertices[curve.cells[:, 1]] - curve.vertices[curve.cells[:, 0]]
+
+    if reverse:
+        delta = -delta
+
+    seg_azm_dip = cartesian_to_azimuth_dip(delta)
+
+    # Average at the node positions
+    azimuth, dip = (
+        np.full((curve.n_vertices, 2), np.nan),
+        np.full((curve.n_vertices, 2), np.nan),
+    )
+    for count, nodes in enumerate(curve.cells.T):
+        azimuth[nodes, count] = seg_azm_dip[:, 0]
+        dip[nodes, count] = seg_azm_dip[:, 1]
+
+    # Deal with (-pi, pi) or (0, 2pi) transition
+    d_azm = np.diff(azimuth, axis=1) % (2 * np.pi)
+    direction = azimuth[:, 0] + d_azm.flatten() / 2.0
+    end_lines = np.where(np.isnan(azimuth).sum(axis=1))
+    direction[end_lines] = np.nansum(azimuth, axis=1)[end_lines]
+
+    dip = np.nansum(dip, axis=1) / (~np.isnan(dip)).sum(axis=1)
+
+    return np.c_[direction, dip]

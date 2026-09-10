@@ -16,10 +16,12 @@ from time import time
 import numpy as np
 import pytest
 from geoh5py import Workspace
+from geoh5py.groups import PropertyGroup
 from geoh5py.objects import Curve, Grid2D, Points
 from scipy.spatial import Delaunay
 
 from geoapps_utils.utils.locations import (
+    azimuth_dip_from_segments,
     gaussian,
     get_locations,
     get_overlapping_limits,
@@ -194,3 +196,43 @@ def test_overlapping_limits():
     limits = get_overlapping_limits(width * 4, width, overlap=overlap)
 
     assert limits[0][1] == limits[1][0]
+
+
+def test_azimuth_dip_from_segments(tmp_path):
+    with Workspace.create(tmp_path / f"{__name__}.geoh5") as workspace:
+        n = 30
+        theta = np.linspace(0, np.pi * 2, n)
+
+        x, y = np.cos(theta), np.sin(theta)
+        z = np.sin(theta)
+        xyz = np.c_[x.ravel(), y.ravel(), z.ravel()]  # Form a 2D array
+
+        curve = Curve.create(workspace, vertices=xyz)
+
+        azi_dip = np.rad2deg(azimuth_dip_from_segments(curve))
+
+        # For visual check in GA
+        data = curve.add_data(
+            {
+                "azimuth": {"values": azi_dip[:, 0]},
+                "dip": {"values": azi_dip[:, 1]},
+            }
+        )
+        PropertyGroup(
+            parent=curve, property_group_type="Dip direction & dip", properties=data
+        )
+
+        # Check that angles are within expected ranges expect first and last point
+        expected = (450 - np.rad2deg(theta) - 90) % 360
+
+        np.testing.assert_array_almost_equal(
+            azi_dip[1:-1, 0], expected[1:-1], decimal=5
+        )
+
+        # Test reverse flag
+        azi_dip_reversed = np.rad2deg(azimuth_dip_from_segments(curve, reverse=True))
+
+        np.testing.assert_array_almost_equal(
+            (azi_dip_reversed[:, 0] + 180) % 360, azi_dip[:, 0]
+        )
+        np.testing.assert_array_almost_equal(-azi_dip_reversed[:, 1], azi_dip[:, 1])

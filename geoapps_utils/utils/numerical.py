@@ -130,7 +130,7 @@ def weighted_average(
     avg_values = []
     for value in values:
         sub = ~np.isnan(value)
-        rad, ind = cKDTree(xyz_in[sub]).query(xyz_out, n)
+        rad, ind = cKDTree(xyz_in[sub]).query(xyz_out, n, workers=-1)
 
         if n == 1:
             ind = ind[:, np.newaxis]
