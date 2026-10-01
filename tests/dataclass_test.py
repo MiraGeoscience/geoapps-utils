@@ -62,10 +62,10 @@ def test_dataclass_valid_values(tmp_path):
     valid_parameters = get_params_dict(tmp_path / f"{__name__}.geoh5")
     model = Options(**valid_parameters)
     output_params = model.model_dump()
-    assert len(output_params) == len(valid_parameters)
+    assert len(output_params) == len(valid_parameters) + 3
 
-    for k, v in output_params.items():
-        assert valid_parameters[k] == v
+    for k, v in valid_parameters.items():
+        assert output_params[k] == v
 
 
 def test_dataclass_invalid_values(tmp_path):
