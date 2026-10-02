@@ -14,7 +14,7 @@ import re
 from uuid import UUID
 
 from geoh5py.data import FloatData, IntegerData
-from geoh5py.shared import Entity
+from geoh5py.shared.entity import Entity
 from geoh5py.workspace import Workspace
 
 from geoapps_utils.utils.conversions import string_to_numeric
