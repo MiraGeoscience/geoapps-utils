@@ -244,6 +244,12 @@ class Options(BaseModel):
     geoh5: Workspace
     monitoring_directory: str | Path | None = None
     out_group: UIJsonGroup | None = None
+    version: str | None = "0.0.0"
+    icon: str | None = ""
+    documentation: str | None = (
+        "https://mirageoscience-geoh5py.readthedocs-hosted.com/en/latest/"
+        + "content/uijson_format/index.html"
+    )
 
     _ui_json_class: ClassVar[type[UIJson]] = UIJson
 
