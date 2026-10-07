@@ -13,7 +13,7 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from geoh5py.shared import Entity
+from geoh5py.shared.entity import Entity
 from geoh5py.workspace import Workspace
 
 
