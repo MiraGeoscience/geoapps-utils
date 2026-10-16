@@ -22,7 +22,7 @@ repos:
     -   id: pycln
         args: [--config=pyproject.toml]
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.10
+    rev: v0.17.0
     hooks:
     -   id: ruff-check
         args:
@@ -43,7 +43,7 @@ repos:
         ]
         exclude: ^(docs|geoapps_utils-assets)/
 -   repo: https://github.com/codingjoe/relint
-    rev: 3.5.0
+    rev: 3.6.1
     hooks:
     -   id: relint
         args: [-W]  # to fail on warnings
