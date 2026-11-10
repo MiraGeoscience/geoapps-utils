@@ -9,9 +9,11 @@
 # '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 from __future__ import annotations
 
+import importlib
 import sys
 import warnings
 from abc import ABC, abstractmethod
+from importlib.metadata import PackageNotFoundError
 from pathlib import Path
 from typing import Any, ClassVar, Self
 
@@ -20,13 +22,14 @@ from geoh5py.groups import UIJsonGroup
 from geoh5py.shared.entity_container import EntityContainer
 from geoh5py.ui_json import InputFile, UIJson, monitored_directory_copy
 from geoh5py.ui_json.utils import fetch_active_workspace
-from pydantic import BaseModel, ConfigDict, ValidationError
+from packaging.version import Version
+from pydantic import BaseModel, ConfigDict, ValidationError, field_validator
 
 from geoapps_utils.utils.importing import GeoAppsError
 from geoapps_utils.utils.logger import get_logger
 
 
-logger = get_logger(name=__name__, level_name=False, propagate=False, add_name=False)
+logger = get_logger(name=__name__, level_name=False, add_name=False)
 
 
 def input_file_deprecation_warning(input_file: InputFile) -> UIJson:
@@ -427,3 +430,71 @@ class Options(BaseModel):
                 values[key] = val
 
         return values
+
+    @field_validator("version", mode="before")
+    @classmethod
+    def verify_and_update_version(cls, value: str) -> str:
+        """
+        Read the current package version and compare it to the provided version.
+
+        Warnings are issued if the versions do not match.
+
+        :param value: Version string from the ui.json file.
+        :return: Validated version string.
+        """
+        package_name = cls.__module__.rpartition(".")[0]
+
+        try:
+            public_version = Version(importlib.metadata.version(package_name)).public
+        except PackageNotFoundError:
+            return value
+
+        package_version = cls.comparable_version(public_version)
+        input_version = cls.comparable_version(value)
+
+        if (
+            package_version == "0.0.0" or input_version == "0.0.0"
+        ):  # dynamic version did not get generated
+            return value
+
+        if input_version != package_version:
+            logger.warning(
+                "Provided ui.json file version '%s' does not match the current "
+                "'%s' version '%s'. This may lead to unpredictable behavior.",
+                value,
+                package_name,
+                public_version,
+            )
+        return value
+
+    @staticmethod
+    def comparable_version(value: str) -> str:
+        """
+        Normalize the version string for comparison.
+
+        Remove the dev and post-release information, or the pre-release information
+        if it is an rc version.
+
+        Examples:
+            * for version "0.2.0.post1", return "0.2.0"
+            * for version "0.2.0.dev1", return "0.2.0"
+            * for version "0.2.0a1.dev1", return "0.2.0a1"
+            * for version "0.2.0a1", return "0.2.0a1" (unchanged)
+            * for version "0.2.0rc1", return "0.2.0"
+            * for version "0.2.0+local", return "0.2.0"
+
+        :param value: Version value to normalize
+        :return: Equivalent public version.
+        """
+        version = Version(value)
+
+        # Extract the base version (major.minor.patch)
+        base_version = version.base_version
+
+        # If it's not an RC, keep any pre-release info (alpha/beta)
+        if version.pre is not None and version.pre[0] != "rc":  # pylint: disable=unsubscriptable-object
+            # Recreate version with pre-release but no post or local
+            return f"{base_version}{version.pre[0]}{version.pre[1]}"
+
+        # No pre-release info or it's an RC, return just the base version
+        return base_version
