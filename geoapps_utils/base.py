@@ -444,7 +444,7 @@ class Options(BaseModel):
         """
         if value is None:
             return value
-        package_name = cls.__module__.rpartition(".")[0]
+        package_name = cls.__module__.partition(".")[0]
 
         try:
             public_version = Version(importlib.metadata.version(package_name)).public
