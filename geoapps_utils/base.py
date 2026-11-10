@@ -433,7 +433,7 @@ class Options(BaseModel):
 
     @field_validator("version", mode="before")
     @classmethod
-    def verify_and_update_version(cls, value: str) -> str:
+    def verify_and_update_version(cls, value: str | None) -> str | None:
         """
         Read the current package version and compare it to the provided version.
 
@@ -442,6 +442,8 @@ class Options(BaseModel):
         :param value: Version string from the ui.json file.
         :return: Validated version string.
         """
+        if value is None:
+            return value
         package_name = cls.__module__.rpartition(".")[0]
 
         try:
