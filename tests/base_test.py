@@ -96,7 +96,7 @@ def test_base_options(tmp_path):
         )
         assert file_data.name == "base.ui.json"
 
-        json_dict = json.loads(file_data.file_bytes.decode())
+        json_dict = json.loads(next(iter(file_data.file_bytes.values())).decode())
         uijson = UIJson.from_dict(json_dict)
         assert uijson.client.value == pts.uid  # type: ignore[attr-defined]
 
