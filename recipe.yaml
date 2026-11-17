@@ -32,7 +32,7 @@ requirements:
   run:
     - python >=${{ python_min }}
     # Mira packages
-    - geoh5py >=0.13.0b1, <0.15.0a.dev
+    - geoh5py >=0.14.0a, 0.14.*
     # direct dependencies
     - pillow >=13.0.0, 13.*
     - numpy >=2.4.2, 2.4.*
