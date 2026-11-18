@@ -21,7 +21,16 @@ license-files = [
     "LICENSE",
     "THIRD_PARTY_SOFTWARE.rst",
 ]
-keywords = ["geology", "geophysics", "data", "interoperability"]
+keywords = [
+    "data",
+    "earth-science",
+    "geoh5",
+    "geology",
+    "geophysics",
+    "interoperability",
+    "mining",
+    "open-science",
+]
 readme = "package.rst"
 dynamic = ["version", "classifiers"]
 authors = [{name = "Mira Geoscience", email = "support@mirageoscience.com"}]
