@@ -6,7 +6,7 @@ supported by `Mira Geoscience <https://www.mirageoscience.com/mining-industry-so
 
 Installation
 ^^^^^^^^^^^^
-**geoapps-utils** is currently written for Python 3.10 or higher.
+**geoapps-utils** supports Python 3.12, 3.13, and 3.14.
 
 Install **geoapps-utils** from PyPI::
 
