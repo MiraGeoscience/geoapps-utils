@@ -51,12 +51,9 @@ tests:
     requirements:
       run:
         - pytest
-        - packaging
     files:
       source:
         - tests/
-        - devtools/__init__.py
-        - devtools/validate_pixi.py
   - package_contents:
       files:
         - site-packages/${{ module_name }}/_version.py

@@ -108,9 +108,10 @@ Run ``prek run`` to check only staged files.
 Tests and coverage
 ^^^^^^^^^^^^^^^^^^
 
-Tests are in ``tests``; test filenames end with ``_test.py`` and test functions
-start with ``test_``. The ``test`` task runs pytest with coverage and writes
-``coverage.xml``. For an HTML coverage report::
+Package tests are in ``tests``; development-tool tests are in ``devtools/tests``
+and are not included in the Conda recipe. Test filenames end with ``_test.py``
+and test functions start with ``test_``. The ``test`` task runs pytest with
+coverage and writes ``coverage.xml``. For an HTML coverage report::
 
     $ pixi run --frozen install
     $ pixi run --frozen pytest --cov --cov-report=html tests
