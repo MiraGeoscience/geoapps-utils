@@ -55,13 +55,12 @@ pytest-cov = "*"
 pyyaml = "*"
 
 [feature.test.tasks]
-test = { cmd = "pytest --cov --cov-report=xml", depends-on = ["install"], description = "Install the local package without changing locked dependencies and run tests" }
+test = { cmd = "pytest --cov --cov-report=xml", description = "Run tests directly from the source checkout with coverage" }
 
 [feature.test.tasks.test-local]
 description = "Run tests with editable dependencies from sibling checkouts"
 args = [{ arg = "packages", default = "geoh5py" }]
 depends-on = [
-    { task = "install" },
     { task = "use-local-deps", args = ["{{ packages }}"] },
 ]
 cmd = "uv pip show --python \"$CONDA_PREFIX\" {{ packages }} && pytest --cov --cov-report=xml"
@@ -70,11 +69,11 @@ cmd = "uv pip show --python \"$CONDA_PREFIX\" {{ packages }} && pytest --cov --c
 pylint = ">=4.0.9,<5"
 
 [feature.lint.tasks]
-lint = { cmd = "pylint", depends-on = ["install"], description = "Run pylint on the installed local package" }
+lint = { cmd = "pylint", description = "Run pylint on the local sources" }
 
 [tasks]
-install = { cmd = "uv pip install --python \"$CONDA_PREFIX\" --no-deps --editable . && uv pip check --python \"$CONDA_PREFIX\"", description = "Install the local package without including its dynamic version in pixi.lock and verify installed requirements" }
-test-pyvers = { cmd = "pixi run --frozen -e py312 test && pixi run --frozen -e py313 test && pixi run --frozen -e py314 test", description = "Install and test the local package separately in every Python environment" }
+install = { cmd = "uv pip install --python \"$CONDA_PREFIX\" --no-deps --editable . && uv pip check --python \"$CONDA_PREFIX\"", description = "Install the local package in editable mode without changing locked dependencies, then check compatibility" }
+test-pyvers = { cmd = "pixi run --frozen -e py312 test && pixi run --frozen -e py313 test && pixi run --frozen -e py314 test", description = "Run tests across all supported Python versions" }
 
 [tasks.show-pip-source]
 description = "Display installed package metadata and source"

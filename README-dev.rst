@@ -12,8 +12,10 @@ Install `Pixi`_ **0.67.2**, clone the Git repository, then run::
     $ pixi run --frozen test
 
 Pixi installs the locked development dependencies in ``.pixi/envs/default``.
-The local package is installed in editable mode, without resolving or replacing
-its runtime dependencies. The Poetry build backend and its requirements are
+The explicit ``install`` task installs the local package in editable mode,
+without resolving or replacing its runtime dependencies.
+Tests and linting use the source checkout directly and do not require this step.
+The Poetry build backend and its requirements are
 resolved in an isolated build environment using ``pyproject.toml``.
 The local package's dynamic version is deliberately excluded from ``pixi.lock``
 so commits and tags do not invalidate the dependency lock.
@@ -61,6 +63,7 @@ After changing constraints, regenerate and validate the lock::
 
     $ pixi lock
     $ pixi lock --check
+    $ pixi run --frozen install
     $ pixi run --frozen test-pyvers
 
 To update packages within existing constraints, use ``pixi update`` instead.
@@ -68,8 +71,9 @@ Commit both the manifest changes and ``pixi.lock``.
 
 The ``install`` task validates the actual installed requirements with
 ``uv pip check`` after installing the local project with ``--no-deps``.
-The ``test`` and ``lint`` tasks depend on ``install``, so this check runs in
-each installed test environment before testing or linting. CI exercises
+It is a separate setup/validation step, not a dependency of ``test``,
+``test-local`` or ``lint``. CI runs it explicitly before testing in each
+test environment. CI exercises
 Python 3.12-3.14 on both Windows and Linux; it does not install every
 runtime-only environment just to validate it.
 

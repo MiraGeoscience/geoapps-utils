@@ -48,6 +48,8 @@ jobs:
           cache: true
       - name: Check lock freshness
         run: pixi lock --check
+      - name: Install local package and check dependency compatibility
+        run: pixi run --frozen -e ${{ matrix.environment }} install
       - name: Run tests
         run: pixi run --frozen -e ${{ matrix.environment }} test
       - name: Static analysis
