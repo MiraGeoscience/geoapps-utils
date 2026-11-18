@@ -52,31 +52,19 @@ used by Python applications supported by `Mira Geoscience <https://www.mirageosc
 
 Installation
 ^^^^^^^^^^^^
-**geoapps-utils** is currently written for Python 3.10 or higher.
+**geoapps-utils** supports Python 3.12, 3.13 and 3.14.
 
-Install Conda
--------------
+Install with Pixi
+-----------------
 
-To install **geoapps-utils**, you need to install **Conda** first.
+Install `Pixi <https://pixi.sh/>`_ **0.84.2** and clone this repository.
+From the repository root, install the locked runtime and the local package::
 
-We recommend to install **Conda** using `miniforge`_.
+    pixi lock --check
+    pixi run --frozen -e runtime install
 
-.. _miniforge: https://github.com/conda-forge/miniforge
-
-Within a conda environment
---------------------------
-
-You can install (or update) a conda environment with all the requires packages to run **geoapps-utils**.
-To do so you can directly run the **Install_or_Update.bat** file by double left clicking on it.
-
-Install with conda
-------------------
-
-You can install the package using ``conda`` and the ``.lock`` files from a conda prompt:
-
-.. code-block:: bash
-
-  conda env create -n my-env -f environments/[the_desired_env].lock.yml
+Run commands in that environment with ``pixi run --frozen -e runtime COMMAND``.
+For development and tests, see `README-dev.rst`_.
 
 Install with PyPI
 -----------------
@@ -120,13 +108,13 @@ you can install **geoapps-utils** from the local copy of the sources with:
 
 .. code-block:: bash
 
-    pip install -U --force-reinstall path/to/project_folder_with_pyproject_toml
+    pip install -U --no-deps --force-reinstall path/to/project_folder_with_pyproject_toml
 
 Or in **editable mode**, so that you can edit the sources and see the effect immediately at runtime:
 
 .. code-block:: bash
 
-    pip install -e -U --force-reinstall path/to/project_folder_with_pyproject_toml
+    pip install -U --no-deps --force-reinstall -e path/to/project_folder_with_pyproject_toml
 
 Setup for development
 ^^^^^^^^^^^^^^^^^^^^^

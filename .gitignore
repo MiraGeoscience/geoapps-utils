@@ -8,6 +8,8 @@ __pycache__/
 *.so
 
 .conda-env/
+.pixi/*
+!.pixi/config.toml
 
 # Distribution / packaging
 .Python
