@@ -1,6 +1,6 @@
 [workspace]
 name = "geoapps-utils"
-requires-pixi = "==0.67.2"
+requires-pixi = "==0.84.2"
 channels = ["https://repo.prefix.dev/conda-forge"]
 platforms = ["win-64", "linux-64"]
 

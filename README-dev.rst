@@ -5,7 +5,7 @@ Setup for development
    :local:
    :depth: 2
 
-Install `Pixi`_ **0.67.2**, clone the Git repository, then run::
+Install `Pixi`_ **0.84.2**, clone the Git repository, then run::
 
     $ pixi lock --check
     $ pixi run --frozen install
@@ -19,6 +19,9 @@ The Poetry build backend and its requirements are
 resolved in an isolated build environment using ``pyproject.toml``.
 The local package's dynamic version is deliberately excluded from ``pixi.lock``
 so commits and tags do not invalidate the dependency lock.
+
+Use the pinned Pixi version locally and in CI: older releases may not support
+the lock format or compute the same lock hashes.
 
 .. _Pixi: https://pixi.sh/
 .. _prek: https://prek.j178.dev/

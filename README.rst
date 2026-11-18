@@ -57,7 +57,7 @@ Installation
 Install with Pixi
 -----------------
 
-Install `Pixi <https://pixi.sh/>`_ **0.67.2** and clone this repository.
+Install `Pixi <https://pixi.sh/>`_ **0.84.2** and clone this repository.
 From the repository root, install the locked runtime and the local package::
 
     pixi lock --check
