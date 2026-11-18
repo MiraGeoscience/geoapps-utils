@@ -1,4 +1,3 @@
-
 Setup for development
 =====================
 
@@ -6,332 +5,134 @@ Setup for development
    :local:
    :depth: 2
 
-After you have cloned the Git repository, you will need to:
+Install `Pixi`_ **0.67.2**, clone the Git repository, then run::
 
-#. create the Conda environment lock files for the dependencies
-#. create a virtual Conda environment for development, where to install the
-   dependencies of the project
-#. execute the tests
-#. setup Git LFS if needed
-#. configure the pre-commit hooks for static code analysis and auto-formatting
-#. configure the Python IDE (PyCharm)
+    $ pixi lock --check
+    $ pixi run --frozen install
+    $ pixi run --frozen test
 
+Pixi installs the locked development dependencies in ``.pixi/envs/default``.
+The local package is installed in editable mode, without resolving or replacing
+its dependencies. Build isolation is disabled: the build backend is also locked
+by Pixi. Its dynamic version is deliberately excluded from ``pixi.lock``
+so commits and tags do not invalidate the dependency lock.
 
-.. _conda-lock: https://conda.github.io/conda-lock/
+.. _Pixi: https://pixi.sh/
+.. _prek: https://prek.j178.dev/
 .. _Poetry: https://python-poetry.org/
-.. _pipx: https://pipxproject.github.io/pipx/
-.. _pre-commit: https://pre-commit.com/
-.. _py-deps-lock: https://github.com/MiraGeoscience/py-deps-lock
 
+Environments and tasks
+^^^^^^^^^^^^^^^^^^^^^^
 
-Create the Conda lock files and environment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``pixi.toml`` defines Python 3.12, 3.13 and 3.14 environments for Windows and Linux.
+``default`` includes the Python 3.12 test, lint and interactive development tools.
+``py312``, ``py313`` and ``py314`` are the test environments used by CI.
+``runtime``, ``runtime-py313`` and ``runtime-py314`` omit the development tools
+and share their dependency versions with the corresponding test environments.
 
-Install internal tool ``py-deps-lock`` to create the Conda environment lock files,
-and the local development environment. ``py-deps-lock`` is a wrapper around `conda-lock`_.
+Scientific dependencies and indirect dependencies such as ``defusedxml`` come
+from Conda. The published ``geoh5py`` prerelease comes from PyPI.
 
-See details in the `py-deps-lock`_ documentation.
+Run a task in a particular environment with ``-e``::
 
-To install ``py-deps-lock`` with `pipx`_, run the command::
+    $ pixi run --frozen -e py314 test
+    $ pixi run --frozen lint geoapps_utils tests
+    $ pixi run --frozen repl
 
-    $ pipx install git+https://github.com/MiraGeoscience/py-deps-lock
+To run tests across all supported Python versions::
 
+    $ pixi run --frozen test-pyvers
 
-This expose commands to the execution ``PATH``:
+To enter an interactive development shell::
 
-- create-dev-env
-- deps-lock
-
-
-Create the Conda environment lock files
----------------------------------------
-First, create the Conda environment lock files (``*.conda.lock.yml``) for the dependencies defined
-in `pyproject.toml`_. From the root of the project, run the command::
-
-    $ deps-lock
-
-It will create or replace the ``*.conda.lock.yml`` files in the ``environments`` folder:
-one for runtime dependencies, and one for development dependencies (with the ``-dev`` suffix),
-for each combinations of Python versions and platforms
-(platforms are specified in ``conda-lock`` section of the ``pyproject.toml``).
-
-These files will be used by installation script and to create the development environment.
-
-
-Install the Conda environment
------------------------------
-
-For development, you need a **Conda** environment. From the root of the project, run the command::
-
-    $ create-dev-env
-
-This command install a local environment at the base of your repository: ``.conda-env``.
-This environment should automatically be recognized by the Conda installation.
-
-To activate this environment, run the following command from the root of the project::
-
-    $ conda activate ./.conda-env
-
+    $ pixi shell --frozen
 
 Updating dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
-Dependencies are listed in `pyproject.toml`_ with version constraints.
-Versions are then locked using ``deps-lock`` as previously described.
+Runtime package requirements are defined in ``[project.dependencies]`` in
+``pyproject.toml``. Development requirements use PEP 735 dependency groups.
+Match those constraints in the appropriate dependencies/features of ``pixi.toml``.
+Indirect dependencies which must be supplied by Conda belong in ``pixi.toml``,
+not in the package's published requirements.
 
-Anytime dependencies are added to or removed from the ``pyproject.toml`` file,
-regenerate the Conda environment lock files, re-running ``deps-lock`` from command line.
+After changing constraints, regenerate and validate the lock::
 
-Regenerate the Conda environment lock files as well when you want to fetch newly
-available versions of the dependencies (typically patches, still in accordance with
-the specifications expressed in ``pyproject.toml``).
+    $ pixi lock
+    $ pixi lock --check
+    $ pixi run --frozen validate-deps
+    $ pixi run --frozen test-pyvers
 
+To update packages within existing constraints, use ``pixi update`` instead.
+Commit both the manifest changes and ``pixi.lock``.
 
-Adding a dependency
--------------------
-First install the dependency using ``conda``:
+``validate-deps`` checks the locked versions against the project's Python,
+runtime, build and applicable development requirements in every environment/platform
+pair. It uses ``pixi info --json`` and ``pixi list --frozen --no-install --json``:
+it does not install all environments. It also checks that Conda dependencies
+remain Conda packages and that the local project is absent from the lock.
+The ``install`` task separately validates the actual installed requirements
+with ``uv pip check`` after installing the local project with ``--no-deps``.
 
-    $ conda install -p ./.conda-env my_new_dep
+The project still uses `Poetry`_ and poetry-dynamic-versioning as its build
+backend, but Pixi manages development dependencies. Do not generate a
+``poetry.lock`` or use Poetry to install the development environment.
 
-Then update the list of dependencies in `pyproject.toml`_ with a suited version constraint
-(if for development only, place it under section ``[tool.poetry.group.dev.dependencies]``).
+Testing local dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For example, if ``conda`` installed version 1.5.2 of ``my_new_dep``,
-then add ``my_new_dep="^1.5.2"``.
+The tasks adapted from ``DEVOPS-693`` support testing sibling checkouts::
 
-Do not forget to regenerate the Conda environment lock files.
+    $ pixi run --frozen test-local
+    $ pixi run --frozen test-local "geoh5py"
+    $ pixi run --frozen show-pip-source geoh5py
 
+``test-local`` installs the specified sibling directories in editable mode
+with ``--no-deps`` and checks installed requirements before running pytest.
+This intentionally changes the installed packages without changing the lock.
+Run ``pixi reinstall --frozen -e default geoh5py`` to restore the locked dependency.
 
-How to use **Poetry** to update the dependency list (optional)
---------------------------------------------------------------
-`Poetry`_ provides a command line interface to easily add or remove dependencies:
+Configure Git hooks
+^^^^^^^^^^^^^^^^^^^
 
-    (path/to/.conda-env) $ poetry add another_package --lock
+Install `prek`_ and configure the existing ``.pre-commit-config.yaml`` hooks::
 
-Note the ``--lock`` option, that simple creates or updates the lock file, without Poetry installing anything.
-``poetry`` would install the package through ``pip`` while we want dependencies to be installed through ``conda``
-so that they match the version pinned by ``conda-lock``.
+    $ prek install
+    $ prek install -t prepare-commit-msg -t commit-msg
+    $ prek run --all-files
 
-One limitation though: Poetry will look for packages in PiPY only and not in the Conda channels.
-The version selected by Poetry might thus not be available for Conda.
+The commit-message hooks check the JIRA issue ID against the branch name.
+The pylint hook runs in the frozen Pixi environment.
+Run ``prek run`` to check only staged files.
 
-To install ``Poetry`` on your computer, refer to the `Poetry`_ documentation.
+Tests and coverage
+^^^^^^^^^^^^^^^^^^
 
+Tests are in ``tests``; test filenames end with ``_test.py`` and test functions
+start with ``test_``. The ``test`` task runs pytest with coverage and writes
+``coverage.xml``. For an HTML coverage report::
 
-Configure the pre-commit hooks
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $ pixi run --frozen install
+    $ pixi run --frozen pytest --cov --cov-report=html tests
 
-`pre-commit`_ is used to automatically run static code analysis upon commit.
-The list of tools to execute upon commit is configured in the file `.pre-commit-config.yaml`_.
-
-pre-commit can be installed using a Python installation on the system, or one from a Conda environment,
-or through `pipx`_.
-
-- To install ``pre-commit`` using ``pipx`` (recommended)::
-
-    $ pipx install pre-commit
-
-- To install ``pre-commit`` using Python (and pip) in your system path::
-
-    $ pip install --user pre-commit
-
-- Or to install from an activated Conda environment::
-
-    $ conda install -c conda-forge pre-commit
-
-Then, in either way, install the pre-commit hooks as follow (**current directory is the project folder**)::
-
-    $ pre-commit install
-
-To prepare and check the commit messages, you can also use the following commands::
-
-    $ pre-commit install -t prepare-commit-msg -t commit-msg
-
-It configures ``pre-commit`` to prepares and checks the commit ensuring it has a JIRA issue ID:
-if no ID was provided, it extracts it from the branch name;
-if one was provided, it checks it is the same one as in the branch name.
-
-To run pre-commit manually, use the following command::
-
-    $ pre-commit run --all-files
-
-To run only on changes staged for commit::
-
-    $ pre-commit run
-
-If a tool fails running, it might be caused by an obsolete versions of the tools that pre-commit is
-trying to execute. Try the following command to update them::
-
-    $ pre-commit autoupdate
-
-Upon every commit, all the pre-commit checks run automatically for you, and reformat files when required. Enjoy...
-
-If you prefer to run pre-commit upon push, and not upon every commit, use the following commands::
-
-    $ pre-commit uninstall -t pre-commit
-    $ pre-commit install -t pre-push
-
-
-Running the tests
-^^^^^^^^^^^^^^^^^
-
-Test files are placed under the ``tests`` folder. Inside this folder and sub-folders,
-Python test files are to be named with ``_test.py`` as a suffix.
-The test function within this files must have a ``test_`` prefix.
-
-
-Install pytest
---------------
-.. _pytest: https://docs.pytest.org/
-
-If you installed  your environment through ``setup-dev.bat``, pytest is already installed.
-You can run it from the Conda command (**in your project folder**)::
-
-    $ pytest tests
-
-
-Code coverage with Pytest
--------------------------
-.. _pytest-cov: https://pypi.org/project/pytest-cov/
-
-If you installed  your environment through ``setup-dev.bat``, `pytest-cov`_ is already installed.
-It allows you to visualize the code coverage of your tests.
-You can run the tests from the console with coverage::
-
-    $ pytest --cov-report html tests
-
-The html report is generated in the folder ``htmlcov`` at the root of the project.
-You can then explore the report by opening ``index.html`` in a browser.
-
+Open ``htmlcov/index.html`` to view the report.
 
 Git LFS
 ^^^^^^^
-In the case your package requires large files, `git-lfs`_ can be used to store those files.
-Copy it from the `git-lfs`_ website, and install it.
 
-Then, in the project folder, run the following command to install git-lfs::
+If large files are needed, install `Git LFS`_ and run ``git lfs install``.
+Add tracking patterns with ``git lfs track`` and commit ``.gitattributes``
+along with the files.
 
-    $ git lfs install
+.. _Git LFS: https://git-lfs.com/
 
+IDE: PyCharm
+^^^^^^^^^^^^
 
-It will update the file ``.gitattributes`` with the list of files to track.
-
-Then, add the files and the ``.gitattributes`` to the git repository, and commit.
-
-.. _git-lfs: https://git-lfs.com/
-
-Then, add the files to track with git-lfs::
-
-    $ git lfs track "*.desire_extension"
-
-
-IDE : PyCharm
-^^^^^^^^^^^^^
-`PyCharm`_, by JetBrains, is a very good IDE for developing with Python.
-
-
-Configure the Python interpreter in PyCharm
---------------------------------------------
-
-First, excluded the ``.conda-env`` folder from PyCharm.
-Do so, in PyCharm, right-click on the ``.conda-env`` folder, and ``Mark Directory as > Excluded``.
-
-Then, you can add the Conda environment as a Python interpreter in PyCharm.
-
-    ..  image:: devtools/images/pycharm-exclude_conda_env.png
-        :alt: PyCharm: Exclude Conda environment
-        :align: center
-        :width: 40%
-
-
-In PyCharm settings, open ``File > Settings``, go to ``Python Interpreter``,
-and add click add interpreter (at the top left):
-
-    ..  image:: devtools/images/pycharm-add_Python_interpreter.png
-        :alt: PyCharm: Python interpreter settings
-        :align: center
-        :width: 80%
-
-Select ``Conda Environment``, ``Use existing environment``,
-and select the desired environment from the list (the one in the ``.conda-env`` folder):
-
-    ..  image:: devtools/images/pycharm-set_conda_env_as_interpreter.png
-        :alt: PyCharm: Set Conda environment as interpreter
-        :align: center
-        :width: 80%
-
-Then you can check the list of installed packages in the ``Packages`` table. You should see
-this source package and its dependencies. Make sure to turn off the ``Use Conda Package Manager``
-option to see also the packages installed through pip:
-
-    ..  image:: devtools/images/pycharm-list_all_conda_packages.png
-        :alt: PyCharm: Conda environment packages
-        :align: center
-        :width: 80%
-
-
-Run the tests from PyCharm
---------------------------
-First, right click on the ``tests`` folder and select ``Mark Directory as > Test Sources Root``:
-
-    ..  image:: devtools/images/pycharm-mark_directory_as_tests.png
-        :alt: PyCharm: Add Python interpreter
-        :align: center
-        :width: 40%
-
-You can now start tests with a right click on the ``tests`` folder and
-select ``Run 'pytest in tests'``, or select the folder and just hit ``Ctrl+Shift+F10``.
-
-PyCharm will nicely present the test results and logs:
-
-    ..  image:: devtools/images/pycharm-test_results.png
-        :alt: PyCharm: Run tests
-        :align: center
-        :width: 80%
-
-
-Execute tests with coverage from PyCharm
-----------------------------------------
-
-You can run the tests with a nice report of the code coverage, thanks to the pytest-cov plugin
-(already installed in the virtual environment as development dependency as per `pyproject.toml`_).
-
-
-To set up this option in PyCharm, right click on the ``tests`` folder and ``Modify Run Configuration...``,
-then add the following option in the ``Additional Arguments`` field:
-
-    ..  image:: devtools/images/pycharm-menu_modify_test_run_config.png
-        :alt: PyCharm tests contextual menu: modify run configuration
-        :width: 30%
-
-    ..  image:: devtools/images/pycharm-dialog_edit_test_run_config.png
-        :alt: PyCharm dialog: edit tests run configuration
-        :width: 60%
-
-select ``pytest in tests``, and add the following option in the ``Additional Arguments`` field::
-
-    --cov-report html
-
-Then, run the tests as usual, and you will get a nice report of the code coverage.
-
-
-Some useful plugins for PyCharm
---------------------------------
-Here is a suggestion for some plugins you can install in PyCharm.
-
-- `Toml`_, to edit and validate ``pyproject.toml`` file.
-- `IdeaVim`_, for Vim lovers.
-- `GitHub Copilot`_, for AI assisted coding.
-
-.. _PyCharm: https://www.jetbrains.com/pycharm/
-
-.. _Toml: https://plugins.jetbrains.com/plugin/8195-toml/
-.. _IdeaVim: https://plugins.jetbrains.com/plugin/164-ideavim/
-.. _GitHub Copilot: https://plugins.jetbrains.com/plugin/17718-github-copilot
-
-.. _pyproject.toml: pyproject.toml
-.. _.pre-commit-config.yaml: .pre-commit-config.yaml
-
+Exclude ``.pixi`` from indexing and configure an existing Python interpreter:
+``.pixi/envs/default/python.exe`` on Windows, or
+``.pixi/envs/default/bin/python`` on Linux.
+Mark ``tests`` as a Test Sources Root and use pytest as the test runner.
 
 Copyright
 ^^^^^^^^^

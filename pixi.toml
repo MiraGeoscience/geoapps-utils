@@ -1,0 +1,99 @@
+[workspace]
+name = "geoapps-utils"
+requires-pixi = "==0.67.2"
+channels = ["https://repo.prefix.dev/conda-forge"]
+platforms = ["win-64", "linux-64"]
+
+[activation.env]
+PYTHONNOUSERSITE = "1"
+
+[dependencies]
+matplotlib-base = "3.10.*"
+numpy = ">=2.4.2,<2.5"
+pydantic = "2.12.*"
+scipy = "1.17.*"
+packaging = "*"
+uv = "*"
+# Lock the build backend too, so installing the local package needs no build solve.
+poetry-core = ">=2.2.1"
+poetry-dynamic-versioning = ">=1.9.1,<2"
+markupsafe = ">=2"
+dunamai = ">=1.25,<2"
+jinja2 = ">=3,<4"
+tomlkit = ">=0.13"
+# Keep geoh5py's indirect dependencies in Conda, not PyPI.
+defusedxml = ">=0.7.1,<0.8"
+h5py = ">=3.15.1,<3.16"
+pillow = "13.*"
+psutil = ">=7.2.2,<7.3"
+
+[pypi-dependencies]
+geoh5py = ">=0.14.0b1,<0.15"
+# geoh5py = { git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "release/ga-4.9" }
+
+[environments]
+default = { features = ["py312", "test", "lint", "dev"], solve-group = "py312" }
+py312 = { features = ["py312", "test", "lint"], solve-group = "py312" }
+py313 = { features = ["py313", "test", "lint"], solve-group = "py313" }
+py314 = { features = ["py314", "test", "lint"], solve-group = "py314" }
+runtime = { features = ["py312"], solve-group = "py312" }
+runtime-py313 = { features = ["py313"], solve-group = "py313" }
+runtime-py314 = { features = ["py314"], solve-group = "py314" }
+
+[feature.py312.dependencies]
+python = "3.12.*"
+
+[feature.py313.dependencies]
+python = "3.13.*"
+
+[feature.py314.dependencies]
+python = "3.14.*"
+
+[feature.dev.dependencies]
+pygments = "*"
+ipython = "*"
+
+[feature.dev.tasks]
+repl = "ipython"
+
+[feature.test.dependencies]
+pytest = "*"
+pytest-cov = "*"
+pyyaml = "*"
+
+[feature.test.tasks]
+test = { cmd = "pytest --cov --cov-report=xml", depends-on = ["install"], description = "Install the local package without changing locked dependencies and run tests" }
+
+[feature.test.tasks.test-local]
+description = "Run tests with editable dependencies from sibling checkouts"
+args = [{ arg = "packages", default = "geoh5py" }]
+depends-on = [
+    { task = "install" },
+    { task = "use-local-deps", args = ["{{ packages }}"] },
+]
+cmd = "uv pip show --python \"$CONDA_PREFIX\" {{ packages }} && pytest --cov --cov-report=xml"
+
+[feature.lint.dependencies]
+pylint = ">=4.0.9,<5"
+
+[feature.lint.tasks]
+lint = { cmd = "pylint", depends-on = ["install"], description = "Run pylint on the installed local package" }
+
+[tasks]
+install = { cmd = "uv pip install --python \"$CONDA_PREFIX\" --no-deps --no-build-isolation --editable . && uv pip check --python \"$CONDA_PREFIX\"", description = "Install the local package without including its dynamic version in pixi.lock and verify installed requirements" }
+validate-deps = { cmd = "python devtools/validate_pixi.py", description = "Check pyproject requirements in every locked environment and platform without installing them" }
+test-pyvers = { cmd = "pixi run --frozen -e py312 test && pixi run --frozen -e py313 test && pixi run --frozen -e py314 test", description = "Install and test the local package separately in every Python environment" }
+
+[tasks.show-pip-source]
+description = "Display installed package metadata and source"
+args = [{ arg = "packages", default = "geoh5py" }]
+cmd = "uv pip show --python \"$CONDA_PREFIX\" {{ packages }}"
+
+[tasks.use-local-deps]
+description = "Install editable dependencies from sibling checkouts without changing Conda packages"
+args = [{ arg = "packages", default = "geoh5py" }]
+cmd = """
+uv pip install --python "$CONDA_PREFIX" --no-deps --no-build-isolation --force-reinstall \
+{% for package in packages | split %} -e ../{{ package | trim }}{% endfor %} \
+&& uv pip check --python "$CONDA_PREFIX"
+"""

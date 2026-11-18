@@ -24,28 +24,41 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  call-workflow-static-analysis:
-    name: Static analysis
-    uses: MiraGeoscience/CI-tools/.github/workflows/reusable-python-static_analysis.yml@edb72d7524d25db3b4eb976890eb6837a8eb39f8 # v4.0.1
+  pytest:
+    name: Pytest (${{ matrix.environment }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: read
-      pull-requests: read
-    with:
-      package-manager: 'conda'
-      app-name: 'geoapps_utils'
-      python-version: '3.12'
-  call-workflow-pytest:
-    name: Pytest
-    uses: MiraGeoscience/CI-tools/.github/workflows/reusable-python-pytest.yml@edb72d7524d25db3b4eb976890eb6837a8eb39f8 # v4.0.1
-    permissions:
-      contents: read
-      pull-requests: read
-    with:
-      package-manager: 'conda'
-      python-versions: '["3.12", "3.13", "3.14"]'
-      os: '["ubuntu-latest", "windows-latest"]'
-      cache-number: 1
-      codecov-reference-python-version: '3.12'
-      codecov-reference-os: '["windows-latest"]'
-    secrets:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [py312, py313, py314]
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: prefix-dev/setup-pixi@5185adfbffb4bd703da3010310260805d89ebb11 # v0.9.6
+        with:
+          pixi-version: v0.67.2
+          environments: ${{ matrix.environment }}
+          locked: true
+          cache: true
+      - name: Check lock freshness
+        run: pixi lock --check
+      - name: Validate every locked environment and platform
+        if: matrix.environment == 'py312' && matrix.os == 'ubuntu-latest'
+        run: pixi run --frozen -e py312 validate-deps
+      - name: Run tests
+        run: pixi run --frozen -e ${{ matrix.environment }} test
+      - name: Static analysis
+        if: matrix.environment == 'py312' && matrix.os == 'ubuntu-latest'
+        run: pixi run --frozen -e py312 lint geoapps_utils tests
+      - name: Codecov
+        if: matrix.environment == 'py312' && matrix.os == 'windows-latest' && github.actor != 'dependabot[bot]'
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}

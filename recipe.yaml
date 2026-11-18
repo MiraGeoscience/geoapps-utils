@@ -32,7 +32,7 @@ requirements:
   run:
     - python >=${{ python_min }}
     # Mira packages
-    - geoh5py >=0.14.0a, 0.14.*
+    - geoh5py >=0.14.0b1, 0.14.*
     # direct dependencies
     - pillow >=13.0.0, 13.*
     - numpy >=2.4.2, 2.4.*
@@ -51,9 +51,12 @@ tests:
     requirements:
       run:
         - pytest
+        - packaging
     files:
       source:
         - tests/
+        - devtools/__init__.py
+        - devtools/validate_pixi.py
   - package_contents:
       files:
         - site-packages/${{ module_name }}/_version.py

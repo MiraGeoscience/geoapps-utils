@@ -7,7 +7,7 @@
       <excludeFolder url="file://$MODULE_DIR$/.conda-env" />
       <excludeFolder url="file://$MODULE_DIR$/.pixi" />
     </content>
-    <orderEntry type="jdk" jdkName=".conda-env (geoapps-utils)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="default (geoapps-utils)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
