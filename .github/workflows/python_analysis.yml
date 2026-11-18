@@ -24,40 +24,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  pytest:
-    name: Pytest (${{ matrix.environment }}, ${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+  call-workflow-static-analysis:
+    name: Static analysis
+    uses: MiraGeoscience/CI-tools/.github/workflows/reusable-python-static_analysis.yml@20da2e032e4878ec1c6cdb4cf52d02a8cee24ae6 # GA-9681
     permissions:
       contents: read
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        environment: [py312, py313, py314]
-        os: [ubuntu-latest, windows-latest]
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: prefix-dev/setup-pixi@5185adfbffb4bd703da3010310260805d89ebb11 # v0.9.6
-        with:
-          pixi-version: v0.67.2
-          environments: ${{ matrix.environment }}
-          locked: true
-          cache: true
-      - name: Check lock freshness
-        run: pixi lock --check
-      - name: Install local package and check dependency compatibility
-        run: pixi run --frozen -e ${{ matrix.environment }} install
-      - name: Run tests
-        run: pixi run --frozen -e ${{ matrix.environment }} test
-      - name: Static analysis
-        if: matrix.environment == 'py312' && matrix.os == 'ubuntu-latest'
-        run: pixi run --frozen -e py312 lint geoapps_utils tests
-      - name: Codecov
-        if: matrix.environment == 'py312' && matrix.os == 'windows-latest' && github.actor != 'dependabot[bot]'
-        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
-        with:
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }}
+      pull-requests: read
+    with:
+      package-manager: 'pixi'
+      app-name: 'geoapps_utils'
+      python-version: '3.12'
+      pixi-version: 'v0.67.2'
+  call-workflow-pytest:
+    name: Pytest
+    uses: MiraGeoscience/CI-tools/.github/workflows/reusable-python-pytest.yml@20da2e032e4878ec1c6cdb4cf52d02a8cee24ae6 # GA-9681
+    permissions:
+      contents: read
+      pull-requests: read
+    with:
+      package-manager: 'pixi'
+      python-versions: '["3.12", "3.13", "3.14"]'
+      pixi-version: 'v0.67.2'
+      pixi-setup-task: 'install'
+      os: '["ubuntu-latest", "windows-latest"]'
+      codecov-reference-python-version: '3.12'
+      codecov-reference-os: '["windows-latest"]'
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
