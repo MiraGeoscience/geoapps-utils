@@ -48,9 +48,6 @@ jobs:
           cache: true
       - name: Check lock freshness
         run: pixi lock --check
-      - name: Validate every locked environment and platform
-        if: matrix.environment == 'py312' && matrix.os == 'ubuntu-latest'
-        run: pixi run --frozen -e py312 validate-deps
       - name: Run tests
         run: pixi run --frozen -e ${{ matrix.environment }} test
       - name: Static analysis

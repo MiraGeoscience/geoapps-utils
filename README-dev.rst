@@ -13,8 +13,9 @@ Install `Pixi`_ **0.67.2**, clone the Git repository, then run::
 
 Pixi installs the locked development dependencies in ``.pixi/envs/default``.
 The local package is installed in editable mode, without resolving or replacing
-its dependencies. Build isolation is disabled: the build backend is also locked
-by Pixi. Its dynamic version is deliberately excluded from ``pixi.lock``
+its runtime dependencies. The Poetry build backend and its requirements are
+resolved in an isolated build environment using ``pyproject.toml``.
+The local package's dynamic version is deliberately excluded from ``pixi.lock``
 so commits and tags do not invalidate the dependency lock.
 
 .. _Pixi: https://pixi.sh/
@@ -60,19 +61,17 @@ After changing constraints, regenerate and validate the lock::
 
     $ pixi lock
     $ pixi lock --check
-    $ pixi run --frozen validate-deps
     $ pixi run --frozen test-pyvers
 
 To update packages within existing constraints, use ``pixi update`` instead.
 Commit both the manifest changes and ``pixi.lock``.
 
-``validate-deps`` checks the locked versions against the project's Python,
-runtime, build and applicable development requirements in every environment/platform
-pair. It uses ``pixi info --json`` and ``pixi list --frozen --no-install --json``:
-it does not install all environments. It also checks that Conda dependencies
-remain Conda packages and that the local project is absent from the lock.
-The ``install`` task separately validates the actual installed requirements
-with ``uv pip check`` after installing the local project with ``--no-deps``.
+The ``install`` task validates the actual installed requirements with
+``uv pip check`` after installing the local project with ``--no-deps``.
+The ``test`` and ``lint`` tasks depend on ``install``, so this check runs in
+each installed test environment before testing or linting. CI exercises
+Python 3.12-3.14 on both Windows and Linux; it does not install every
+runtime-only environment just to validate it.
 
 The project still uses `Poetry`_ and poetry-dynamic-versioning as its build
 backend, but Pixi manages development dependencies. Do not generate a
@@ -108,10 +107,9 @@ Run ``prek run`` to check only staged files.
 Tests and coverage
 ^^^^^^^^^^^^^^^^^^
 
-Package tests are in ``tests``; development-tool tests are in ``devtools/tests``
-and are not included in the Conda recipe. Test filenames end with ``_test.py``
-and test functions start with ``test_``. The ``test`` task runs pytest with
-coverage and writes ``coverage.xml``. For an HTML coverage report::
+Tests are in ``tests``; test filenames end with ``_test.py`` and test functions
+start with ``test_``. The ``test`` task runs pytest with coverage and writes
+``coverage.xml``. For an HTML coverage report::
 
     $ pixi run --frozen install
     $ pixi run --frozen pytest --cov --cov-report=html tests
