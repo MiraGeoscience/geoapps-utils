@@ -15,8 +15,8 @@
 version: 1
 metadata:
   content_hash:
-    win-64: 4c282d3de21d8bd37b7fd2b5a995e7cc81fb8e20efa829ff1fafab1265388717
-    linux-64: 0e0a8f836a6d0996d936adfd268912e11d3acc07c25e0d07ff6ed7ce67f148d0
+    win-64: d32ccf5e7b68d1c7773d74df0f218ca1c1fef9352c1c81944dd53489cdc4c85c
+    linux-64: 79d61325a1daa1e142ccfda820e8b8794bacab70b1f1f38459d2777c0896b58e
   channels:
   - url: conda-forge
     used_env_vars: []
@@ -669,6 +669,30 @@ package:
   hash:
     md5: 4c2a8fef270f6c69591889b93f9f55c1
     sha256: bb47aec5338695ff8efbddbc669064a3b10fe34ad881fb8ad5d64fbfa6910ed1
+  category: main
+  optional: false
+- name: defusedxml
+  version: 0.7.1
+  manager: conda
+  platform: linux-64
+  dependencies:
+    python: '>=3.6'
+  url: https://repo.prefix.dev/conda-forge/noarch/defusedxml-0.7.1-pyhd8ed1ab_0.tar.bz2
+  hash:
+    md5: 961b3a227b437d82ad7054484cfa71b2
+    sha256: 9717a059677553562a8f38ff07f3b9f61727bd614f505658b0a5ecbcf8df89be
+  category: main
+  optional: false
+- name: defusedxml
+  version: 0.7.1
+  manager: conda
+  platform: win-64
+  dependencies:
+    python: '>=3.6'
+  url: https://repo.prefix.dev/conda-forge/noarch/defusedxml-0.7.1-pyhd8ed1ab_0.tar.bz2
+  hash:
+    md5: 961b3a227b437d82ad7054484cfa71b2
+    sha256: 9717a059677553562a8f38ff07f3b9f61727bd614f505658b0a5ecbcf8df89be
   category: main
   optional: false
 - name: dill
@@ -3332,26 +3356,6 @@ package:
   hash:
     md5: e4ac308c39d6d0e131154976da67cf3b
     sha256: ca7daae4f218a11fab82cc2857f0ea518ec3f46acec60490485347a4c22c6b3e
-  category: main
-  optional: false
-- name: defusedxml
-  version: 0.7.1
-  manager: pip
-  platform: linux-64
-  dependencies: {}
-  url: https://files.pythonhosted.org/packages/07/6c/aa3f2f849e01cb6a001cd8554a88d4c77c5c1a31c95bdf1cf9301e6d9ef4/defusedxml-0.7.1-py2.py3-none-any.whl
-  hash:
-    sha256: a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61
-  category: main
-  optional: false
-- name: defusedxml
-  version: 0.7.1
-  manager: pip
-  platform: win-64
-  dependencies: {}
-  url: https://files.pythonhosted.org/packages/07/6c/aa3f2f849e01cb6a001cd8554a88d4c77c5c1a31c95bdf1cf9301e6d9ef4/defusedxml-0.7.1-py2.py3-none-any.whl
-  hash:
-    sha256: a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61
   category: main
   optional: false
 - name: geoh5py
