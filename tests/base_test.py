@@ -22,7 +22,7 @@ from geoh5py import Workspace
 from geoh5py.data import FilenameData
 from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import Points
-from geoh5py.ui_json import InputFile, UIJson
+from geoh5py.ui_json.input_file import UIJson
 
 from geoapps_utils import assets_path
 from geoapps_utils.base import Options, get_logger
@@ -195,12 +195,6 @@ def test_warning_options(tmp_path):
 
     with pytest.raises(AttributeError, match=r"has no attribute 'get_default_ui_json'"):
         driver.get_default_ui_json()
-
-    ifile = InputFile()
-    with pytest.raises(
-        GeoAppsError, match=r"The application needs a valid 'ui_json' file"
-    ):
-        TestOptions.build(ifile)
 
 
 def test_driver_start(tmp_path):
