@@ -5,7 +5,9 @@ Setup for development
    :local:
    :depth: 2
 
-Install `Pixi`_ **0.84.2**, clone the Git repository, then run::
+Install `Pixi`_ **0.84.2** and external `uv <https://docs.astral.sh/uv/>`_.
+Keep both commands on ``PATH``; uv is not installed by Pixi.
+Clone the Git repository, then run::
 
     $ pixi lock --check
     $ pixi run --frozen install
