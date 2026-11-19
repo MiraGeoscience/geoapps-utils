@@ -11,7 +11,7 @@
 import json
 from pathlib import Path
 
-from geoh5py.ui_json import InputFile
+from geoh5py.ui_json.input_file import InputFile
 from geoh5py.workspace import Workspace
 
 from geoapps_utils import assets_path

@@ -19,7 +19,7 @@ import numpy as np
 import pytest
 from geoh5py.groups import DrillholeGroup
 from geoh5py.objects import Drillhole
-from geoh5py.ui_json import InputFile
+from geoh5py.ui_json.input_file import InputFile
 from geoh5py.workspace import Workspace
 from pydantic import BaseModel, ValidationError
 

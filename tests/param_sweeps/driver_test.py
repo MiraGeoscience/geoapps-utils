@@ -14,7 +14,7 @@ from pathlib import Path
 
 import numpy as np
 from geoh5py.objects import Points
-from geoh5py.ui_json import InputFile
+from geoh5py.ui_json.input_file import InputFile
 from geoh5py.workspace import Workspace
 
 from geoapps_utils import assets_path
