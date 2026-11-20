@@ -20,7 +20,8 @@ from typing import Any, ClassVar, Self
 from geoh5py import Workspace
 from geoh5py.groups import UIJsonGroup
 from geoh5py.shared.entity_container import EntityContainer
-from geoh5py.ui_json import InputFile, UIJson, monitored_directory_copy
+from geoh5py.ui_json import UIJson, monitored_directory_copy
+from geoh5py.ui_json.input_file import InputFile
 from geoh5py.ui_json.utils import fetch_active_workspace
 from packaging.version import Version
 from pydantic import BaseModel, ConfigDict, ValidationError, field_validator
