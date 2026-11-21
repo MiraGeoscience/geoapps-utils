@@ -5,147 +5,134 @@ Setup for development
    :local:
    :depth: 2
 
-Install `Pixi`_ **0.84.2** and external `uv <https://docs.astral.sh/uv/>`_.
-Keep both commands on ``PATH``; uv is not installed by Pixi. Clone the repository,
-then install and test the locked Python 3.12 environment::
+Prerequisites
+^^^^^^^^^^^^^
+
+* **Pixi and uv:** Install `Pixi <https://pixi.sh/>`_ 0.84.2 and external
+  `uv <https://docs.astral.sh/uv/>`_. Keep both commands on ``PATH``; uv is not
+  installed by Pixi.
+* **Git LFS:** This repository uses Git LFS. Follow GitHub's `installation
+  instructions
+  <https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage>`_.
+* **prek:** Install `prek <https://prek.j178.dev/>`_ for the configured Git
+  hooks.
+* **IDE interpreter:** Configure your IDE to use the interpreter inside
+  ``.pixi/envs/default`` and exclude ``.pixi`` from source indexing.
+  For **PyCharm**, follow Pixi's `JetBrains integration guide
+  <https://pixi.prefix.dev/latest/integration/editor/jetbrains/>`_.
+* **JFrog authentication:** authenticate with Mira  Artifactory using your
+  own credentials::
+
+      pixi auth login mirageoscienceltd.jfrog.io
+
+  Never add credentials to ``pixi.toml`` or ``pixi.lock``.
+
+Install and test
+^^^^^^^^^^^^^^^^
+
+The shared lock covers Windows and Linux with multiple Python versions::
 
     pixi install --locked -e py312
     pixi run --frozen -e py312 install
     pixi run --frozen -e py312 test
 
-The shared lock covers Windows and Linux with Python 3.12, 3.13 and 3.14.
-Use ``py313`` or ``py314`` to test another supported version, or run
-``pixi run --frozen test-pyvers`` to test all three. The ``runtime`` environments
-omit development tools. The ``install`` task installs this checkout in editable
-mode without changing the locked dependencies, then checks compatibility with
-``uv pip check``. Tests and linting use the source checkout directly.
+The ``install`` task installs this checkout in editable mode without changing
+locked dependencies, then checks package compatibility.
 
-The Poetry build backend and its requirements are resolved in an isolated build
-environment using ``pyproject.toml``. The local package's dynamic version is
-deliberately excluded from ``pixi.lock`` so commits and tags do not invalidate
-the dependency lock.
+The ``runtime`` environment omits test and lint tools.
 
-Use the pinned Pixi version locally and in CI: older releases may not support
-the lock format or compute the same lock hashes.
+On Windows, install the locked runtime into Geoscience Analyst with::
 
-.. _Pixi: https://pixi.sh/
-.. _prek: https://prek.j178.dev/
-.. _Poetry: https://python-poetry.org/
+    install_in_analyst.bat
+    install_in_analyst.bat -e --name simpeg-drivers-dev
 
-Dependencies and sources
-^^^^^^^^^^^^^^^^^^^^^^^^
+The script exports the locked ``win-64`` runtime, installs its dependencies
+through Analyst, and installs this checkout without resolving dependencies
+again. Pass ``-e`` first for editable mode; optional ``--conda`` and ``--name``
+arguments are forwarded to Analyst. A valid ``pixi.lock`` is required.
 
-``pixi.toml`` defines Python 3.12, 3.13 and 3.14 environments for Windows and Linux.
-``default`` includes the Python 3.12 test, lint and interactive development tools.
-``py312``, ``py313`` and ``py314`` are the test environments used by CI.
-``runtime``, ``runtime-py313`` and ``runtime-py314`` omit the development tools
-and share their dependency versions with the corresponding test environments.
+Working with local sibling checkouts
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Scientific dependencies and indirect dependencies such as ``defusedxml`` come
-from Conda. The ``mira-pypi`` feature selects the published ``geoh5py``
-prerelease from the public PyPI index; no private-index authentication is needed.
-For development against the ``release/ga-4.9`` source, the corresponding Git
-dependency is documented as a comment in ``pixi.toml``.
+For a one-off test run, ``test-local`` installs the sibling checkouts as
+editable dependencies and then runs the tests::
 
-The lock source check derives the allowed PyPI package names from the
-``mira-pypi`` feature and checks every locked environment and platform. Package
-names are read from ``pixi.lock`` metadata, so this also works with Git sources.
-Keep compatible bounds on indirect Conda dependencies: Pixi solves Conda before
-PyPI and does not backtrack between them.
+    pixi run -e py312 test-local
 
-Run a task in a particular environment with ``-e``::
+For ongoing development or IDE debugging, install editable sibling checkouts
+into the default environment (the IDE environment) with::
 
-    pixi run --frozen -e py314 test
-    pixi run --frozen lint geoapps_utils tests
-    pixi run --frozen repl
+    pixi run use-local-deps
+
+Pixi syncs the environment from the manifest and lock file before running the
+task; the task then installs the local checkouts. A subsequent ``pixi run``
+without ``--as-is`` syncs again and replaces those editable installs with the
+locked packages. An IDE configured to launch the ``default`` environment's
+Python interpreter directly does not run ``pixi`` before each launch, so the
+editable installs remain in effect.
+
+Building documentation
+^^^^^^^^^^^^^^^^^^^^^^
+
+Read the Docs installs uv 0.13.8 separately.
+
+The separate ``docs`` environment uses Python 3.14 and Jupyter Book 1.
+Fetch the Git LFS documentation images, then build HTML with::
+
+    git lfs pull
+    pixi run --frozen --environment docs build-docs
+
+The task installs the local package without dependencies, generates ``docs/conf.py``
+from ``docs/_config.yml``, and builds the existing book into ``docs/_build/html``.
+The generated Sphinx configuration is ignored; edit ``docs/_config.yml`` or
+``docs/_ext/dynamic_config.py`` instead. Read the Docs uses the same task.
+
 
 Updating dependencies
 ^^^^^^^^^^^^^^^^^^^^^
 
-Runtime package requirements are defined in ``[project.dependencies]`` in
-``pyproject.toml``. Development requirements use PEP 735 dependency groups.
-Match those constraints in the appropriate dependencies/features of ``pixi.toml``.
-Indirect dependencies which must be supplied by Conda belong in ``pixi.toml``,
-not in the package's published requirements.
+Keep published package requirements in ``pyproject.toml`` and their Conda/PyPI
+environment equivalents in ``pixi.toml`` aligned. Update the recipe's matching
+runtime requirements when a dependency constraint changes.
 
-After changing constraints, regenerate and validate the lock::
+After editing requirements, run ``pixi update`` to update dependencies, or
+``pixi lock`` to resolve the manifest and refresh the lock file without
+installing the environments.
 
-    pixi lock
-    pixi install --locked -e py312
-    pixi run --frozen -e py312 install
-    pixi run --frozen test-pyvers
+Commit ``pixi.lock`` with the manifest changes. In ``pixi.toml``, the
+``mira-pypi`` feature lists Mira packages resolved from PyPI or GitHub:
 
-To update packages within existing constraints, use ``pixi update`` instead.
-Commit both the manifest changes and ``pixi.lock``.
+- On a development branch, comment out published versions and use git sources.
+- When preparing a release, use published versions and comment out git sources.
 
-The ``install`` task validates the actual installed requirements with
-``uv pip check`` after installing the local project with ``--no-deps``.
-It is a separate setup/validation step, not a dependency of ``test``,
-``test-local`` or ``lint``. CI runs it explicitly before testing in each
-test environment. CI exercises
-Python 3.12-3.14 on both Windows and Linux; it does not install every
-runtime-only environment just to validate it.
+The lock file is checked by ``tests/lock_test.py``: it ensures all dependencies
+are resolved from Conda, except for the Mira packages listed under the
+``mira-pypi`` feature. Keep compatibility bounds on indirect Conda dependencies:
+Pixi solves Conda before PyPI and does not backtrack between them.
 
-The project still uses `Poetry`_ and poetry-dynamic-versioning as its build
-backend, but Pixi manages development dependencies. Do not generate a
-``poetry.lock`` or use Poetry to install the development environment.
-
-Testing local dependencies
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The tasks adapted from ``DEVOPS-693`` support testing sibling checkouts::
-
-    $ pixi run --frozen test-local
-    $ pixi run --frozen test-local "geoh5py"
-    $ pixi run --frozen show-pip-source geoh5py
-
-``test-local`` installs the specified sibling directories in editable mode
-with ``--no-deps`` and checks installed requirements before running pytest.
-This intentionally changes the installed packages without changing the lock.
-Run ``pixi reinstall --frozen -e default geoh5py`` to restore the locked dependency.
-
-Configure Git hooks
-^^^^^^^^^^^^^^^^^^^
-
-Install `prek`_ and configure the existing ``.pre-commit-config.yaml`` hooks::
-
-    $ prek install
-    $ prek install -t prepare-commit-msg -t commit-msg
-    $ prek run --all-files
-
-The commit-message hooks check the JIRA issue ID against the branch name.
-The pylint hook runs in the frozen Pixi environment.
-Run ``prek run`` to check only staged files.
-
-Tests and coverage
-^^^^^^^^^^^^^^^^^^
-
-Tests are in ``tests``; test filenames end with ``_test.py`` and test functions
-start with ``test_``. The ``test`` task runs pytest with coverage and writes
-``coverage.xml``. For an HTML coverage report::
-
-    $ pixi run --frozen install
-    $ pixi run --frozen pytest --cov --cov-report=html tests
-
-Open ``htmlcov/index.html`` to view the report.
-
-Git LFS
-^^^^^^^
-
-If large files are needed, install `Git LFS`_ and run ``git lfs install``.
-Add tracking patterns with ``git lfs track`` and commit ``.gitattributes``
-along with the files.
-
-.. _Git LFS: https://git-lfs.com/
-
-IDE: PyCharm
-^^^^^^^^^^^^
-
-Exclude ``.pixi`` from indexing and configure an existing Python interpreter:
-``.pixi/envs/default/python.exe`` on Windows, or
-``.pixi/envs/default/bin/python`` on Linux.
-Mark ``tests`` as a Test Sources Root and use pytest as the test runner.
-
-Copyright
+Git hooks
 ^^^^^^^^^
-Copyright (c) 2022-2026 Mira Geoscience Ltd.
+
+Install `prek <https://prek.j178.dev/>`_ and use the existing hook configuration::
+
+    prek install -t prepare-commit-msg -t commit-msg -t pre-commit -f --prepare-hooks
+    prek run --all-files
+
+The local pylint hook runs in the locked ``py312`` environment.
+
+Test layout
+^^^^^^^^^^^
+
+Tests live under ``tests`` and use the ``_test.py`` filename suffix.
+
+Repository-specific notes
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This repository's ``mira-pypi`` feature resolves ``geoh5py`` from the public
+PyPI index; no private-index authentication is required. The ``test-local``
+and ``use-local-deps`` tasks are available for the ``geoh5py`` sibling checkout.
+This repository has no ``install_in_analyst.bat`` script and no ``docs``
+environment or ``build-docs`` task, so those baseline instructions do not apply.
+---------
+
+*Copyright (c) 2023-2026 Mira Geoscience Ltd.*
