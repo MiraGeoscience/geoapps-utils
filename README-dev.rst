@@ -6,21 +6,24 @@ Setup for development
    :depth: 2
 
 Install `Pixi`_ **0.84.2** and external `uv <https://docs.astral.sh/uv/>`_.
-Keep both commands on ``PATH``; uv is not installed by Pixi.
-Clone the Git repository, then run::
+Keep both commands on ``PATH``; uv is not installed by Pixi. Clone the repository,
+then install and test the locked Python 3.12 environment::
 
-    $ pixi lock --check
-    $ pixi run --frozen install
-    $ pixi run --frozen test
+    pixi install --locked -e py312
+    pixi run --frozen -e py312 install
+    pixi run --frozen -e py312 test
 
-Pixi installs the locked development dependencies in ``.pixi/envs/default``.
-The explicit ``install`` task installs the local package in editable mode,
-without resolving or replacing its runtime dependencies.
-Tests and linting use the source checkout directly and do not require this step.
-The Poetry build backend and its requirements are
-resolved in an isolated build environment using ``pyproject.toml``.
-The local package's dynamic version is deliberately excluded from ``pixi.lock``
-so commits and tags do not invalidate the dependency lock.
+The shared lock covers Windows and Linux with Python 3.12, 3.13 and 3.14.
+Use ``py313`` or ``py314`` to test another supported version, or run
+``pixi run --frozen test-pyvers`` to test all three. The ``runtime`` environments
+omit development tools. The ``install`` task installs this checkout in editable
+mode without changing the locked dependencies, then checks compatibility with
+``uv pip check``. Tests and linting use the source checkout directly.
+
+The Poetry build backend and its requirements are resolved in an isolated build
+environment using ``pyproject.toml``. The local package's dynamic version is
+deliberately excluded from ``pixi.lock`` so commits and tags do not invalidate
+the dependency lock.
 
 Use the pinned Pixi version locally and in CI: older releases may not support
 the lock format or compute the same lock hashes.
@@ -29,8 +32,8 @@ the lock format or compute the same lock hashes.
 .. _prek: https://prek.j178.dev/
 .. _Poetry: https://python-poetry.org/
 
-Environments and tasks
-^^^^^^^^^^^^^^^^^^^^^^
+Dependencies and sources
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 ``pixi.toml`` defines Python 3.12, 3.13 and 3.14 environments for Windows and Linux.
 ``default`` includes the Python 3.12 test, lint and interactive development tools.
@@ -40,28 +43,21 @@ and share their dependency versions with the corresponding test environments.
 
 Scientific dependencies and indirect dependencies such as ``defusedxml`` come
 from Conda. The ``mira-pypi`` feature selects the published ``geoh5py``
-prerelease from the public PyPI index. For development against the
-``release/ga-4.9`` source, the corresponding Git dependency is documented as a
-comment in ``pixi.toml``.
+prerelease from the public PyPI index; no private-index authentication is needed.
+For development against the ``release/ga-4.9`` source, the corresponding Git
+dependency is documented as a comment in ``pixi.toml``.
 
 The lock source check derives the allowed PyPI package names from the
-``mira-pypi`` feature and checks every locked environment and platform. It uses
-package metadata from ``pixi.lock`` to resolve package names, including for Git
-sources.
+``mira-pypi`` feature and checks every locked environment and platform. Package
+names are read from ``pixi.lock`` metadata, so this also works with Git sources.
+Keep compatible bounds on indirect Conda dependencies: Pixi solves Conda before
+PyPI and does not backtrack between them.
 
 Run a task in a particular environment with ``-e``::
 
-    $ pixi run --frozen -e py314 test
-    $ pixi run --frozen lint geoapps_utils tests
-    $ pixi run --frozen repl
-
-To run tests across all supported Python versions::
-
-    $ pixi run --frozen test-pyvers
-
-To enter an interactive development shell::
-
-    $ pixi shell --frozen
+    pixi run --frozen -e py314 test
+    pixi run --frozen lint geoapps_utils tests
+    pixi run --frozen repl
 
 Updating dependencies
 ^^^^^^^^^^^^^^^^^^^^^
@@ -74,10 +70,10 @@ not in the package's published requirements.
 
 After changing constraints, regenerate and validate the lock::
 
-    $ pixi lock
-    $ pixi lock --check
-    $ pixi run --frozen install
-    $ pixi run --frozen test-pyvers
+    pixi lock
+    pixi install --locked -e py312
+    pixi run --frozen -e py312 install
+    pixi run --frozen test-pyvers
 
 To update packages within existing constraints, use ``pixi update`` instead.
 Commit both the manifest changes and ``pixi.lock``.
