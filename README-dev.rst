@@ -39,7 +39,15 @@ Environments and tasks
 and share their dependency versions with the corresponding test environments.
 
 Scientific dependencies and indirect dependencies such as ``defusedxml`` come
-from Conda. The published ``geoh5py`` prerelease comes from PyPI.
+from Conda. The ``mira-pypi`` feature selects the published ``geoh5py``
+prerelease from the public PyPI index. For development against the
+``release/ga-4.9`` source, the corresponding Git dependency is documented as a
+comment in ``pixi.toml``.
+
+The lock source check derives the allowed PyPI package names from the
+``mira-pypi`` feature and checks every locked environment and platform. It uses
+package metadata from ``pixi.lock`` to resolve package names, including for Git
+sources.
 
 Run a task in a particular environment with ``-e``::
 
