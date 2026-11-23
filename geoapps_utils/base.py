@@ -48,7 +48,7 @@ def input_file_deprecation_warning(input_file: InputFile) -> UIJson:
     if input_file.ui_json is None:
         raise GeoAppsError("The application needs a valid 'ui_json' file.")
 
-    return UIJson.from_dict(input_file.ui_json)
+    return input_file.ui_json
 
 
 class Driver(ABC):
@@ -345,14 +345,18 @@ class Options(BaseModel):
 
         return out
 
-    def flatten(self) -> dict:
+    def flatten(self, exclude_unset=True) -> dict:
         """
         Flatten the parameters to a dictionary.
+
+        :param exclude_unset: If True, exclude unset values from the output.
 
         :return: Dictionary of parameters.
         """
         ui_json = self.get_default_ui_json()
-        out = self._recursive_flatten(self.model_dump(exclude_unset=True), ui_json)
+        out = self._recursive_flatten(
+            self.model_dump(exclude_unset=exclude_unset), ui_json
+        )
 
         return out
 
