@@ -73,7 +73,7 @@ editable installs remain in effect.
 Building documentation
 ^^^^^^^^^^^^^^^^^^^^^^
 
-This repository has no ``docs`` environment or ``build-docs`` task.
+This repository has no user-facing documentation beyond the README files.
 
 Updating dependencies
 ^^^^^^^^^^^^^^^^^^^^^
