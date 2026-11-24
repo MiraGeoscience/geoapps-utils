@@ -48,7 +48,7 @@ def input_file_deprecation_warning(input_file: InputFile) -> UIJson:
     if input_file.ui_json is None:
         raise GeoAppsError("The application needs a valid 'ui_json' file.")
 
-    return UIJson.from_dict(input_file.ui_json)
+    return input_file.ui_json
 
 
 class Driver(ABC):
