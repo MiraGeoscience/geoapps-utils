@@ -14,7 +14,7 @@ from pathlib import Path
 
 import numpy as np
 from geoh5py.objects import Points
-from geoh5py.ui_json.input_file import InputFile
+from geoh5py.ui_json import UIJson
 from geoh5py.workspace import Workspace
 
 from geoapps_utils import assets_path
@@ -53,7 +53,7 @@ def test_params(tmp_path: Path):
             "worker_uijson": "worker.ui.json",
         }
     )
-    ifile = InputFile(ui_json=test)
+    ifile = UIJson.from_dict(test)
     params = SweepParams.build(ifile)
 
     assert Path(params.worker_uijson).name == "worker.ui.json"
@@ -105,8 +105,8 @@ def test_sweep(tmp_path: Path):  # pylint: disable=R0914
                 "param": {"label": "Add value", "value": 1},
             }
         )
-        ifile = InputFile(ui_json=ui_json)
-        ifile.write_ui_json("test.ui.json", path=tmp_path)
+        ifile = UIJson.from_dict(ui_json)
+        ifile.write(tmp_path / "test.ui.json")
 
     generate(str(uijson_path), parameters=["param"])
 
