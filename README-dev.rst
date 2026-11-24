@@ -50,6 +50,9 @@ locked dependencies, then checks package compatibility.
 
 The ``runtime`` environment omits test and lint tools.
 
+To install the local source package into Geoscience ANALYST, see `geoapps-install
+<https://github.com/MiraGeoscience/geoapps-install>`_ .
+
 Working with local sibling checkouts
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

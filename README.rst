@@ -40,10 +40,6 @@ geoapps-utils
 The **geoapps-utils** package provides utility functions
 used by Python applications supported by `Mira Geoscience <https://www.mirageoscience.com/mining-industry-software/geoscience-analyst/python-integration/>`_.
 
-.. contents:: Table of Contents
-   :local:
-   :depth: 3
-
 ..
     Documentation
     ^^^^^^^^^^^^^
@@ -52,77 +48,22 @@ used by Python applications supported by `Mira Geoscience <https://www.mirageosc
 
 Installation
 ^^^^^^^^^^^^
-**geoapps-utils** supports Python 3.12, 3.13 and 3.14.
+**geoapps-utils** is a Python package published on PyPI and conda-forge.
 
-Install with Pixi
------------------
+It can be installed in the usual way with ``pip``, ``uv``, or ``conda``::
 
-Install `Pixi <https://pixi.sh/>`_ **0.84.2** and external `uv <https://docs.astral.sh/uv/>`_,
-with both commands available on ``PATH``, and clone this repository.
-From the repository root, install the locked runtime and the local package::
+    pip install geoapps-utils
+    uv pip install geoapps-utils
+    conda install -c conda-forge geoapps-utils
 
-    pixi lock --check
-    pixi run --frozen -e runtime install
-
-Run commands in that environment with ``pixi run --frozen -e runtime COMMAND``.
-For development and tests, see `README-dev.rst`_.
-
-Install with PyPI
------------------
-
-You should not install the package from PyPI, as the app requires conda packages to run.
-Still, you can install it in a conda environment without its dependencies (``--no-deps``).
-
-From PyPI
-~~~~~~~~~
-
-To install the **geoapps-utils** package published on PyPI:
-
-.. code-block:: bash
-
-    pip install -U --no-deps geoapps-utils
-
-From a Git tag or branch
-~~~~~~~~~~~~~~~~~~~~~~~~
-If the package is not on PiPY yet, you can install it from a Git tag:
-
-.. code-block:: bash
-
-    pip install -U --no-deps --force-reinstall https://github.com/MiraGeoscience/geoapps-utils/archive/refs/tags/TAG.zip
-
-Or to install the latest changes available on a given Git branch:
-
-.. code-block:: bash
-
-    pip install -U --no-deps --force-reinstall https://github.com/MiraGeoscience/geoapps-utils/archive/refs/heads/BRANCH.zip
-
-.. note::
-    The ``--force-reinstall`` option is used to make sure the updated version
-    of the sources is installed, and not the cached version, even if the version number
-    did not change. The ``-U`` or ``--upgrade`` option is used to make sure to get the latest version,
-    on not merely reinstall the same version. As the package is aimed to be in a **Conda environment**, the option ``--no-deps`` is used to avoid installing the dependencies with pip, as they will be installed with conda.
-
-From a local copy of the sources
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-If you have a git clone of the package sources locally,
-you can install **geoapps-utils** from the local copy of the sources with:
-
-.. code-block:: bash
-
-    pip install -U --no-deps --force-reinstall path/to/project_folder_with_pyproject_toml
-
-Or in **editable mode**, so that you can edit the sources and see the effect immediately at runtime:
-
-.. code-block:: bash
-
-    pip install -U --no-deps --force-reinstall -e path/to/project_folder_with_pyproject_toml
+It can also be installed with ``pip`` or ``uv`` by pointing either to a local source directory
+or to a Git reference (branch or tag). See the pip or uv documentation for details.
 
 Setup for development
 ^^^^^^^^^^^^^^^^^^^^^
 To configure the development environment and tools, please see `README-dev.rst`_.
 
 .. _README-dev.rst: README-dev.rst
-
 
 Third Party Software
 ^^^^^^^^^^^^^^^^^^^^
@@ -157,3 +98,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+Trademarks
+^^^^^^^^^^
+"Python" and the Python logos are trademarks or registered trademarks of the Python Software Foundation.
