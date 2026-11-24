@@ -253,6 +253,15 @@ def run_from_outgroup_name(
                     new_workspace, copy_children=False, copy_relatives=True
                 )
 
+                if not isinstance(copy_out_group, UIJsonGroup):
+                    raise TypeError(
+                        f"Copied entity is not a UIJsonGroup. Got {type(copy_out_group)}."
+                    )
+
+                options = copy_out_group.options
+                options["geoh5"] = str(new_workspace.h5file)
+                copy_out_group.options = options
+
                 if copy_out_group is None:  # pragma: no cover
                     raise RuntimeError("Failed to copy the UIJsonGroup.")
 

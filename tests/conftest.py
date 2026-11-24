@@ -14,7 +14,6 @@ from uuid import UUID
 
 import pytest
 from geoh5py import Workspace
-from geoh5py.groups import UIJsonGroup
 from geoh5py.objects import Points
 from geoh5py.ui_json import UIJson
 from pydantic import BaseModel, ConfigDict
@@ -70,8 +69,6 @@ class TestOptionsDriver(BaseDriver):
 def uijson_path(tmp_path) -> Path:
     with Workspace.create(tmp_path / "original.geoh5") as workspace:
         points = Points.create(workspace)
-
-        out_group = UIJsonGroup.create(workspace, name="uijson_test")
         ui_json = {
             "version": "0.0.0",
             "title": "test_title",
@@ -90,18 +87,16 @@ def uijson_path(tmp_path) -> Path:
             "out_group": {
                 "group": "Output preferences",
                 "label": "UIJson group",
-                "value": out_group,
+                "value": None,
                 "groupType": "{BB50AC61-A657-4926-9C82-067658E246A0}",
                 "visible": True,
                 "optional": True,
                 "enabled": True,
             },
         }
-
-        out_group.options = ui_json
-
-        uijson_class = UIJson.infer(**ui_json)
-        uijson = uijson_class(**ui_json)
+        uijson = UIJson.from_dict(ui_json)
+        out_group = uijson.to_ui_json_group(workspace=workspace, name="uijson_test")
+        uijson.set_values(out_group=out_group)
         out_path = tmp_path / "original.ui.json"
         uijson.write(out_path)
 
