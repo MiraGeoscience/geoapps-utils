@@ -35,7 +35,7 @@ extra-index-urls = [
 ]
 
 [feature.mira-pypi.pypi-dependencies]
-# geoh5py = ">=0.14.0b1,==0.14.*"
+# geoh5py = ">=0.14.0b2,==0.14.*"
 geoh5py = { git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "release/ga-4.9" }
 
 [environments]
