@@ -19,7 +19,7 @@ import numpy as np
 import pytest
 from geoh5py.groups import DrillholeGroup
 from geoh5py.objects import Drillhole
-from geoh5py.ui_json.input_file import InputFile
+from geoh5py.ui_json import UIJson
 from geoh5py.workspace import Workspace
 from pydantic import BaseModel, ValidationError
 
@@ -98,7 +98,7 @@ def test_dataclass_invalid_values(tmp_path):
 
 def test_dataclass_input_file(tmp_path):
     valid_parameters = get_params_dict(tmp_path / f"{__name__}.geoh5")
-    ifile = InputFile(ui_json=valid_parameters)
+    ifile = UIJson.from_dict(valid_parameters)
 
     class TestOptions(Options):
         """
@@ -221,7 +221,7 @@ def test_nested_model(tmp_path):
     valid_params["value"] = "test"
     valid_params["group_type"] = "multi"
 
-    ifile = InputFile(ui_json=valid_params)
+    ifile = UIJson.from_dict(valid_params)
     model = NestedModel.build(ifile)
 
     assert isinstance(model.group, GroupParams)
