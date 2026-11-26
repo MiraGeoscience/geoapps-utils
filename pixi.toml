@@ -30,11 +30,13 @@ scipy = "1.17.*"
 
 [feature.mira-pypi.pypi-options]
 # Authenticate for this private PyPI index first; see README-dev.rst.
-index-url = "https://mirageoscienceltd.jfrog.io/artifactory/api/pypi/public-pypi-dev-local/simple"
+extra-index-urls = [
+    "https://mirageoscienceltd.jfrog.io/artifactory/api/pypi/public-pypi-dev-local/simple",
+]
 
 [feature.mira-pypi.pypi-dependencies]
-geoh5py = ">=0.14.0b1,==0.14.*"
-# geoh5py = { git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "release/ga-4.9" }
+# geoh5py = ">=0.14.0b1,==0.14.*"
+geoh5py = { git = "https://github.com/MiraGeoscience/geoh5py.git", rev = "release/ga-4.9" }
 
 [environments]
 default = { features = ["py312", "mira-pypi", "conda-rt", "test", "lint", "dev"], solve-group = "py312" }
