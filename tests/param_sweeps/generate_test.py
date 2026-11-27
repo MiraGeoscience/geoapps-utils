@@ -11,7 +11,7 @@
 import json
 from pathlib import Path
 
-from geoh5py.ui_json.input_file import InputFile
+from geoh5py.ui_json import UIJson
 from geoh5py.workspace import Workspace
 
 from geoapps_utils import assets_path
@@ -39,9 +39,9 @@ def test_generate(tmp_path: Path):
             "param2": {"label": "param2", "value": 2.5},
         }
     )
-    ifile = InputFile(ui_json=ui_json)
+    ifile = UIJson.from_dict(ui_json)
     path = tmp_path / "worker.ui.json"
-    ifile.write_ui_json("worker.ui.json", path=tmp_path)
+    ifile.write(tmp_path / "worker.ui.json")
 
     generate(str(path))
     with open(path.parent / "worker_sweep.ui.json", encoding="utf8") as file:
